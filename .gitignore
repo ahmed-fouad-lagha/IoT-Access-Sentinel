@@ -69,6 +69,7 @@ Thumbs.db
 # Test Results
 # =========================
 tests/results/
+tests/synthetic/
 .coverage
 htmlcov/
 .pytest_cache/
@@ -79,6 +80,36 @@ htmlcov/
 external_repos/
 .agent/
 wazuh-docker/
+
+# =========================
+# LaTeX
+# =========================
+
+# LaTeX auxiliary files
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.run.xml
+*.synctex.gz
+*.toc
+*.lof
+*.lot
+*.nav
+*.snm
+*.vrb
+
+# Latexmk
+latexmk/
+
+# PDF output (optional – ignore if you don’t want to version PDFs)
+*.pdf
+
+
 
 # =========================
 # AI Tools Rules
