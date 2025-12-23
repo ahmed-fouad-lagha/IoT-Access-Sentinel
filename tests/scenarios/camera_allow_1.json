@@ -1,0 +1,18 @@
+{
+    "id": "test-camera-allow-1",
+    "timestamp": "2025-12-23T10:00:00Z",
+    "rule": {
+        "level": 5,
+        "description": "IoT camera routine connection",
+        "id": "100010"
+    },
+    "device_id": "camera-office-01",
+    "device_type": "camera",
+    "source_ip": "192.168.1.100",
+    "destination_ip": "10.0.0.1",
+    "destination_port": 443,
+    "protocol": "HTTPS",
+    "expected_decision": "ALLOW",
+    "test_category": "camera_valid",
+    "description": "Valid camera during business hours from allowed network"
+}

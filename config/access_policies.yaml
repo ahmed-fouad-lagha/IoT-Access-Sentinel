@@ -1,0 +1,38 @@
+# IoT Access Control Policies
+# Define rules for when IoT devices are allowed to connect
+
+policies:
+  # Smart Camera Access Policy
+  - device_type: camera
+    description: "Security cameras allowed during business hours only"
+    allowed_hours: "09:00-17:00"
+    allowed_days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+    max_connections_per_hour: 10
+    allowed_source_networks:
+      - "192.168.1.0/24"  # Internal network
+    
+  # IoT Sensor Policy
+  - device_type: sensor
+    description: "Temperature/humidity sensors allowed 24/7 with rate limiting"
+    allowed_hours: "00:00-23:59"
+    allowed_days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    max_connections_per_hour: 60
+    allowed_source_networks:
+      - "192.168.1.0/24"
+      - "10.0.0.0/8"
+    
+  # Smart Lock Policy
+  - device_type: smart_lock
+    description: "Door locks with strict access control"
+    allowed_hours: "06:00-22:00"
+    allowed_days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    max_connections_per_hour: 5
+    allowed_source_networks:
+      - "192.168.1.0/24"
+    require_2fa: true
+
+# Default Policy (when device type not matched)
+default_policy:
+  description: "Default deny-all for unknown devices"
+  action: DENY
+  alert: true

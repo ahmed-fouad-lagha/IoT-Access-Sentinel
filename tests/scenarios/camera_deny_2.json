@@ -1,0 +1,18 @@
+{
+    "id": "test-camera-deny-2",
+    "timestamp": "2025-12-23T10:00:00Z",
+    "rule": {
+        "level": 8,
+        "description": "IoT camera connection from unauthorized network",
+        "id": "100021"
+    },
+    "device_id": "camera-office-01",
+    "device_type": "camera",
+    "source_ip": "10.5.5.100",
+    "destination_ip": "10.0.0.1",
+    "destination_port": 443,
+    "protocol": "HTTPS",
+    "expected_decision": "DENY",
+    "test_category": "camera_network_violation",
+    "description": "Camera during business hours but from unauthorized network (10.5.5.0/24)"
+}

@@ -1,0 +1,18 @@
+{
+    "id": "test-camera-deny-3",
+    "timestamp": "2025-12-23T10:00:00Z",
+    "rule": {
+        "level": 8,
+        "description": "Unknown IoT camera connection attempt",
+        "id": "100022"
+    },
+    "device_id": null,
+    "device_type": "camera",
+    "source_ip": "192.168.1.150",
+    "destination_ip": "10.0.0.1",
+    "destination_port": 443,
+    "protocol": "HTTPS",
+    "expected_decision": "DENY",
+    "test_category": "camera_unknown_device",
+    "description": "Unknown/unmanaged camera (no device_id)"
+}

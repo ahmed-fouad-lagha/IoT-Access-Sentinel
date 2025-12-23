@@ -1,0 +1,18 @@
+{
+    "id": "test-sensor-deny-1",
+    "timestamp": "2025-12-23T15:00:00Z",
+    "rule": {
+        "level": 7,
+        "description": "IoT sensor connection from unauthorized network",
+        "id": "100031"
+    },
+    "device_id": "sensor-temp-01",
+    "device_type": "sensor",
+    "source_ip": "172.16.0.100",
+    "destination_ip": "10.0.0.5",
+    "destination_port": 8883,
+    "protocol": "MQTT",
+    "expected_decision": "DENY",
+    "test_category": "sensor_network_violation",
+    "description": "Sensor from wrong network (172.16.0.0/24 not in allowed 192.168.2.0/24)"
+}

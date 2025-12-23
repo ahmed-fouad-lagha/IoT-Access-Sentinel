@@ -1,0 +1,18 @@
+{
+    "id": "test-sensor-allow-1",
+    "timestamp": "2025-12-23T23:00:00Z",
+    "rule": {
+        "level": 4,
+        "description": "IoT sensor telemetry transmission",
+        "id": "100030"
+    },
+    "device_id": "sensor-temp-01",
+    "device_type": "sensor",
+    "source_ip": "192.168.2.50",
+    "destination_ip": "10.0.0.5",
+    "destination_port": 8883,
+    "protocol": "MQTT",
+    "expected_decision": "ALLOW",
+    "test_category": "sensor_24_7",
+    "description": "Valid sensor connection at night (sensors allowed 24/7)"
+}

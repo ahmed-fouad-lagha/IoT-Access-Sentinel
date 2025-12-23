@@ -1,0 +1,18 @@
+{
+    "id": "test-camera-deny-1",
+    "timestamp": "2025-12-23T22:00:00Z",
+    "rule": {
+        "level": 7,
+        "description": "IoT camera connection outside business hours",
+        "id": "100020"
+    },
+    "device_id": "camera-office-01",
+    "device_type": "camera",
+    "source_ip": "192.168.1.100",
+    "destination_ip": "10.0.0.1",
+    "destination_port": 443,
+    "protocol": "HTTPS",
+    "expected_decision": "DENY",
+    "test_category": "camera_time_violation",
+    "description": "Valid camera but outside allowed hours (22:00, after 17:00)"
+}
