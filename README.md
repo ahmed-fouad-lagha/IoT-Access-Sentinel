@@ -37,6 +37,7 @@ graph TD
 
 
 ### Hybrid Multi-Agent Access Control Pipeline
+
 ```mermaid
 graph TD
     subgraph "External IoT Environment"
@@ -78,12 +79,12 @@ graph TD
     Observer -->|Raw Alert| Validator
     
     %% Decision Logic
-    Validator -->|Pass (Low Risk)| Enforcer
-    Validator -->|Deny (Fail-Secure)| Enforcer
+    Validator -->|Pass Low Risk| Enforcer
+    Validator -->|"Deny (Fail-Secure)"| Enforcer
     Validator -->|Ambiguous| Context_Ag
     
     Context_Ag -->|Context Data| Policy_Ag
-    Policy_Ag <-->|Prompt/Completion| LLM_API
+    Policy_Ag <-->|"Prompt/Completion"| LLM_API
     Policy_Ag -->|Final Decision| Enforcer
     
     %% Enforcement
