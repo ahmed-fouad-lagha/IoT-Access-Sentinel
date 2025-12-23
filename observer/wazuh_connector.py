@@ -6,7 +6,7 @@ Adapted from AI_SOC/wazuh_client.py
 
 import httpx
 from typing import Optional, List, Dict, Any
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from config.settings import Settings
 from common.logging_config import get_logger
@@ -56,7 +56,7 @@ class WazuhConnector:
         """
         # Check if we have a valid cached token
         if self._token and self._token_expiry:
-            if datetime.utcnow() < self._token_expiry:
+            if datetime.now(timezone.utc) < self._token_expiry:
                 logger.debug("using_cached_token")
                 return self._token
 
@@ -67,7 +67,7 @@ class WazuhConnector:
                 response = await client.post(
                     auth_url,
                     auth=(self.username, self.password),
-                    timeout=self.settings.wazuh_api_timeout
+                    timeout=self.settings.wazuh_api_timeout or 30.0  # Default 30s timeout
                 )
                 response.raise_for_status()
 
@@ -75,7 +75,7 @@ class WazuhConnector:
                 self._token = data["data"]["token"]
 
                 # Cache token for 14 minutes (safe margin before 15-minute expiry)
-                self._token_expiry = datetime.utcnow() + timedelta(minutes=14)
+                self._token_expiry = datetime.now(timezone.utc) + timedelta(minutes=14)
 
                 logger.info("wazuh_authentication_success")
                 return self._token

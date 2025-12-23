@@ -35,7 +35,107 @@ graph TD
 2.  **Generative Layer**: Multi-agent LLM reasoning (Llama 3.3 70B via Groq) for complex behavioral analysis.
 3.  **Enforcement Layer**: Real-time remote enforcement via Wazuh Active Response API.
 
----
+
+### Hybrid Multi-Agent Access Control Pipeline
+```mermaid
+graph TD
+    subgraph "External IoT Environment"
+        IoT_Device[IoT Device]
+        Hacker[Attacker]
+    end
+
+    subgraph "Wazuh Security Platform"
+        Wazuh_Agent[Wazuh Agent]
+        Wazuh_Manager[Wazuh Manager]
+        Wazuh_DB[(Alert DB)]
+        AR_Module[Active Response]
+    end
+
+    subgraph "IoT-Access-Sentinel"
+        Observer[Observer Module]
+        
+        subgraph "Decision Engine (Hybrid)"
+            Validator{Deterministic\nValidator}
+            
+            subgraph "LLM Layer"
+                Policy_Ag[Policy Agent]
+                Context_Ag[Context Agent]
+                LLM_API[LLM Inference API]
+            end
+        end
+        
+        Enforcer[Enforcer Module]
+        Metrics[Prometheus Metrics]
+    end
+
+    %% Data Flow
+    IoT_Device -->|Network Traffic| Wazuh_Agent
+    Hacker -->|Malicious Traffic| Wazuh_Agent
+    
+    Wazuh_Agent -->|Log Events| Wazuh_Manager
+    Wazuh_Manager -->|Alert JSON| Observer
+    
+    Observer -->|Raw Alert| Validator
+    
+    %% Decision Logic
+    Validator -->|Pass (Low Risk)| Enforcer
+    Validator -->|Deny (Fail-Secure)| Enforcer
+    Validator -->|Ambiguous| Context_Ag
+    
+    Context_Ag -->|Context Data| Policy_Ag
+    Policy_Ag <-->|Prompt/Completion| LLM_API
+    Policy_Ag -->|Final Decision| Enforcer
+    
+    %% Enforcement
+    Enforcer -->|Action JSON| AR_Module
+    AR_Module -->|Block IP| Wazuh_Agent
+    
+    %% Monitoring
+    Observer -.-> Metrics
+    Enforcer -.-> Metrics
+    
+    classDef secure fill:#e1f5fe,stroke:#01579b,stroke-width:2px;
+    classDef attack fill:#ffebee,stroke:#b71c1c,stroke-width:2px;
+    classDef ai fill:#f3e5f5,stroke:#4a148c,stroke-width:2px;
+    
+    class Validator,Enforcer secure;
+    class Hacker attack;
+    class Policy_Ag,Context_Ag,LLM_API ai;
+```
+
+### Detailed Decision Flow
+
+```mermaid
+sequenceDiagram
+    participant W as Wazuh Manager
+    participant V as Deterministic Validator
+    participant C as Context Agent
+    participant P as Policy Agent
+    participant E as Enforcer
+    
+    W->>V: POST /access-control (Alert JSON)
+    
+    Note over V: Fast Path (~1ms)
+    alt Invalid User Token
+        V->>E: Deny (Invalid Auth)
+    else Recognized Attack Pattern
+        V->>E: Deny (Injection)
+    else Ambiguous Context
+        V->>C: Request Analysis
+        
+        Note over C,P: Slow Path (~150ms)
+        C->>C: Retrieve Device History
+        C->>P: Context+Policy Prompt
+        P->>P: Zero-Trust Evaluation
+        P->>E: Allow/Deny Decision
+    end
+    
+    E->>W: Enriched Alert + Action
+    
+    opt If Action = BLOCK
+        E->>W: PUT /active-response
+    end
+```
 
 ## 🚀 One-Command Deployment
 

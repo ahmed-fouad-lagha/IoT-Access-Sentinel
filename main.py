@@ -1,20 +1,22 @@
 """
 Main Application - IoT-Access-Sentinel
 FastAPI webhook receiver for Wazuh IoT access alerts
-Adapted from AI_SOC/main.py pattern
+Production-grade with metrics, rate limiting, and input validation
 
 Workflow:
 1. Receive IoT access alert from Wazuh (webhook or polling)
-2. Analyze with Decision Engine (Policy + Context agents)
-3. If DENY decision with high confidence, trigger Enforcer
-4. Return enriched alert with decision and enforcement results
+2. Validate and sanitize input (prevent injection attacks)
+3. Analyze with Decision Engine (Deterministic + LLM agents)
+4. If DENY decision with high confidence, trigger Enforcer
+5. Return enriched alert with decision and enforcement results
 """
 
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI, HTTPException, status, Response
 from fastapi.responses import JSONResponse
 from contextlib import asynccontextmanager
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List
+import time
 
 from config.settings import get_settings
 from observer.wazuh_connector import WazuhConnector
@@ -23,6 +25,12 @@ from decision_engine.decision_pipeline import DecisionPipeline
 from enforcer.actions import EnforcementActions
 from common.logging_config import setup_logging, get_logger
 from common.schemas import EnforcementAction
+
+# Import production modules
+from common.metrics import metrics, get_metrics_endpoint, PROMETHEUS_AVAILABLE
+from common.rate_limit import create_rate_limiter
+from common.tracer import tracer, get_tracer
+from common.validation import validate_alert, validator
 
 # Initialize settings and logging
 settings = get_settings()
@@ -40,6 +48,12 @@ async def lifespan(app: FastAPI):
         version=settings.service_version
     )
     
+    # Set metrics info
+    metrics.set_info(settings.service_version, "production")
+    
+    # Start tracing session
+    tracer.start_session()
+    
     # Initialize components
     app.state.settings = settings
     app.state.wazuh_connector = WazuhConnector(settings)
@@ -52,6 +66,8 @@ async def lifespan(app: FastAPI):
     
     yield
     
+    # Export trace on shutdown
+    tracer.export_to_json()
     logger.info("service_shutdown")
 
 
@@ -63,6 +79,9 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+# Add rate limiting middleware (moderate profile: 100 req/min default)
+app.add_middleware(create_rate_limiter.__class__, **{"default_limit": 100, "default_window": 60})
+
 
 @app.post(
     "/access-control",
@@ -73,22 +92,26 @@ app = FastAPI(
     Primary webhook endpoint for Wazuh IoT access alerts.
     
     Workflow:
-    1. Receive and validate alert
-    2. Decision Engine analyzes with Policy + Context agents
+    1. Validate and sanitize input (security check)
+    2. Decision Engine analyzes with Deterministic + LLM agents
     3. If DENY with high confidence, trigger enforcement
     4. Return enriched alert with decision and enforcement results
     """
 )
 async def process_access_alert(alert: IoTAccessAlert):
     """
-    Process IoT access control alert
-    
-    Args:
-        alert: IoT access alert from Wazuh
-    
-    Returns:
-        Enriched alert with decision and enforcement information
+    Process IoT access control alert with production-grade security
     """
+    start_time = time.time()
+    
+    # Track alert in tracer
+    tracer.track_alert_received(
+        alert_id=alert.id,
+        device_type=alert.device_type or "unknown",
+        source_ip=alert.source_ip or "unknown",
+        user_id=getattr(alert, 'user_id', None)
+    )
+    
     logger.info(
         "access_alert_received",
         alert_id=alert.id,
@@ -97,10 +120,58 @@ async def process_access_alert(alert: IoTAccessAlert):
         rule_level=alert.rule.level
     )
     
+    # Step 0: Input Validation (Security-critical)
+    validation_result = validate_alert(alert.model_dump())
+    if not validation_result.is_valid:
+        logger.warning(
+            "input_validation_failed",
+            alert_id=alert.id,
+            field=validation_result.field,
+            error=validation_result.error,
+            threat_type=validation_result.threat_type
+        )
+        tracer.track_error("validation", validation_result.error)
+        metrics.record_error(validation_result.threat_type or "validation_error")
+        
+        # Return immediate DENY for injection attempts
+        if validation_result.threat_type:
+            metrics.record_decision("DENY", "attack", "validation", 1.0)
+            return EnrichedIoTAlert(
+                **alert.model_dump(),
+                decision_action="DENY",
+                decision_confidence=1.0,
+                decision_reason=f"Security violation: {validation_result.threat_type}",
+                enforcement_action="BLOCK_IP",
+                enforcement_executed=True,
+                processing_timestamp=datetime.now(timezone.utc)
+            )
+    
     try:
         # Step 1: Decision Engine Analysis
         decision_pipeline: DecisionPipeline = app.state.decision_pipeline
         decision = await decision_pipeline.make_decision(alert)
+        
+        # Record decision metrics (excluding start_time tracking if unused, or use it)
+        # Actually I need duration for metrics, so I will keep duration and use it
+        duration = time.time() - start_time
+        decision_path = "deterministic" if getattr(decision, 'from_validator', False) else "llm"
+        metrics.record_decision(decision.action, "general", decision_path, decision.confidence)
+        
+        # Also record request latency metric
+        metrics.record_request(
+            method="POST", 
+            endpoint="/access-control", 
+            status="success", 
+            duration=duration
+        )
+        
+        # Track decision in tracer
+        tracer.track_decision(
+            action=decision.action,
+            confidence=decision.confidence,
+            reasoning=decision.reason,
+            path=decision_path
+        )
         
         logger.info(
             "decision_made",
@@ -146,7 +217,7 @@ async def process_access_alert(alert: IoTAccessAlert):
             decision_reason=decision.reason,
             enforcement_action=enforcement_action,
             enforcement_executed=enforcement_executed,
-            processing_timestamp=datetime.utcnow()
+            processing_timestamp=datetime.now(timezone.utc)
         )
         
         logger.info(
@@ -261,7 +332,7 @@ async def health_check():
         "status": overall_status,
         "service": settings.service_name,
         "version": settings.service_version,
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "dependencies": {
             "wazuh_manager": wazuh_healthy,
             "decision_engine": True,  # Basic check - agents initialized
