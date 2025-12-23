@@ -1,0 +1,23 @@
+{
+    "id": "red-team-confusion-2",
+    "timestamp": "2025-12-23T10:00:00Z",
+    "rule": {
+        "level": 5,
+        "description": "Missing device_id",
+        "id": "100040",
+        "mitre": {},
+        "groups": [
+            "iot",
+            "access_control"
+        ]
+    },
+    "device_type": "camera",
+    "source_ip": "192.168.1.100",
+    "destination_ip": "10.0.0.1",
+    "destination_port": 443,
+    "protocol": "HTTPS",
+    "expected_decision": "DENY",
+    "test_category": "model_confusion",
+    "description": "Missing required field (device_id) to test default behavior",
+    "attack_type": "missing_field"
+}

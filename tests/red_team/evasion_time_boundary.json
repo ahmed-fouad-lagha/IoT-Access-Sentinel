@@ -1,0 +1,24 @@
+{
+    "id": "red-team-evasion-1",
+    "timestamp": "2025-12-23T08:59:59Z",
+    "rule": {
+        "level": 5,
+        "description": "IoT camera connection attempt",
+        "id": "100010",
+        "mitre": {},
+        "groups": [
+            "iot",
+            "access_control"
+        ]
+    },
+    "device_id": "camera-office-01",
+    "device_type": "camera",
+    "source_ip": "192.168.1.100",
+    "destination_ip": "10.0.0.1",
+    "destination_port": 443,
+    "protocol": "HTTPS",
+    "expected_decision": "DENY",
+    "test_category": "policy_evasion",
+    "description": "Boundary attack - 1 second before allowed hours (09:00)",
+    "attack_type": "time_boundary"
+}

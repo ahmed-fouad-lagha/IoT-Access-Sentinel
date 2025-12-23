@@ -1,0 +1,24 @@
+{
+    "id": "red-team-unicode-1",
+    "timestamp": "2025-12-23T10:00:00Z",
+    "rule": {
+        "level": 5,
+        "description": "IoT camera connection",
+        "id": "100010",
+        "mitre": {},
+        "groups": [
+            "iot",
+            "access_control"
+        ]
+    },
+    "device_id": "camera\u202eoffice\u202d01",
+    "device_type": "camera",
+    "source_ip": "192.168.1.100",
+    "destination_ip": "10.0.0.1",
+    "destination_port": 443,
+    "protocol": "HTTPS",
+    "expected_decision": "ALLOW",
+    "test_category": "unicode_attack",
+    "description": "Unicode right-to-left override characters in device_id",
+    "attack_type": "unicode_rtlo"
+}
