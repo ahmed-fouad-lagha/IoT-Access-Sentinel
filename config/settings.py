@@ -34,6 +34,7 @@ class Settings(BaseSettings):
     # LLM Configuration (OpenAI/Gemini/Ollama)
     llm_provider: str = "openai"  # Options: "openai", "gemini", "ollama"
     openai_api_key: Optional[str] = None
+    openai_base_url: Optional[str] = None  # For Groq or other OpenAI-compatible APIs
     gemini_api_key: Optional[str] = None
     ollama_base_url: Optional[str] = "http://localhost:11434"
     

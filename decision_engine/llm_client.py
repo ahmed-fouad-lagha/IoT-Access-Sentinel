@@ -32,10 +32,14 @@ def get_llm_client(settings: Settings) -> Union[AsyncOpenAI, genai.Client]:
         if not settings.openai_api_key:
             raise ValueError("OpenAI API key not configured. Set OPENAI_API_KEY in .env")
         
-        logger.info("creating_openai_client", model=settings.llm_model)
+        logger.info("creating_openai_client", model=settings.llm_model, base_url=settings.openai_base_url or "default")
         
-        # Create OpenAI async client
-        client = AsyncOpenAI(api_key=settings.openai_api_key)
+        # Create OpenAI async client (supports Groq and other OpenAI-compatible APIs)
+        client_kwargs = {"api_key": settings.openai_api_key}
+        if settings.openai_base_url:
+            client_kwargs["base_url"] = settings.openai_base_url
+        
+        client = AsyncOpenAI(**client_kwargs)
         
         return client
     

@@ -1,0 +1,124 @@
+#!/usr/bin/env python3
+"""
+Wazuh Integration Script for IoT-Access-Sentinel
+Receives alerts from Wazuh and forwards them to the IoT-Access-Sentinel API
+
+Installation:
+1. Copy to /var/ossec/integrations/iot-sentinel
+2. chmod 750 /var/ossec/integrations/iot-sentinel
+3. chown root:wazuh /var/ossec/integrations/iot-sentinel
+4. Configure in ossec.conf
+"""
+
+import sys
+import json
+import requests
+from datetime import datetime
+
+# Configuration
+API_URL = "http://host.docker.internal:8000/access-control"
+TIMEOUT = 60
+DEBUG = True
+
+def log_debug(message):
+    """Log debug message"""
+    if DEBUG:
+        with open('/var/ossec/logs/integrations.log', 'a') as f:
+            f.write(f"{datetime.now().isoformat()} [iot-sentinel] {message}\n")
+
+def parse_alert(alert_json):
+    """Parse Wazuh alert and convert to IoT-Access-Sentinel format"""
+    try:
+        alert = json.loads(alert_json)
+        
+        # Extract key fields
+        rule = alert.get('rule', {})
+        data = alert.get('data', {})
+        decoder = alert.get('decoder', {})
+        
+        # Build IoTAccessAlert payload
+        payload = {
+            "id": alert.get('id', 'unknown'),
+            "timestamp": alert.get('timestamp', datetime.utcnow().isoformat() + 'Z'),
+            "rule": {
+                "level": rule.get('level', 0),
+                "description": rule.get('description', 'Unknown'),
+                "id": rule.get('id', '0'),
+                "mitre": rule.get('mitre', {}),
+                "groups": rule.get('groups', [])
+            },
+            "device_id": data.get('device_id'),
+            "device_type": data.get('device_type') or decoder.get('parent', '').replace('iot-access-', ''),
+            "source_ip": data.get('srcip'),
+            "destination_ip": data.get('dstip'),
+            "destination_port": int(data.get('dstport', 0)) if data.get('dstport') else None,
+            "protocol": data.get('protocol'),
+            "agent_id": alert.get('agent', {}).get('id'),
+            "agent_name": alert.get('agent', {}).get('name'),
+            "location": alert.get('location'),
+            "full_log": alert.get('full_log'),
+            "data": data
+        }
+        
+        return payload
+        
+    except Exception as e:
+        log_debug(f"Error parsing alert: {e}")
+        return None
+
+def send_to_api(payload):
+    """Send alert to IoT-Access-Sentinel API"""
+    try:
+        log_debug(f"Sending alert {payload.get('id')} to {API_URL}")
+        
+        response = requests.post(
+            API_URL,
+            json=payload,
+            timeout=TIMEOUT,
+            headers={'Content-Type': 'application/json'}
+        )
+        
+        if response.status_code == 200:
+            log_debug(f"Alert {payload.get('id')} processed successfully")
+            result = response.json()
+            log_debug(f"Decision: {result.get('decision_action')} (confidence: {result.get('decision_confidence')})")
+            return True
+        else:
+            log_debug(f"API error: HTTP {response.status_code}")
+            return False
+            
+    except Exception as e:
+        log_debug(f"Error sending to API: {e}")
+        return False
+
+def main():
+    """Main integration function"""
+    try:
+        # Read alert from stdin (Wazuh passes it as JSON)
+        alert_file = sys.stdin.read()
+        log_debug(f"Received alert, length: {len(alert_file)} bytes")
+        
+        # Parse alert
+        payload = parse_alert(alert_file)
+        
+        if not payload:
+            log_debug("Failed to parse alert")
+            sys.exit(1)
+        
+        # Only forward IoT access alerts
+        rule_groups = payload.get('rule', {}).get('groups', [])
+        if 'iot' not in rule_groups and 'access_control' not in rule_groups:
+            log_debug("Not an IoT access alert, skipping")
+            sys.exit(0)
+        
+        # Send to API
+        success = send_to_api(payload)
+        
+        sys.exit(0 if success else 1)
+        
+    except Exception as e:
+        log_debug(f"Fatal error: {e}")
+        sys.exit(1)
+
+if __name__ == "__main__":
+    main()

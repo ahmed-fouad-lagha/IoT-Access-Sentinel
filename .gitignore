@@ -78,6 +78,7 @@ htmlcov/
 # =========================
 external_repos/
 .agent/
+wazuh-docker/
 
 # =========================
 # AI Tools Rules

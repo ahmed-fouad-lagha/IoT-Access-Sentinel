@@ -1,0 +1,74 @@
+<!--
+  Custom Wazuh Rules for IoT Access Control
+  For IoT-Access-Sentinel Framework
+  
+  Rule ID Range: 100000-100999 (Custom IoT rules)
+-->
+
+<group name="iot,access_control,">
+
+  <!-- Base IoT Access Events -->
+  <rule id="100000" level="0">
+    <decoded_as>iot-access</decoded_as>
+    <description>IoT access event detected</description>
+  </rule>
+
+  <!-- Camera Events -->
+  <rule id="100010" level="5">
+    <if_sid>100000</if_sid>
+    <field name="device_type">^camera$</field>
+    <description>IoT camera connection attempt</description>
+    <group>iot_camera,</group>
+  </rule>
+
+  <rule id="100011" level="7">
+    <if_sid>100010</if_sid>
+    <time>21:00-09:00</time>
+    <description>IoT camera connection outside business hours</description>
+    <group>iot_camera,policy_violation,</group>
+  </rule>
+
+  <rule id="100012" level="8">
+    <if_sid>100010</if_sid>
+    <srcip>!192.168.1.0/24</srcip>
+    <description>IoT camera from unauthorized network</description>
+    <group>iot_camera,network_violation,</group>
+  </rule>
+
+  <!-- Sensor Events -->
+  <rule id="100020" level="4">
+    <if_sid>100000</if_sid>
+    <field name="device_type">^sensor$</field>
+    <description>IoT sensor telemetry transmission</description>
+    <group>iot_sensor,</group>
+  </rule>
+
+  <rule id="100021" level="7">
+    <if_sid>100020</if_sid>
+    <srcip>!192.168.2.0/24</srcip>
+    <description>IoT sensor from unauthorized network</description>
+    <group>iot_sensor,network_violation,</group>
+  </rule>
+
+  <!-- Smart Lock Events -->
+  <rule id="100030" level="6">
+    <if_sid>100000</if_sid>
+    <field name="device_type">^smart_lock$</field>
+    <description>Smart lock access attempt</description>
+    <group>iot_lock,</group>
+  </rule>
+
+  <rule id="100031" level="9">
+    <if_sid>100030</if_sid>
+    <description>Smart lock access (requires 2FA verification)</description>
+    <group>iot_lock,high_security,</group>
+  </rule>
+
+  <!-- Unknown/Unmanaged Devices -->
+  <rule id="100040" level="8">
+    <if_sid>100000</if_sid>
+    <description>Unknown or unmanaged IoT device connection attempt</description>
+    <group>iot_unknown,security_threat,</group>
+  </rule>
+
+</group>

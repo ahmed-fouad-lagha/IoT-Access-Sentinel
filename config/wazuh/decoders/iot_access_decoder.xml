@@ -1,0 +1,28 @@
+<!--
+  Custom Wazuh Decoder for IoT Access Events
+  For IoT-Access-Sentinel Framework
+  
+  This decoder parses IoT device connection logs and extracts:
+  - Device type (camera, sensor, smart_lock)
+  - Device ID
+  - Source IP address
+  - Destination IP and port
+  - Protocol
+  - Timestamp
+-->
+
+<decoder name="iot-access">
+  <program_name>^iot-access</program_name>
+</decoder>
+
+<decoder name="iot-access-connection">
+  <parent>iot-access</parent>
+  <regex offset="after_parent">^(\w+) device_id=([\w-]+) src_ip=(\d+\.\d+\.\d+\.\d+) dst_ip=(\d+\.\d+\.\d+\.\d+):(\d+) proto=(\w+)</regex>
+  <order>device_type,device_id,srcip,dstip,dstport,protocol</order>
+</decoder>
+
+<decoder name="iot-access-connection-simple">
+  <parent>iot-access</parent>
+  <regex offset="after_parent">^(\w+) from (\d+\.\d+\.\d+\.\d+)</regex>
+  <order>device_type,srcip</order>
+</decoder>
