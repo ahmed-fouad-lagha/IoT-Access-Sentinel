@@ -3,7 +3,7 @@ Alert Models - IoT-Access-Sentinel Observer
 Pydantic models for Wazuh IoT access alerts
 """
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator, model_validator
 from typing import Optional, Dict, Any, List
 from datetime import datetime
 
@@ -36,14 +36,74 @@ class IoTAccessAlert(BaseModel):
     destination_port: Optional[int] = Field(None, description="Destination port")
     protocol: Optional[str] = Field(None, description="Network protocol")
     
+    # User Authorization Fields (M0801 - User Identification & Verification)
+    user_id: Optional[str] = Field(None, description="User identifier (email/username)")
+    auth_token: Optional[str] = Field(None, description="Authentication token status (valid/invalid/missing)")
+    user_role: Optional[str] = Field(None, description="User role (admin/security_staff/viewer)")
+    session_id: Optional[str] = Field(None, description="User session identifier")
+    
     # Additional Context
-    agent_id: Optional[str] = Field(None, description="Wazuh agent ID")
-    agent_name: Optional[str] = Field(None, description="Wazuh agent name")
+    agent_id: Optional[str] = Field(None, description="Wazuh agent ID (source device)")
+    agent_name: Optional[str] = Field(None, description="Wazuh agent name (source device)")
     location: Optional[str] = Field(None, description="Alert location/source")
     
     # Raw data
     full_log: Optional[str] = Field(None, description="Full log message")
     data: Optional[Dict[str, Any]] = Field(None, description="Additional alert data")
+    
+    @field_validator('agent_id', 'agent_name', mode='before')
+    @classmethod
+    def extract_agent_fields(cls, v, info):
+        """
+        Extract agent ID and name from nested Wazuh JSON structure.
+        
+        Wazuh sends:
+          {
+            "agent": {"id": "00401", "name": "iot-device-01"},
+            "manager": {...}
+          }
+        
+        We need agent.id (source device), NOT manager info.
+        """
+        # If value already provided directly, use it
+        if v is not None:
+            return v
+        
+        # Try to extract from 'agent' nested object in data
+        # Access the full data context from validation
+        field_name = info.field_name
+        
+        # Check if we have the raw agent object
+        # This will be handled by Pydantic's data dict
+        return v  # Return as-is; will be handled by model_validator
+    
+    @model_validator(mode='before')
+    @classmethod
+    def extract_nested_agent_info(cls, data):
+        """
+        Pre-process Wazuh alert to extract nested agent information.
+        
+        Wazuh alert structure:
+          {
+            "id": "...",
+            "agent": {
+              "id": "00401",        ← Extract this
+              "name": "device-01"   ← Extract this
+            },
+            "manager": {...},       ← Ignore this
+            ...
+          }
+        """
+        if isinstance(data, dict):
+            # Extract agent.id if present in nested structure
+            if 'agent' in data and isinstance(data['agent'], dict):
+                if 'agent_id' not in data or data['agent_id'] is None:
+                    data['agent_id'] = data['agent'].get('id')
+                
+                if 'agent_name' not in data or data['agent_name'] is None:
+                    data['agent_name'] = data['agent'].get('name')
+        
+        return data
     
     class Config:
         # Allow extra fields from Wazuh that we might not explicitly model

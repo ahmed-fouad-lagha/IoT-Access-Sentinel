@@ -70,6 +70,9 @@ Thumbs.db
 # =========================
 tests/results/
 tests/synthetic/
+tests/synthetic_v2/
+tests/user_auth/
+
 .coverage
 htmlcov/
 .pytest_cache/

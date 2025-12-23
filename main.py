@@ -128,7 +128,9 @@ async def process_access_alert(alert: IoTAccessAlert):
                 action_type="BLOCK_IP",  # Default to IP blocking
                 target=alert.source_ip or "unknown",
                 duration=3600,  # 1 hour block
-                reason=decision.reason
+                reason=decision.reason,
+                agent_id=alert.agent_id,  # Source device's Wazuh agent
+                alert_id=alert.id  # For tracking in Wazuh
             )
             
             # Execute enforcement

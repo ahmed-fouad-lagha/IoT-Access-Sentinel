@@ -67,6 +67,16 @@ class EnforcementAction(BaseModel):
         description="Reason for enforcement"
     )
     
+    agent_id: Optional[str] = Field(
+        None,
+        description="Wazuh agent ID for remote enforcement"
+    )
+    
+    alert_id: Optional[str] = Field(
+        None,
+        description="Associated alert ID for tracking"
+    )
+    
     executed: bool = Field(
         default=False,
         description="Whether the action was successfully executed"

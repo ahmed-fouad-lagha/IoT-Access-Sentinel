@@ -1,0 +1,55 @@
+{
+  "overall": {
+    "total_tests": 106,
+    "baseline_accuracy": 64.15094339622641,
+    "llm_accuracy": 82.0754716981132,
+    "improvement_percent": 17.924528301886795,
+    "chi_square": 8.66236559139785,
+    "p_value": "< 0.01",
+    "statistically_significant": true
+  },
+  "confidence_intervals_95": {
+    "baseline": {
+      "lower": 54.67402280775484,
+      "upper": 72.63803382652578,
+      "center": 63.65602831714031
+    },
+    "llm": {
+      "lower": 73.69343386688844,
+      "upper": 88.21389450414767,
+      "center": 80.95366418551806
+    }
+  },
+  "category_breakdown": {
+    "User Authorization": {
+      "baseline_accuracy": 54.347826086956516,
+      "llm_accuracy": 97.82608695652173,
+      "total_tests": 46
+    },
+    "Camera Tests": {
+      "baseline_accuracy": 80.0,
+      "llm_accuracy": 60.0,
+      "total_tests": 5
+    },
+    "Sensor Tests": {
+      "baseline_accuracy": 100.0,
+      "llm_accuracy": 41.17647058823529,
+      "total_tests": 17
+    },
+    "Other": {
+      "baseline_accuracy": 60.0,
+      "llm_accuracy": 60.0,
+      "total_tests": 10
+    },
+    "Time/Network Edge Cases": {
+      "baseline_accuracy": 87.5,
+      "llm_accuracy": 87.5,
+      "total_tests": 16
+    },
+    "Attack Scenarios": {
+      "baseline_accuracy": 16.666666666666664,
+      "llm_accuracy": 100.0,
+      "total_tests": 12
+    }
+  }
+}

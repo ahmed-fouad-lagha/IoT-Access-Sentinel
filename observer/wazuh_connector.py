@@ -229,3 +229,90 @@ class WazuhConnector:
         except Exception as e:
             logger.error("wazuh_health_check_failed", error=str(e))
             return False
+    
+    async def send_active_response(
+        self,
+        agent_id: str,
+        command: str = "firewall-drop",
+        arguments: Optional[List[str]] = None,
+        alert_id: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Send active response command to a specific Wazuh agent.
+        
+        This triggers enforcement actions on remote IoT devices via their Wazuh agents.
+        
+        Args:
+            agent_id: Target agent ID (e.g., "00401")
+            command: Active response command (default: "firewall-drop")
+            arguments: Command arguments (e.g., ["-", "192.168.1.100"] for IP to block)
+            alert_id: Associated alert ID for tracking
+        
+        Returns:
+            API response dictionary
+        
+        Raises:
+            httpx.HTTPError: If API request fails
+            
+        Example:
+            # Block IP 192.168.1.100 on agent 00401
+            await send_active_response(
+                agent_id="00401",
+                command="firewall-drop",
+                arguments=["-", "192.168.1.100"]
+            )
+        """
+        token = await self._authenticate()
+        
+        if arguments is None:
+            arguments = []
+        
+        # Build active response payload
+        payload = {
+            "command": command,
+            "arguments": arguments,
+            "custom": False,  # Use built-in Wazuh command
+            "alert": {
+                "id": alert_id or "sentinel-enforcement"
+            }
+        }
+        
+        # Target specific agent
+        active_response_url = f"{self.base_url}/active-response"
+        params = {"agents_list": agent_id}
+        
+        try:
+            async with httpx.AsyncClient(verify=self.verify_ssl) as client:
+                response = await client.put(
+                    active_response_url,
+                    headers={
+                        "Authorization": f"Bearer {token}",
+                        "Content-Type": "application/json"
+                    },
+                    json=payload,
+                    params=params,
+                    timeout=self.settings.wazuh_api_timeout
+                )
+                response.raise_for_status()
+                
+                data = response.json()
+                
+                logger.info(
+                    "wazuh_active_response_sent",
+                    agent_id=agent_id,
+                    command=command,
+                    arguments=arguments,
+                    alert_id=alert_id
+                )
+                
+                return data
+        
+        except httpx.HTTPError as e:
+            logger.error(
+                "wazuh_active_response_failed",
+                agent_id=agent_id,
+                command=command,
+                error=str(e),
+                url=active_response_url
+            )
+            raise

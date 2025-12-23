@@ -1,6 +1,11 @@
 """
 Decision Pipeline - IoT-Access-Sentinel Decision Engine
 Orchestrates Policy and Context agents to make access control decisions
+
+Hybrid Architecture:
+- Step 0: Deterministic user authorization validation (Python code)
+- Step 1: Context analysis (LLM)
+- Step 2: Policy evaluation (LLM with context)
 """
 
 import json
@@ -13,6 +18,7 @@ from common.schemas import AccessDecision
 from common.logging_config import get_logger
 from .agents import call_policy_agent, call_context_agent
 from .llm_client import get_llm_client
+from .validators import get_user_auth_validator
 from observer.models import IoTAccessAlert
 
 logger = get_logger(__name__)
@@ -53,7 +59,10 @@ class DecisionPipeline:
     
     async def make_decision(self, alert: IoTAccessAlert) -> AccessDecision:
         """
-        Make access control decision using multi-agent pipeline
+        Make access control decision using hybrid pipeline:
+        1. Deterministic user authorization check (fail-fast)
+        2. LLM context analysis
+        3. LLM policy evaluation
         
         Args:
             alert: IoT access alert from Wazuh
@@ -64,6 +73,32 @@ class DecisionPipeline:
         logger.info("making_decision", alert_id=alert.id, device_type=alert.device_type)
         
         try:
+            # Step 0: User Authorization Pre-Check (M0801)
+            # This is deterministic and runs BEFORE the LLM
+            user_auth_result = self._validate_user_authorization(alert)
+            
+            if not user_auth_result.authorized:
+                # User authorization failed - DENY immediately without LLM
+                logger.info(
+                    "user_authorization_denied",
+                    alert_id=alert.id,
+                    reason=user_auth_result.reason
+                )
+                return AccessDecision(
+                    action="DENY",
+                    confidence=1.0,
+                    reason=f"User authorization failed: {user_auth_result.reason}",
+                    policy_matched="user_authorization_check",
+                    timestamp=datetime.utcnow()
+                )
+            
+            # User authorized (or not required) - proceed to LLM analysis
+            logger.info(
+                "user_authorization_passed",
+                alert_id=alert.id,
+                reason=user_auth_result.reason
+            )
+            
             # Step 1: Context Analysis
             context_analysis = await self._analyze_context(alert)
             
@@ -168,6 +203,12 @@ Device ID: {alert.device_id or 'Unknown'}
 Source IP: {alert.source_ip or 'Unknown'}
 Timestamp: {alert.timestamp}
 
+**User Authorization (M0801):**
+User ID: {alert.user_id or 'Missing'}
+Auth Token: {alert.auth_token or 'Missing'}
+User Role: {alert.user_role or 'Unknown'}
+Session ID: {alert.session_id or 'N/A'}
+
 **Context Analysis:**
 Risk Score: {context.get('risk_score', 0.5)}
 Anomalies: {context.get('anomalies_detected', [])}
@@ -196,3 +237,26 @@ Make your access decision in JSON format, then TERMINATE.
             policy_data = {"action": "DENY", "confidence": 1.0, "reason": "JSON parse error - fail safe", "policy_matched": "error"}
         
         return policy_data
+    
+    def _validate_user_authorization(self, alert: IoTAccessAlert):
+        """
+        Validate user authorization using deterministic code (M0801).
+        
+        This is a security-critical check that runs BEFORE the LLM.
+        It ensures user identification and verification are enforced
+        through deterministic, auditable Python logic.
+        
+        Args:
+            alert: IoT access alert
+        
+        Returns:
+            UserAuthResult with authorization decision
+        """
+        validator = get_user_auth_validator()
+        return validator.validate_user_authorization(
+            user_id=alert.user_id,
+            auth_token=alert.auth_token,
+            device_id=alert.device_id,
+            device_type=alert.device_type,
+            user_role=alert.user_role
+        )

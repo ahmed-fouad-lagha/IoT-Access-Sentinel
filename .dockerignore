@@ -1,0 +1,23 @@
+# Exclude heavy and restricted directories from Docker build context
+venv/
+.git/
+.env
+wazuh-docker/
+external_repos/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+dist/
+build/
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.agent/
+.gemini/
+tests/
+paper/

@@ -19,7 +19,8 @@ pyautogen>=0.4.0
 
 # LLM APIs
 openai>=1.10.0
-google-generativeai>=0.3.2  # For Gemini support
+google-generativeai>=0.3.2  # Legacy SDK
+google-genai>=0.2.0         # New SDK support
 
 # Logging
 structlog>=24.1.0

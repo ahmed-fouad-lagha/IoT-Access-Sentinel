@@ -1,5 +1,6 @@
 # IoT Access Control Policies
 # Define rules for when IoT devices are allowed to connect
+# Includes user→device authorization (M0801)
 
 policies:
   # Smart Camera Access Policy
@@ -11,6 +12,19 @@ policies:
     allowed_source_networks:
       - "192.168.1.0/24"  # Internal network
     
+    # User Authorization Rules
+    require_authentication: true
+    allowed_users:
+      - user_id: "alice@company.com"
+        role: "security_admin"
+        allowed_devices: ["camera-office-01", "camera-office-02", "camera-lobby-01"]
+      - user_id: "bob@company.com"
+        role: "security_staff"
+        allowed_devices: ["camera-lobby-01", "camera-parking-01"]
+      - user_id: "security-system@company.com"
+        role: "system"
+        allowed_devices: ["*"]  # System account can access all cameras
+    
   # IoT Sensor Policy
   - device_type: sensor
     description: "Temperature/humidity sensors allowed 24/7 with rate limiting"
@@ -18,8 +32,15 @@ policies:
     allowed_days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
     max_connections_per_hour: 60
     allowed_source_networks:
-      - "192.168.1.0/24"
+      - "192.168.2.0/24"
       - "10.0.0.0/8"
+    
+    # Sensors typically accessed by automated systems
+    require_authentication: false  # IoT sensors often use API keys instead
+    allowed_users:
+      - user_id: "iot-platform@company.com"
+        role: "system"
+        allowed_devices: ["*"]
     
   # Smart Lock Policy
   - device_type: smart_lock
@@ -28,11 +49,31 @@ policies:
     allowed_days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
     max_connections_per_hour: 5
     allowed_source_networks:
-      - "192.168.1.0/24"
+      - "192.168.3.0/24"
     require_2fa: true
+    
+    # User Authorization Rules (Strict - Only specific users can control locks)
+    require_authentication: true
+    allowed_users:
+      - user_id: "alice@company.com"
+        role: "admin"
+        allowed_devices: ["lock-main-entrance", "lock-server-room"]
+        require_2fa: true
+      - user_id: "facility@company.com"
+        role: "facility_manager"
+        allowed_devices: ["lock-main-entrance", "lock-office-01"]
+        require_2fa: true
+
+# Authentication Token Validation
+auth_token_rules:
+  valid_token_required: true
+  max_token_age_minutes: 60
+  allow_missing_for_types: ["sensor"]  # Sensors can operate without user tokens
 
 # Default Policy (when device type not matched)
 default_policy:
   description: "Default deny-all for unknown devices"
   action: DENY
   alert: true
+  require_authentication: true
+

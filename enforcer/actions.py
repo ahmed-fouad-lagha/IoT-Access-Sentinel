@@ -10,6 +10,7 @@ from datetime import datetime
 from config.settings import Settings
 from common.schemas import EnforcementAction
 from common.logging_config import get_logger
+from enforcement import get_iptables_blocker
 
 logger = get_logger(__name__)
 
@@ -64,7 +65,12 @@ class EnforcementActions:
         
         try:
             if action.action_type == "BLOCK_IP":
-                result = await self._block_ip(action.target, action.duration)
+                result = await self._block_ip(
+                    action.target,
+                    action.duration,
+                    agent_id=action.agent_id,
+                    alert_id=action.alert_id
+                )
             elif action.action_type == "ISOLATE_DEVICE":
                 result = await self._isolate_device(action.target)
             elif action.action_type == "RATE_LIMIT":
@@ -97,31 +103,64 @@ class EnforcementActions:
         
         return action
     
-    async def _block_ip(self, ip_address: str, duration: Optional[int] = None) -> str:
+    
+    async def _block_ip(self, ip_address: str, duration: Optional[int] = None, agent_id: Optional[str] = None, alert_id: Optional[str] = None) -> str:
         """
-        Block an IP address using iptables or Wazuh active response
+        Block an IP address using Wazuh Active Response API.
+        
+        Sends firewall-drop command to the remote IoT device agent.
         
         Args:
             ip_address: IP address to block
-            duration: Duration in seconds (None = permanent)
+            duration: Duration in seconds (default: 3600 = 1 hour)
+            agent_id: Wazuh agent ID of the source device
+            alert_id: Alert ID for tracking
         
         Returns:
             Execution result message
         """
-        # TODO: Integrate with Wazuh active response API
-        # For now, this is a stub that would execute iptables commands
+        # Set default duration if not specified
+        if duration is None:
+            duration = 3600  # 1 hour default
         
-        # Example iptables command (requires root privileges):
-        # subprocess.run(['iptables', '-A', 'INPUT', '-s', ip_address, '-j', 'DROP'])
+        # Validate agent_id
+        if not agent_id:
+            logger.error("block_ip_no_agent_id", ip=ip_address)
+            return f"Cannot block IP {ip_address}: No agent_id provided"
         
-        logger.warning(
-            "block_ip_stub",
-            ip=ip_address,
-            duration=duration,
-            message="Block IP not yet fully implemented - placeholder only"
-        )
+        try:
+            # Send active response to Wazuh for remote execution
+            # Command: firewall-drop
+            # Arguments: ["-", "IP_ADDRESS"]
+            # The "-" is for ADD action (vs "delete" for remove)
+            
+            response = await self.settings.wazuh_connector.send_active_response(
+                agent_id=agent_id,
+                command="firewall-drop",
+                arguments=["-", ip_address],  # "-" = add block rule
+                alert_id=alert_id
+            )
+            
+            logger.info(
+                "wazuh_block_ip_sent",
+                ip=ip_address,
+                agent_id=agent_id,
+                duration=duration,
+                response=response
+            )
+            
+            return (f"IP {ip_address} block command sent to agent {agent_id} via Wazuh Active Response "
+                   f"(duration: {duration}s)")
         
-        return f"IP {ip_address} blocked (stub implementation - requires Wazuh active response integration)"
+        except Exception as e:
+            logger.error(
+                "wazuh_block_ip_failed",
+                ip=ip_address,
+                agent_id=agent_id,
+                error=str(e)
+            )
+            return f"Failed to send block command to agent {agent_id}: {str(e)}"
+
     
     async def _isolate_device(self, device_id: str) -> str:
         """

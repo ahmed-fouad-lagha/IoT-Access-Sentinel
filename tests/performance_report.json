@@ -1,0 +1,56 @@
+{
+  "timestamp": "2025-12-23T22:29:54.945337",
+  "benchmark_results": {
+    "User Auth + LLM (Camera)": {
+      "latency": {
+        "min_ms": 34.834861755371094,
+        "max_ms": 801.044225692749,
+        "avg_ms": 155.56292533874512,
+        "median_ms": 39.66081142425537,
+        "p95_ms": 801.044225692749,
+        "p99_ms": 801.044225692749,
+        "std_dev_ms": 256.53360109978263,
+        "num_samples": 10
+      },
+      "components": {
+        "total_ms": 38.186073303222656,
+        "estimated_user_auth_ms": 5,
+        "estimated_llm_calls_ms": 1000,
+        "estimated_enforcement_ms": 10,
+        "note": "Component breakdown is estimated; actual may vary"
+      },
+      "throughput": {
+        "duration_sec": 5.0715954303741455,
+        "total_requests": 160,
+        "errors": 0,
+        "success_rate_percent": 100.0,
+        "requests_per_second": 31.548257781318405,
+        "concurrent_level": 5
+      }
+    },
+    "Sensor (No User Auth)": {
+      "latency": {
+        "min_ms": 33.43534469604492,
+        "max_ms": 51.03015899658203,
+        "avg_ms": 38.41269016265869,
+        "median_ms": 36.77225112915039,
+        "p95_ms": 51.03015899658203,
+        "p99_ms": 51.03015899658203,
+        "std_dev_ms": 5.426101737039783,
+        "num_samples": 10
+      },
+      "components": {
+        "total_ms": 34.48963165283203,
+        "estimated_user_auth_ms": 5,
+        "estimated_llm_calls_ms": 1000,
+        "estimated_enforcement_ms": 10,
+        "note": "Component breakdown is estimated; actual may vary"
+      }
+    },
+    "resource_usage": {
+      "memory_mb": 94.3359375,
+      "cpu_percent": 0.0,
+      "threads": 5
+    }
+  }
+}
