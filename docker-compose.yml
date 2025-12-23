@@ -17,14 +17,14 @@ services:
       - "55000:55000"
     environment:
       - INDEXER_URL=https://wazuh.indexer:9200
-      - INDEXER_USERNAME=admin
-      - INDEXER_PASSWORD=REDACTED_PASSWORD
+      - INDEXER_USERNAME=${WAZUH_INDEXER_USERNAME:-admin}
+      - INDEXER_PASSWORD=${WAZUH_INDEXER_PASSWORD}
       - FILEBEAT_SSL_VERIFICATION_MODE=full
       - SSL_CERTIFICATE_AUTHORITIES=/etc/ssl/root-ca.pem
       - SSL_CERTIFICATE=/etc/ssl/filebeat.pem
       - SSL_KEY=/etc/ssl/filebeat.key
-      - API_USERNAME=wazuh-wui
-      - API_PASSWORD=REDACTED_WAZUH_PASSWORD
+      - API_USERNAME=${WAZUH_USERNAME}
+      - API_PASSWORD=${WAZUH_PASSWORD}
     volumes:
       - wazuh_api_configuration:/var/ossec/api/configuration
       - wazuh_etc:/var/ossec/etc
@@ -74,13 +74,13 @@ services:
     ports:
       - 80:5601
     environment:
-      - INDEXER_USERNAME=admin
-      - INDEXER_PASSWORD=REDACTED_PASSWORD
+      - INDEXER_USERNAME=${WAZUH_INDEXER_USERNAME:-admin}
+      - INDEXER_PASSWORD=${WAZUH_INDEXER_PASSWORD}
       - WAZUH_API_URL=https://wazuh.manager
-      - DASHBOARD_USERNAME=kibanaserver
-      - DASHBOARD_PASSWORD=kibanaserver
-      - API_USERNAME=wazuh-wui
-      - API_PASSWORD=REDACTED_WAZUH_PASSWORD
+      - DASHBOARD_USERNAME=${WAZUH_DASHBOARD_USERNAME:-kibanaserver}
+      - DASHBOARD_PASSWORD=${WAZUH_DASHBOARD_PASSWORD}
+      - API_USERNAME=${WAZUH_USERNAME}
+      - API_PASSWORD=${WAZUH_PASSWORD}
     volumes:
       - ./wazuh-docker/single-node/config/wazuh_indexer_ssl_certs/wazuh.dashboard.pem:/usr/share/wazuh-dashboard/certs/wazuh-dashboard.pem
       - ./wazuh-docker/single-node/config/wazuh_indexer_ssl_certs/wazuh.dashboard-key.pem:/usr/share/wazuh-dashboard/certs/wazuh-dashboard-key.pem
@@ -103,12 +103,12 @@ services:
       - "8000:8000"
     environment:
       - WAZUH_MANAGER_URL=https://wazuh.manager:55000
-      - WAZUH_USERNAME=wazuh-wui
-      - WAZUH_PASSWORD=REDACTED_WAZUH_PASSWORD
+      - WAZUH_USERNAME=${WAZUH_USERNAME}
+      - WAZUH_PASSWORD=${WAZUH_PASSWORD}
       - WAZUH_VERIFY_SSL=false
       - LLM_PROVIDER=openai
       - LLM_MODEL=llama-3.3-70b-versatile
-      - OPENAI_API_KEY=REDACTED_GROQ_API_KEY
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
       - OPENAI_BASE_URL=https://api.groq.com/openai/v1
     depends_on:
       - wazuh.manager
