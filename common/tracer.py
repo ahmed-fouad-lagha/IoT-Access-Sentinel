@@ -39,7 +39,7 @@ class DecisionTracer:
         return cls._instance
     
     def __init__(self):
-        if self._initialized:
+        if getattr(self, '_initialized', False):
             return
             
         self._lock = threading.Lock()

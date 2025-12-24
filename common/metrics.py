@@ -44,7 +44,7 @@ class SentinelMetrics:
         return cls._instance
     
     def __init__(self):
-        if self._initialized:
+        if getattr(self, '_initialized', False):
             return
             
         if not PROMETHEUS_AVAILABLE:

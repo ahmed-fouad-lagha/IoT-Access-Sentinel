@@ -10,7 +10,7 @@ Protects against:
 
 import time
 import logging
-from typing import Optional, Dict, Callable
+from typing import Optional, Dict
 from collections import defaultdict, deque
 
 from fastapi import Request, HTTPException, status
