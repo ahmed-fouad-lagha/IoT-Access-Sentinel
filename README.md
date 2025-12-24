@@ -244,6 +244,30 @@ This project provides the first quantitative evidence that **Hybrid LLM Architec
 
 ---
 
+## 🔮 Future Work
+
+### Domain-Specific LLM Fine-Tuning
+While the current system leverages **zero-shot general-purpose LLMs** (demonstrating broad generalizability), fine-tuning domain-specific models could yield several benefits:
+
+**Potential Improvements:**
+- **Reduced Latency**: Smaller fine-tuned models (e.g., Llama 3 8B) could achieve sub-50ms inference times vs current ~150ms
+- **Lower Operational Costs**: On-premise deployment eliminates API costs (~$0.01/request → $0.00)
+- **Enhanced Privacy**: Eliminates external API dependencies for sensitive IoT environments
+- **Improved Accuracy**: Specialized training on IoT-specific threat patterns (prompt injection, device impersonation, policy evasion)
+
+**Dataset Requirements:**
+- 10,000+ labeled IoT access scenarios
+- Representative attack vectors (semantic injection, time-based bypasses)
+- Diverse policy violation examples
+- Real-world edge cases from production deployments
+
+**Research Questions:**
+1. Can a 7B parameter fine-tuned model match GPT-4's 82.1% accuracy?
+2. What is the optimal training data composition for IoT threat detection?
+3. How does model size affect the accuracy-latency tradeoff in real-time access control?
+
+---
+
 ## 📜 License
 
 MIT License. Developed by **Ahmed Fouad Lagha** (Eötvös Loránd University - ELTE).
