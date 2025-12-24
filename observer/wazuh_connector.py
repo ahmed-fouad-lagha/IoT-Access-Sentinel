@@ -88,23 +88,23 @@ class WazuhConnector:
             )
             raise
 
-    async def get_iot_access_alerts(
-        self,
-        min_level: Optional[int] = None,
-        limit: int = 100,
-        offset: int = 0,
-        time_range: Optional[str] = "1h",
+    async def get_latest_alerts(
+        self, 
+        limit: int = 10, 
+        offset: int = 0, 
+        min_level: int = None, 
+        time_range: str = "1h",
         device_type: Optional[str] = None
-    ) -> List[Dict[str, Any]]:
+    ) -> List[Dict]:
         """
-        Fetch IoT access alerts from Wazuh Manager
+        Fetch latest alerts from Wazuh.
         
         Args:
-            min_level: Minimum rule level (uses config default if None)
-            limit: Maximum number of alerts to return
-            offset: Offset for pagination
-            time_range: Time range (e.g., "1h", "24h", "7d")
-            device_type: Filter by device type (optional)
+            limit: Max number of alerts to return
+            offset: Pagination offset
+            min_level: Minimum rule severity level
+            time_range: Time range to look back (e.g., "1h", "24h")
+            device_type: Filter by device type (e.g., "camera", "sensor")
         
         Returns:
             List of Wazuh alert dictionaries
@@ -128,8 +128,10 @@ class WazuhConnector:
         if time_range:
             params["time_range"] = time_range
         
-        # TODO: Add device_type filtering when custom Wazuh rules are configured
-        # This will require custom decoders/rules that extract device_type from logs
+        # Filter by device_type if provided
+        # Assumes custom decoders extract this field into data.device_type
+        if device_type:
+            params["q"] = f"data.device_type:{device_type}"
 
         alerts_url = f"{self.base_url}/alerts"
 

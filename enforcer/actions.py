@@ -162,28 +162,56 @@ class EnforcementActions:
             return f"Failed to send block command to agent {agent_id}: {str(e)}"
 
     
-    async def _isolate_device(self, device_id: str) -> str:
+
+    async def _isolate_device(self, device_ip: str, agent_id: Optional[str] = None, alert_id: Optional[str] = None) -> str:
         """
-        Isolate a device (e.g., move to quarantine VLAN)
+        Isolate a device by blocking its IP at the firewall/gateway level via Wazuh Active Response.
         
         Args:
-            device_id: Device identifier
+            device_ip: IP address of the device to isolate
+            agent_id: Wazuh agent ID of the source device (if known)
+            alert_id: Alert ID for tracking
         
         Returns:
             Execution result message
         """
-        # TODO: Integrate with network management API or Wazuh
-        # This would typically require SDN controller or switch API access
-        
-        logger.warning(
-            "isolate_device_stub",
-            device_id=device_id,
-            message="Device isolation not yet implemented - placeholder only"
-        )
-        
-        return f"Device {device_id} isolated (stub implementation - requires network API integration)"
+        if not agent_id:
+            logger.error("isolate_device_no_agent_id", device_ip=device_ip)
+            return f"Cannot isolate device {device_ip}: No agent_id provided"
+
+        try:
+            # Send active response to Wazuh for remote execution
+            # Command: firewall-drop
+            # Arguments: ["-", "IP_ADDRESS"]
+            # This will block all traffic from/to the device's IP on the agent where the command is executed.
+            # For true isolation, this command should ideally be sent to a gateway/firewall agent.
+            
+            response = await self.settings.wazuh_connector.send_active_response(
+                agent_id=agent_id, # This should ideally be the agent ID of the gateway/firewall
+                command="firewall-drop",
+                arguments=["-", device_ip],  # Drop traffic from this device IP
+                alert_id=alert_id
+            )
+            
+            logger.info(
+                "wazuh_isolate_device_sent",
+                device_ip=device_ip,
+                agent_id=agent_id,
+                response=response
+            )
+            
+            return f"Device {device_ip} isolation command sent to agent {agent_id} via Wazuh Active Response."
+                
+        except Exception as e:
+            logger.error(
+                "wazuh_isolate_device_failed",
+                device_ip=device_ip,
+                agent_id=agent_id,
+                error=str(e)
+            )
+            return f"Failed to send isolation command for device {device_ip} to agent {agent_id}: {str(e)}"
     
-    async def _rate_limit_device(self, device_id: str) -> str:
+    async def _rate_limit_device(self, device_id: str, device_ip: str = "", agent_id: Optional[str] = None, alert_id: Optional[str] = None) -> str:
         """
         Apply rate limiting to a device
         
@@ -193,12 +221,36 @@ class EnforcementActions:
         Returns:
             Execution result message
         """
-        # TODO: Implement rate limiting via traffic shaping or firewall rules
-        
-        logger.warning(
-            "rate_limit_stub",
-            device_id=device_id,
-            message="Rate limiting not yet implemented - placeholder only"
-        )
-        
-        return f"Device {device_id} rate limited (stub implementation - requires traffic shaping integration)"
+        if not agent_id:
+             return f"Cannot rate limit device {device_id}: No agent_id provided"
+
+        try:
+            # Send active response to Wazuh for traffic shaping
+            # Command: traffic-control (custom script would be needed on agent)
+            # This is a best-effort attempt to apply QOS/shaping
+            
+            response = await self.settings.wazuh_connector.send_active_response(
+                agent_id=agent_id,
+                command="traffic-control", 
+                arguments=["limit", device_ip, "1mbps"], # Example: limit to 1Mbps
+                alert_id=alert_id
+            )
+            
+            logger.info(
+                "wazuh_rate_limit_sent",
+                device_id=device_id,
+                agent_id=agent_id,
+                response=response
+            )
+            
+            return f"Traffic shaping command sent for device {device_id} to agent {agent_id}"
+            
+        except Exception as e:
+            # Fallback for now since traffic-control might not be installed
+            logger.warning(
+                "wazuh_rate_limit_failed", 
+                device_id=device_id,
+                error=str(e),
+                message="Traffic shaping not available, falling back to logging only"
+            )
+            return f"Rate limiting not available for {device_id} (traffic-control script missing)"
