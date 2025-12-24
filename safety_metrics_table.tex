@@ -1,0 +1,22 @@
+\begin{table}[h]
+    \centering
+    \caption{Safety Metrics: Precision, Recall, and Error Rates}
+    \label{tab:safety_metrics}
+    \begin{tabular}{lcc}
+        \toprule
+        \textbf{Metric} & \textbf{RBAC Baseline} & \textbf{Hybrid LLM} \\
+        \midrule
+        \multicolumn{3}{l}{\textit{Performance Metrics}} \\
+        Accuracy        & 77.7\% & \textbf{61.2\%} \\
+        Precision       & 69.4\% & \textbf{62.5\%} \\
+        Recall          & 81.0\% & \textbf{11.9\%} \\
+        F1 Score        & 74.7\% & \textbf{20.0\%} \\
+        \midrule
+        \multicolumn{3}{l}{\textit{Safety-Critical Metrics}} \\
+        False Permit Rate (FP)  & 24.6\% & 4.9\% \\
+        False Deny Rate (FN)    & 19.0\% & 88.1\% \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\textit{Note}: False Permit (FP) represents security breaches (incorrectly allowing unauthorized access). False Deny (FN) affects usability (incorrectly blocking legitimate users). Lower FP rate is critical for security.

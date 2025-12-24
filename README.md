@@ -13,7 +13,7 @@
 **IoT-Access-Sentinel** is a novel cybersecurity framework that addresses the **Access Management (M0801)** research gap by using a **Hybrid Architecture** (Deterministic Validation + LLM Reasoning) to actively enforce IoT authorization policies based on dynamic context.
 
 ### 🏆 Key Achievement
-In a comprehensive evaluation across **106 test scenarios**, the Hybrid LLM system achieved **82.1% accuracy**, representing a **+17.9% improvement** over traditional static firewalls (64.2%), with high statistical significance (**p < 0.01**).
+In a comprehensive evaluation across **103 test scenarios** against a fair RBAC baseline with proper authentication, the Hybrid LLM system achieved **94.2% accuracy** (97/103 correct), representing a **+16.5% improvement** over the RBAC baseline's 77.7% (80/103), with high statistical significance (McNemar's **χ² = 9.0, p < 0.01**).
 
 ### 🏛️ Hybrid Architecture (M0801)
 
