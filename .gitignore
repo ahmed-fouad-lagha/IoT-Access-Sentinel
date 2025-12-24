@@ -68,10 +68,10 @@ Thumbs.db
 # =========================
 # Test Results
 # =========================
-tests/results/
-tests/synthetic/
-tests/synthetic_v2/
-tests/user_auth/
+# tests/results/
+# tests/synthetic/
+# tests/synthetic_v2/
+# tests/user_auth/
 
 .coverage
 htmlcov/

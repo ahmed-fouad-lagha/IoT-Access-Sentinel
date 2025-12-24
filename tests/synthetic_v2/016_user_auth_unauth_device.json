@@ -1,0 +1,20 @@
+{
+  "id": "user-auth-invalid-device-2",
+  "timestamp": "2025-12-25T12:00:00Z",
+  "rule": {
+    "level": 5,
+    "description": "IoT camera access attempt",
+    "id": "100010"
+  },
+  "device_id": "camera-office-03",
+  "device_type": "camera",
+  "source_ip": "192.168.1.34",
+  "destination_ip": "10.0.0.1",
+  "destination_port": 443,
+  "protocol": "HTTPS",
+  "user_id": "bob@company.com",
+  "auth_token": "valid-token-1807",
+  "user_role": "security_staff",
+  "expected_decision": "DENY",
+  "description": "bob@company.com trying unauthorized camera-office-03"
+}

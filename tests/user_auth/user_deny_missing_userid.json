@@ -1,0 +1,25 @@
+{
+    "id": "user-auth-deny-3",
+    "timestamp": "2025-12-23T10:00:00Z",
+    "rule": {
+        "level": 5,
+        "description": "IoT camera access attempt",
+        "id": "100010",
+        "mitre": {},
+        "groups": [
+            "iot",
+            "access_control"
+        ]
+    },
+    "device_id": "camera-office-01",
+    "device_type": "camera",
+    "source_ip": "192.168.1.100",
+    "destination_ip": "10.0.0.1",
+    "destination_port": 443,
+    "protocol": "HTTPS",
+    "auth_token": "valid",
+    "user_role": "unknown",
+    "session_id": "sess-12345",
+    "expected_decision": "DENY",
+    "description": "Missing user_id while authentication is required"
+}

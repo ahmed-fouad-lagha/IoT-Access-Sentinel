@@ -1,0 +1,23 @@
+{
+  "id": "synthetic-attack-18",
+  "timestamp": "2025-12-23T09:05:18Z",
+  "rule": {
+    "level": 8,
+    "description": "Suspicious input detected",
+    "id": "100040",
+    "mitre": {},
+    "groups": [
+      "iot",
+      "access_control",
+      "attack"
+    ]
+  },
+  "device_type": "'; DROP TABLE --",
+  "source_ip": "192.168.1.226",
+  "destination_ip": "10.0.0.1",
+  "destination_port": 443,
+  "protocol": "HTTPS",
+  "expected_decision": "DENY",
+  "category": "attack_sql_injection",
+  "attack_payload": "'; DROP TABLE --"
+}

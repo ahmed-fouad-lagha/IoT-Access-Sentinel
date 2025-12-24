@@ -1,0 +1,536 @@
+{
+  "test_run": "2025-12-23T17:29:09.680466",
+  "results": [
+    {
+      "scenario": "synthetic-attack-1",
+      "expected": "DENY",
+      "actual": "DENY",
+      "confidence": 1.0,
+      "status": "PASS"
+    },
+    {
+      "scenario": "synthetic-attack-10",
+      "expected": "DENY",
+      "actual": "DENY",
+      "confidence": 1.0,
+      "status": "PASS"
+    },
+    {
+      "scenario": "synthetic-attack-11",
+      "expected": "DENY",
+      "actual": "DENY",
+      "confidence": 1.0,
+      "status": "PASS"
+    },
+    {
+      "scenario": "synthetic-attack-12",
+      "expected": "DENY",
+      "actual": "DENY",
+      "confidence": 0.95,
+      "status": "PASS"
+    },
+    {
+      "scenario": "synthetic-attack-13",
+      "expected": "DENY",
+      "actual": "DENY",
+      "confidence": 1.0,
+      "status": "PASS"
+    },
+    {
+      "scenario": "synthetic-attack-14",
+      "expected": "DENY",
+      "actual": "DENY",
+      "confidence": 0.95,
+      "status": "PASS"
+    },
+    {
+      "scenario": "synthetic-attack-15",
+      "expected": "DENY",
+      "actual": "DENY",
+      "confidence": 1.0,
+      "status": "PASS"
+    },
+    {
+      "scenario": "synthetic-attack-16",
+      "expected": "DENY",
+      "actual": "DENY",
+      "confidence": 1.0,
+      "status": "PASS"
+    },
+    {
+      "scenario": "synthetic-attack-17",
+      "expected": "DENY",
+      "actual": "DENY",
+      "confidence": 0.95,
+      "status": "PASS"
+    },
+    {
+      "scenario": "synthetic-attack-18",
+      "expected": "DENY",
+      "actual": "DENY",
+      "confidence": 1.0,
+      "status": "PASS"
+    },
+    {
+      "scenario": "synthetic-attack-19",
+      "expected": "DENY",
+      "actual": "DENY",
+      "confidence": 1.0,
+      "status": "PASS"
+    },
+    {
+      "scenario": "synthetic-attack-2",
+      "expected": "DENY",
+      "actual": "DENY",
+      "confidence": 1.0,
+      "status": "PASS"
+    },
+    {
+      "scenario": "synthetic-attack-20",
+      "expected": "DENY",
+      "actual": "DENY",
+      "confidence": 0.95,
+      "status": "PASS"
+    },
+    {
+      "scenario": "synthetic-attack-3",
+      "expected": "DENY",
+      "actual": "DENY",
+      "confidence": 0.95,
+      "status": "PASS"
+    },
+    {
+      "scenario": "synthetic-attack-4",
+      "expected": "DENY",
+      "actual": "DENY",
+      "confidence": 0.95,
+      "status": "PASS"
+    },
+    {
+      "scenario": "synthetic-attack-5",
+      "expected": "DENY",
+      "actual": "DENY",
+      "confidence": 1.0,
+      "status": "PASS"
+    },
+    {
+      "scenario": "synthetic-attack-6",
+      "expected": "DENY",
+      "actual": "DENY",
+      "confidence": 1.0,
+      "status": "PASS"
+    },
+    {
+      "scenario": "synthetic-attack-7",
+      "expected": "DENY",
+      "actual": "DENY",
+      "confidence": 1.0,
+      "status": "PASS"
+    },
+    {
+      "scenario": "synthetic-attack-8",
+      "expected": "DENY",
+      "actual": "DENY",
+      "confidence": 1.0,
+      "status": "PASS"
+    },
+    {
+      "scenario": "synthetic-attack-9",
+      "expected": "DENY",
+      "actual": "DENY",
+      "confidence": 0.95,
+      "status": "PASS"
+    },
+    {
+      "scenario": "synthetic-camera-network-1",
+      "expected": "DENY",
+      "actual": "DENY",
+      "confidence": 0.95,
+      "status": "PASS"
+    },
+    {
+      "scenario": "synthetic-camera-network-2",
+      "expected": "DENY",
+      "actual": "DENY",
+      "confidence": 0.95,
+      "status": "PASS"
+    },
+    {
+      "scenario": "synthetic-camera-network-3",
+      "expected": "DENY",
+      "actual": "DENY",
+      "confidence": 0.95,
+      "status": "PASS"
+    },
+    {
+      "scenario": "synthetic-camera-network-4",
+      "expected": "DENY",
+      "actual": "DENY",
+      "confidence": 0.95,
+      "status": "PASS"
+    },
+    {
+      "scenario": "synthetic-camera-network-5",
+      "expected": "DENY",
+      "actual": "DENY",
+      "confidence": 0.95,
+      "status": "PASS"
+    },
+    {
+      "scenario": "synthetic-camera-time-1",
+      "expected": "DENY",
+      "actual": "DENY",
+      "confidence": 1.0,
+      "status": "PASS"
+    },
+    {
+      "scenario": "synthetic-camera-time-2",
+      "expected": "DENY",
+      "actual": "DENY",
+      "confidence": 0.9,
+      "status": "PASS"
+    },
+    {
+      "scenario": "synthetic-camera-time-3",
+      "expected": "DENY",
+      "actual": "DENY",
+      "confidence": 1.0,
+      "status": "PASS"
+    },
+    {
+      "scenario": "synthetic-camera-time-4",
+      "expected": "DENY",
+      "actual": "DENY",
+      "confidence": 0.9,
+      "status": "PASS"
+    },
+    {
+      "scenario": "synthetic-camera-time-5",
+      "expected": "DENY",
+      "actual": "DENY",
+      "confidence": 0.9,
+      "status": "PASS"
+    },
+    {
+      "scenario": "synthetic-camera-unknown-1",
+      "expected": "DENY",
+      "actual": "ALLOW",
+      "confidence": 0.7,
+      "status": "FAIL"
+    },
+    {
+      "scenario": "synthetic-camera-unknown-2",
+      "expected": "DENY",
+      "actual": "DENY",
+      "confidence": 1.0,
+      "status": "PASS"
+    },
+    {
+      "scenario": "synthetic-camera-unknown-3",
+      "expected": "DENY",
+      "actual": "DENY",
+      "confidence": 1.0,
+      "status": "PASS"
+    },
+    {
+      "scenario": "synthetic-camera-unknown-4",
+      "expected": "DENY",
+      "actual": "DENY",
+      "confidence": 1.0,
+      "status": "PASS"
+    },
+    {
+      "scenario": "synthetic-camera-unknown-5",
+      "expected": "DENY",
+      "actual": "DENY",
+      "confidence": 1.0,
+      "status": "PASS"
+    },
+    {
+      "scenario": "synthetic-camera-valid-1",
+      "expected": "ALLOW",
+      "actual": "DENY",
+      "confidence": 1.0,
+      "status": "FAIL"
+    },
+    {
+      "scenario": "synthetic-camera-valid-10",
+      "expected": "ALLOW",
+      "actual": "DENY",
+      "confidence": 1.0,
+      "status": "FAIL"
+    },
+    {
+      "scenario": "synthetic-camera-valid-11",
+      "expected": "ALLOW",
+      "actual": "DENY",
+      "confidence": 1.0,
+      "status": "FAIL"
+    },
+    {
+      "scenario": "synthetic-camera-valid-12",
+      "expected": "ALLOW",
+      "actual": "DENY",
+      "confidence": 1.0,
+      "status": "FAIL"
+    },
+    {
+      "scenario": "synthetic-camera-valid-13",
+      "expected": "ALLOW",
+      "actual": "DENY",
+      "confidence": 1.0,
+      "status": "FAIL"
+    },
+    {
+      "scenario": "synthetic-camera-valid-14",
+      "expected": "ALLOW",
+      "actual": "DENY",
+      "confidence": 1.0,
+      "status": "FAIL"
+    },
+    {
+      "scenario": "synthetic-camera-valid-15",
+      "expected": "ALLOW",
+      "actual": "DENY",
+      "confidence": 1.0,
+      "status": "FAIL"
+    },
+    {
+      "scenario": "synthetic-camera-valid-16",
+      "expected": "ALLOW",
+      "actual": "DENY",
+      "confidence": 1.0,
+      "status": "FAIL"
+    },
+    {
+      "scenario": "synthetic-camera-valid-17",
+      "expected": "ALLOW",
+      "actual": "DENY",
+      "confidence": 1.0,
+      "status": "FAIL"
+    },
+    {
+      "scenario": "synthetic-camera-valid-18",
+      "expected": "ALLOW",
+      "actual": "DENY",
+      "confidence": 1.0,
+      "status": "FAIL"
+    },
+    {
+      "scenario": "synthetic-camera-valid-19",
+      "expected": "ALLOW",
+      "actual": "DENY",
+      "confidence": 1.0,
+      "status": "FAIL"
+    },
+    {
+      "scenario": "synthetic-camera-valid-2",
+      "expected": "ALLOW",
+      "actual": "DENY",
+      "confidence": 1.0,
+      "status": "FAIL"
+    },
+    {
+      "scenario": "synthetic-camera-valid-20",
+      "expected": "ALLOW",
+      "actual": "DENY",
+      "confidence": 1.0,
+      "status": "FAIL"
+    },
+    {
+      "scenario": "synthetic-camera-valid-3",
+      "expected": "ALLOW",
+      "actual": "DENY",
+      "confidence": 1.0,
+      "status": "FAIL"
+    },
+    {
+      "scenario": "synthetic-camera-valid-4",
+      "expected": "ALLOW",
+      "actual": "DENY",
+      "confidence": 1.0,
+      "status": "FAIL"
+    },
+    {
+      "scenario": "synthetic-camera-valid-5",
+      "expected": "ALLOW",
+      "actual": "DENY",
+      "confidence": 1.0,
+      "status": "FAIL"
+    },
+    {
+      "scenario": "synthetic-camera-valid-6",
+      "expected": "ALLOW",
+      "actual": "DENY",
+      "confidence": 1.0,
+      "status": "FAIL"
+    },
+    {
+      "scenario": "synthetic-camera-valid-7",
+      "expected": "ALLOW",
+      "actual": "DENY",
+      "confidence": 1.0,
+      "status": "FAIL"
+    },
+    {
+      "scenario": "synthetic-camera-valid-8",
+      "expected": "ALLOW",
+      "actual": "DENY",
+      "confidence": 1.0,
+      "status": "FAIL"
+    },
+    {
+      "scenario": "synthetic-camera-valid-9",
+      "expected": "ALLOW",
+      "actual": "DENY",
+      "confidence": 1.0,
+      "status": "FAIL"
+    },
+    {
+      "scenario": "synthetic-sensor-network-1",
+      "expected": "DENY",
+      "actual": "DENY",
+      "confidence": 1.0,
+      "status": "PASS"
+    },
+    {
+      "scenario": "synthetic-sensor-network-2",
+      "expected": "DENY",
+      "actual": "DENY",
+      "confidence": 1.0,
+      "status": "PASS"
+    },
+    {
+      "scenario": "synthetic-sensor-network-3",
+      "expected": "DENY",
+      "actual": "DENY",
+      "confidence": 1.0,
+      "status": "PASS"
+    },
+    {
+      "scenario": "synthetic-sensor-network-4",
+      "expected": "DENY",
+      "actual": "DENY",
+      "confidence": 1.0,
+      "status": "PASS"
+    },
+    {
+      "scenario": "synthetic-sensor-valid-1",
+      "expected": "ALLOW",
+      "actual": "DENY",
+      "confidence": 1.0,
+      "status": "FAIL"
+    },
+    {
+      "scenario": "synthetic-sensor-valid-10",
+      "expected": "ALLOW",
+      "actual": "DENY",
+      "confidence": 1.0,
+      "status": "FAIL"
+    },
+    {
+      "scenario": "synthetic-sensor-valid-11",
+      "expected": "ALLOW",
+      "actual": "DENY",
+      "confidence": 1.0,
+      "status": "FAIL"
+    },
+    {
+      "scenario": "synthetic-sensor-valid-12",
+      "expected": "ALLOW",
+      "actual": "DENY",
+      "confidence": 1.0,
+      "status": "FAIL"
+    },
+    {
+      "scenario": "synthetic-sensor-valid-13",
+      "expected": "ALLOW",
+      "actual": "DENY",
+      "confidence": 1.0,
+      "status": "FAIL"
+    },
+    {
+      "scenario": "synthetic-sensor-valid-14",
+      "expected": "ALLOW",
+      "actual": "DENY",
+      "confidence": 1.0,
+      "status": "FAIL"
+    },
+    {
+      "scenario": "synthetic-sensor-valid-15",
+      "expected": "ALLOW",
+      "actual": "DENY",
+      "confidence": 1.0,
+      "status": "FAIL"
+    },
+    {
+      "scenario": "synthetic-sensor-valid-16",
+      "expected": "ALLOW",
+      "actual": "DENY",
+      "confidence": 1.0,
+      "status": "FAIL"
+    },
+    {
+      "scenario": "synthetic-sensor-valid-2",
+      "expected": "ALLOW",
+      "actual": "DENY",
+      "confidence": 1.0,
+      "status": "FAIL"
+    },
+    {
+      "scenario": "synthetic-sensor-valid-3",
+      "expected": "ALLOW",
+      "actual": "DENY",
+      "confidence": 1.0,
+      "status": "FAIL"
+    },
+    {
+      "scenario": "synthetic-sensor-valid-4",
+      "expected": "ALLOW",
+      "actual": "DENY",
+      "confidence": 1.0,
+      "status": "FAIL"
+    },
+    {
+      "scenario": "synthetic-sensor-valid-5",
+      "expected": "ALLOW",
+      "actual": "DENY",
+      "confidence": 1.0,
+      "status": "FAIL"
+    },
+    {
+      "scenario": "synthetic-sensor-valid-6",
+      "expected": "ALLOW",
+      "actual": "DENY",
+      "confidence": 1.0,
+      "status": "FAIL"
+    },
+    {
+      "scenario": "synthetic-sensor-valid-7",
+      "expected": "ALLOW",
+      "actual": "DENY",
+      "confidence": 1.0,
+      "status": "FAIL"
+    },
+    {
+      "scenario": "synthetic-sensor-valid-8",
+      "expected": "ALLOW",
+      "actual": "DENY",
+      "confidence": 1.0,
+      "status": "FAIL"
+    },
+    {
+      "scenario": "synthetic-sensor-valid-9",
+      "expected": "ALLOW",
+      "actual": "DENY",
+      "confidence": 1.0,
+      "status": "FAIL"
+    }
+  ],
+  "summary": {
+    "total": 75,
+    "passed": 38,
+    "failed": 37,
+    "accuracy": "50.7%"
+  }
+}

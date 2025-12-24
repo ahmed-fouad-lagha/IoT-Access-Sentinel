@@ -1,0 +1,23 @@
+{
+  "id": "synthetic-camera-time-5",
+  "timestamp": "2025-12-23T23:52:47Z",
+  "rule": {
+    "level": 7,
+    "description": "Camera outside business hours",
+    "id": "100011",
+    "mitre": {},
+    "groups": [
+      "iot",
+      "access_control",
+      "policy_violation"
+    ]
+  },
+  "device_id": "camera-office-10",
+  "device_type": "camera",
+  "source_ip": "192.168.1.208",
+  "destination_ip": "10.0.0.1",
+  "destination_port": 443,
+  "protocol": "HTTPS",
+  "expected_decision": "DENY",
+  "category": "camera_time_violation"
+}

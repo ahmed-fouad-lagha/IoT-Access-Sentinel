@@ -210,7 +210,7 @@ IoT-Access-Sentinel/
 ├── enforcer/                    # Active Response Integration
 │   └── actions.py               # Remote IP blocking via Wazuh API
 ├── main.py                      # FastAPI Webhook Endpoint
-└── tests/                       # 106+ benchmark scenarios
+└── tests/                       # 103 benchmark scenarios
 ```
 
 ---

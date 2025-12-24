@@ -1,0 +1,21 @@
+Analyze the context of this IoT connection attempt:
+
+**Connection Details:**
+Device Type: {device_type}
+Device ID: {device_id}
+Source IP: {source_ip}
+Destination: {destination_ip}:{destination_port}
+Protocol: {protocol}
+Timestamp: {timestamp}
+Current Time: {current_time}
+
+**Wazuh Alert Context:**
+Rule Description: {rule_description}
+Rule Level: {rule_level}
+
+1. Identify identifying traits of the device.
+2. Determine if the requested action is typical for this device context.
+3. Check for any contextual flags (e.g., suspicious IP, unusual time).
+4. Summarize the situational context in JSON format: {{"risk_score": 0.0-1.0, "anomalies_detected": [], "context_summary": ""}}.
+
+Return only the JSON object.

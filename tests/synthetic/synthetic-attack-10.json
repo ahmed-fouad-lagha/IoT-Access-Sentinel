@@ -1,0 +1,23 @@
+{
+  "id": "synthetic-attack-10",
+  "timestamp": "2025-12-23T10:48:34Z",
+  "rule": {
+    "level": 8,
+    "description": "Suspicious input detected",
+    "id": "100040",
+    "mitre": {},
+    "groups": [
+      "iot",
+      "access_control",
+      "attack"
+    ]
+  },
+  "device_type": "<script>alert(1)</script>",
+  "source_ip": "192.168.1.197",
+  "destination_ip": "10.0.0.1",
+  "destination_port": 443,
+  "protocol": "HTTPS",
+  "expected_decision": "DENY",
+  "category": "attack_xss_attempt",
+  "attack_payload": "<script>alert(1)</script>"
+}

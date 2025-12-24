@@ -1,0 +1,26 @@
+{
+    "id": "user-auth-allow-2",
+    "timestamp": "2025-12-23T10:00:00Z",
+    "rule": {
+        "level": 5,
+        "description": "IoT camera access attempt",
+        "id": "100010",
+        "mitre": {},
+        "groups": [
+            "iot",
+            "access_control"
+        ]
+    },
+    "device_id": "camera-lobby-01",
+    "device_type": "camera",
+    "source_ip": "192.168.1.100",
+    "destination_ip": "10.0.0.1",
+    "destination_port": 443,
+    "protocol": "HTTPS",
+    "user_id": "bob@company.com",
+    "auth_token": "valid",
+    "user_role": "security_staff",
+    "session_id": "sess-67890",
+    "expected_decision": "ALLOW",
+    "description": "Bob (security_staff) accessing camera-lobby-01 which is in his allowed_devices list"
+}

@@ -1,0 +1,22 @@
+{
+  "id": "synthetic-camera-valid-11",
+  "timestamp": "2025-12-23T14:03:15Z",
+  "rule": {
+    "level": 5,
+    "description": "IoT camera connection attempt",
+    "id": "100010",
+    "mitre": {},
+    "groups": [
+      "iot",
+      "access_control"
+    ]
+  },
+  "device_id": "camera-lobby-06",
+  "device_type": "camera",
+  "source_ip": "192.168.1.85",
+  "destination_ip": "10.0.0.1",
+  "destination_port": 443,
+  "protocol": "HTTPS",
+  "expected_decision": "ALLOW",
+  "category": "legitimate_camera"
+}

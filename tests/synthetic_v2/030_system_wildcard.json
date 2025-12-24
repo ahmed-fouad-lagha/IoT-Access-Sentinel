@@ -1,0 +1,20 @@
+{
+  "id": "system-wildcard-1",
+  "timestamp": "2025-12-23T20:00:00Z",
+  "rule": {
+    "level": 5,
+    "description": "IoT camera access attempt",
+    "id": "100010"
+  },
+  "device_id": "camera-warehouse-01",
+  "device_type": "camera",
+  "source_ip": "192.168.1.239",
+  "destination_ip": "10.0.0.1",
+  "destination_port": 443,
+  "protocol": "HTTPS",
+  "user_id": "security-system@company.com",
+  "auth_token": "system-token-master",
+  "user_role": "system",
+  "expected_decision": "ALLOW",
+  "description": "System account with wildcard access"
+}

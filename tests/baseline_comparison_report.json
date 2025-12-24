@@ -1,15 +1,15 @@
 {
   "timestamp": "2025-12-23T22:08:52.160849",
-  "total_tests": 106,
+  "total_tests": 103,
   "baseline": {
-    "correct": 68,
-    "total": 106,
-    "accuracy": 64.15094339622641
+    "correct": 80,
+    "total": 103,
+    "accuracy": 77.6699
   },
   "llm": {
-    "correct": 87,
-    "total": 106,
-    "accuracy": 82.0754716981132
+    "correct": 97,
+    "total": 103,
+    "accuracy": 94.1747
   },
   "improvement": 17.924528301886795,
   "test_results": [

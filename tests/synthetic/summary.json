@@ -1,0 +1,12 @@
+{
+  "generated_at": "2025-12-23T17:17:58.647624",
+  "total_scenarios": 75,
+  "categories": {
+    "camera_valid": 20,
+    "camera_violations": 15,
+    "sensors": 20,
+    "attacks": 20
+  },
+  "expected_allow": 36,
+  "expected_deny": 39
+}

@@ -11,6 +11,7 @@ Protects against:
 
 import re
 import logging
+import unicodedata
 from typing import Optional, Tuple, List
 
 logger = logging.getLogger(__name__)
@@ -42,9 +43,10 @@ INJECTION_PATTERNS = [
     (re.compile(r"<script|javascript:|on\w+\s*=", re.IGNORECASE), "xss"),
     (re.compile(r"\$\{|\$\(|`.*`", re.IGNORECASE), "command_injection"),
     
-    # Unicode attacks
-    (re.compile(r"[\u202E\u200F\u200E]"), "unicode_rtlo"),  # Right-to-left override
-    (re.compile(r"[\x00-\x08\x0B\x0C\x0E-\x1F]"), "null_bytes"),  # Control characters
+    # Unicode attacks and Evasion
+    (re.compile(r"[\u202E\u200F\u200E\u202A\u202B\u202C\u202D]"), "unicode_evasion"),  # RTLO and directional overrides
+    (re.compile(r"[\x00-\x08\x0B\x0C\x0E-\x1F\u200B\u200C\u200D\uFEFF]"), "hidden_characters"),  # Control and zero-width characters
+    (re.compile(r"(?:[0-9a-fA-F]{2}){4,}"), "hex_encoded_payload"),  # Potential hex smuggling
 ]
 
 
@@ -175,13 +177,37 @@ class InputValidator:
         # Truncate to reasonable length
         return sanitized[:256]
     
+    def normalize_text(self, text: str) -> str:
+        """
+        Normalize and strip hidden characters from text.
+        Uses NFKC normalization to resolve homoglyph attacks.
+        """
+        if not text:
+            return text
+        
+        # 1. NFKC Normalization (resolves bold/italic/homoglyph versions of characters)
+        normalized = unicodedata.normalize('NFKC', text)
+        
+        # 2. Strip invisible characters, RTLO, Bidi Isolates, and control characters
+        # Matches: \x00-\x1F, \x7F-\x9F, zero-width, directional overrides, and isolates
+        stripped = re.sub(r'[\x00-\x1f\x7f-\x9f\u200b-\u200f\u202a-\u202e\u2066-\u2069\ufeff]', '', normalized)
+        
+        return stripped
+
     def _detect_injection(self, text: str) -> Optional[str]:
-        """Detect injection patterns in text."""
+        """Detect injection patterns in text after normalization."""
         if not text:
             return None
         
+        # Security Hardening: Normalize and strip BEFORE matching
+        clean_text = self.normalize_text(text)
+        
+        # Log if normalization changed the text (evasion attempt)
+        if clean_text != text:
+             logger.debug(f"Normalization altered input: '{text}' -> '{clean_text}'")
+        
         for pattern, threat_type in INJECTION_PATTERNS:
-            if pattern.search(text):
+            if pattern.search(clean_text):
                 return threat_type
         
         return None

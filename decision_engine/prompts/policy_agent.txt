@@ -1,0 +1,24 @@
+Evaluate this IoT connection against access policies:
+
+**Connection Details:**
+Device Type: {device_type}
+Device ID: {device_id}
+Source IP: {source_ip}
+Timestamp: {timestamp}
+
+**User Authorization (M0801):**
+User ID: {user_id}
+Auth Token: {auth_token}
+User Role: {user_role}
+Session ID: {session_id}
+
+**Context Analysis:**
+Risk Score: {risk_score}
+Anomalies: {anomalies}
+Summary: {context_summary}
+
+**Access Policies:**
+{policies}
+
+Make your access decision in JSON format, then TERMINATE. 
+Return only: {{"DECISION": "PERMIT/DENY/ESCALATE", "REASON": "justification", "CONFIDENCE": 0.0-1.0}}.

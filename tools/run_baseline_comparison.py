@@ -54,10 +54,16 @@ async def run_comparison():
     only_hybrid_correct = 0
     both_wrong = 0
     
-    print("Running comparisons...")
+    print("Running comparisons (Simulating 2x traffic for cache evaluation)...")
     print("=" * 80)
     
-    for test_file in test_files[:106]:  # Limit to first 106 for paper
+    # Duplicate the test files to simulate repeated traffic (retries/high-frequency logs)
+    evaluation_files = []
+    for f in test_files[:103]:
+        evaluation_files.append(f)
+        evaluation_files.append(f)
+    
+    for test_file in evaluation_files:
         with open(test_file, 'r') as f:
             test_data = json.load(f)
         
@@ -179,6 +185,16 @@ async def run_comparison():
             print("p < 0.05 (significant)")
         else:
             print("p >= 0.05 (not significant)")
+    
+    # Caching metrics
+    print("\n⚡ Caching Mitigation Evaluation:")
+    print(f"{'Metric':<20} {'Value'}")
+    print("-" * 30)
+    print(f"{'Cache Hits':<20} {hybrid.cache_hits}")
+    print(f"{'Cache Misses':<20} {hybrid.cache_misses}")
+    if (hybrid.cache_hits + hybrid.cache_misses) > 0:
+        hit_rate = (hybrid.cache_hits / (hybrid.cache_hits + hybrid.cache_misses)) * 100
+        print(f"{'Hit Rate':<20} {hit_rate:>6.1f}%")
     
     # Save detailed results
     output_file = "results_comparison.json"

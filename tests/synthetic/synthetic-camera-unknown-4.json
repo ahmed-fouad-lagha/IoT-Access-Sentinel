@@ -1,0 +1,22 @@
+{
+  "id": "synthetic-camera-unknown-4",
+  "timestamp": "2025-12-23T12:28:11Z",
+  "rule": {
+    "level": 8,
+    "description": "Unknown camera device",
+    "id": "100040",
+    "mitre": {},
+    "groups": [
+      "iot",
+      "access_control",
+      "unknown"
+    ]
+  },
+  "device_type": "camera",
+  "source_ip": "192.168.1.173",
+  "destination_ip": "10.0.0.1",
+  "destination_port": 443,
+  "protocol": "HTTPS",
+  "expected_decision": "DENY",
+  "category": "unknown_device"
+}

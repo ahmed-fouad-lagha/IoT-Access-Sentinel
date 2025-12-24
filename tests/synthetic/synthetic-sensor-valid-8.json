@@ -1,0 +1,22 @@
+{
+  "id": "synthetic-sensor-valid-8",
+  "timestamp": "2025-12-23T18:53:24Z",
+  "rule": {
+    "level": 4,
+    "description": "IoT sensor telemetry transmission",
+    "id": "100020",
+    "mitre": {},
+    "groups": [
+      "iot",
+      "access_control"
+    ]
+  },
+  "device_id": "sensor-motion-15",
+  "device_type": "sensor",
+  "source_ip": "192.168.2.36",
+  "destination_ip": "10.0.0.5",
+  "destination_port": 8883,
+  "protocol": "MQTT",
+  "expected_decision": "ALLOW",
+  "category": "legitimate_sensor"
+}

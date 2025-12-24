@@ -1,0 +1,24 @@
+{
+  "id": "synthetic-attack-6",
+  "timestamp": "2025-12-23T02:02:46Z",
+  "rule": {
+    "level": 8,
+    "description": "Suspicious input detected",
+    "id": "100040",
+    "mitre": {},
+    "groups": [
+      "iot",
+      "access_control",
+      "attack"
+    ]
+  },
+  "device_type": "camera",
+  "source_ip": "192.168.1.170",
+  "destination_ip": "10.0.0.1",
+  "destination_port": 443,
+  "protocol": "HTTPS",
+  "expected_decision": "DENY",
+  "category": "attack_path_traversal",
+  "attack_payload": "../../../etc/passwd",
+  "device_id": "../../../etc/passwd"
+}
