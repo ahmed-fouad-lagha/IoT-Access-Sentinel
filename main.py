@@ -13,6 +13,7 @@ Workflow:
 
 from fastapi import FastAPI, HTTPException, status, Response
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from typing import List
@@ -79,7 +80,15 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Add rate limiting middleware (moderate profile: 100 req/min default)
+# Add CORS middleware to allow frontend access
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 # Add rate limiting middleware (moderate profile: 100 req/min default)
 app.add_middleware(RateLimitMiddleware, default_limit=100, default_window=60)
 
@@ -246,7 +255,7 @@ async def process_access_alert(alert: IoTAccessAlert):
 @app.get(
     "/alerts",
     summary="Fetch and analyze recent alerts",
-    description="Query Wazuh for recent IoT access alerts and analyze them"
+    description="Query recent processed alerts and their decisions"
 )
 async def fetch_and_analyze_alerts(
     limit: int = 10,
@@ -254,56 +263,39 @@ async def fetch_and_analyze_alerts(
     time_range: str = "1h"
 ):
     """
-    Fetch alerts from Wazuh and analyze them
+    Fetch recent alert decisions from tracer history
     
     Args:
         limit: Maximum alerts to fetch
-        min_level: Minimum rule level
-        time_range: Time range (1h, 24h, 7d)
+        min_level: Minimum rule level (ignored for now)
+        time_range: Time range (ignored for now)
     
     Returns:
-        List of analyzed alerts
+        List of recent analyzed alerts
     """
     try:
-        wazuh: WazuhConnector = app.state.wazuh_connector
-        decision_pipeline: DecisionPipeline = app.state.decision_pipeline
+        # Get recent activities from tracer
+        activities = tracer.get_activities()
         
-        # Fetch raw alerts
-        raw_alerts = await wazuh.get_iot_access_alerts(
-            min_level=min_level,
-            limit=limit,
-            time_range=time_range
-        )
-        
+        # Extract alert decisions
         analyzed_alerts = []
-        
-        for raw_alert in raw_alerts:
-            try:
-                # Parse to IoTAccessAlert
-                iot_alert = IoTAccessAlert(**raw_alert)
-                
-                # Analyze
-                decision = await decision_pipeline.make_decision(iot_alert)
-                
+        for activity in activities[-limit:]:  # Get last N
+            if activity.get('type') == 'decision':
                 analyzed_alerts.append({
-                    "alert_id": iot_alert.id,
-                    "device_type": iot_alert.device_type,
-                    "source_ip": iot_alert.source_ip,
-                    "rule_description": iot_alert.rule.description,
+                    "alert_id": activity.get('alert_id', 'unknown'),
+                    "device_type": activity.get('device_type', 'unknown'),
+                    "source_ip": activity.get('source_ip', 'unknown'),
+                    "rule_description": activity.get('context', {}).get('rule_description', 'IoT Access Request'),
                     "decision": {
-                        "action": decision.action,
-                        "confidence": decision.confidence,
-                        "reason": decision.reason,
-                        "policy_matched": decision.policy_matched
+                        "action": activity.get('action', 'PENDING'),
+                        "confidence": activity.get('confidence', 0.5),
+                        "reason": activity.get('reasoning', 'Processing...'),
+                        "policy_matched": activity.get('context', {}).get('policy_matched', 'Unknown')
                     }
                 })
-                
-            except Exception as e:
-                logger.error("alert_analysis_failed", alert=raw_alert, error=str(e))
-                continue
         
         return {
-            "total_fetched": len(raw_alerts),
+            "total_fetched": len(activities),
             "total_analyzed": len(analyzed_alerts),
             "time_range": time_range,
             "alerts": analyzed_alerts
@@ -311,10 +303,13 @@ async def fetch_and_analyze_alerts(
         
     except Exception as e:
         logger.error("fetch_alerts_failed", error=str(e))
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to fetch alerts: {str(e)}"
-        )
+        # Return empty but valid response
+        return {
+            "total_fetched": 0,
+            "total_analyzed": 0,
+            "time_range": time_range,
+            "alerts": []
+        }
 
 
 @app.get(

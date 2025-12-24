@@ -91,6 +91,6 @@ async def call_context_agent(client: Union[AsyncOpenAI, genai.Client], model: st
                 {"role": "user", "content": prompt}
             ],
             temperature=0.2,
-            max_tokens=512
+            max_tokens=1024
         )
         return response.choices[0].message.content
