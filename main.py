@@ -28,7 +28,7 @@ from common.schemas import EnforcementAction
 
 # Import production modules
 from common.metrics import metrics, get_metrics_endpoint, PROMETHEUS_AVAILABLE
-from common.rate_limit import create_rate_limiter
+from common.rate_limit import create_rate_limiter, RateLimitMiddleware
 from common.tracer import tracer, get_tracer
 from common.validation import validate_alert, validator
 
@@ -80,7 +80,8 @@ app = FastAPI(
 )
 
 # Add rate limiting middleware (moderate profile: 100 req/min default)
-app.add_middleware(create_rate_limiter.__class__, **{"default_limit": 100, "default_window": 60})
+# Add rate limiting middleware (moderate profile: 100 req/min default)
+app.add_middleware(RateLimitMiddleware, default_limit=100, default_window=60)
 
 
 @app.post(
@@ -344,6 +345,13 @@ async def health_check():
             "enforcement_enabled": settings.enforcement_enabled
         }
     }
+
+
+@app.get("/metrics", summary="Prometheus metrics")
+async def metrics_endpoint():
+    """Expose Prometheus metrics"""
+    from fastapi import Response
+    return Response(content=get_metrics_endpoint(), media_type="text/plain")
 
 
 @app.get("/", summary="Service information")

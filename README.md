@@ -154,7 +154,27 @@ docker-compose up -d
 
 ---
 
-## 📊 Benchmarks & Validation
+## 📊 Monitoring & Observability
+
+### Prometheus Metrics
+The system exposes standard Prometheus metrics at `/metrics`. Key metrics include:
+- `sentinel_decisions_total`: Counter for ALLOW/DENY decisions (labeled by category/path).
+- `sentinel_llm_cost_dollars`: Estimated LLM inference cost.
+- `sentinel_latency_seconds`: End-to-end request latency distribution.
+- `sentinel_active_requests`: Real-time concurrent request gauge.
+
+### API Documentation
+Interactive API documentation (Swagger UI) is available at:
+- **Swagger UI**: `http://localhost:8000/docs`
+- **ReDoc**: `http://localhost:8000/redoc`
+
+### 🛡️ Rate Limiting
+Built-in sliding window rate limiter protects against DoS and abuse:
+- **Default policy**: 100 req/min/IP
+- **LLM Endpoints**: Stricter limits (e.g., 20/min) for expensive inference calls.
+- **Headers**: Responses include `X-RateLimit-Limit` and `X-RateLimit-Remaining`.
+
+## 🧪 Testing & Validation
 
 Detailed performance metrics from Phase 4 Evaluation:
 
