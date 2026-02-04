@@ -10,7 +10,7 @@ from datetime import datetime
 from config.settings import Settings
 from common.schemas import EnforcementAction
 from common.logging_config import get_logger
-from enforcement import get_iptables_blocker
+from observer.wazuh_connector import WazuhConnector
 
 logger = get_logger(__name__)
 
@@ -20,14 +20,16 @@ class EnforcementActions:
     Handles execution of enforcement actions (block IP, isolate device, etc.)
     """
     
-    def __init__(self, settings: Settings):
+    def __init__(self, settings: Settings, wazuh_connector: WazuhConnector):
         """
         Initialize enforcement actions handler
         
         Args:
             settings: Application settings
+            wazuh_connector: Configured Wazuh connector
         """
         self.settings = settings
+        self.wazuh_connector = wazuh_connector
         self.enabled = settings.enforcement_enabled
         
         logger.info(
@@ -134,7 +136,7 @@ class EnforcementActions:
             # Arguments: ["-", "IP_ADDRESS"]
             # The "-" is for ADD action (vs "delete" for remove)
             
-            response = await self.settings.wazuh_connector.send_active_response(
+            response = await self.wazuh_connector.send_active_response(
                 agent_id=agent_id,
                 command="firewall-drop",
                 arguments=["-", ip_address],  # "-" = add block rule
@@ -186,7 +188,7 @@ class EnforcementActions:
             # This will block all traffic from/to the device's IP on the agent where the command is executed.
             # For true isolation, this command should ideally be sent to a gateway/firewall agent.
             
-            response = await self.settings.wazuh_connector.send_active_response(
+            response = await self.wazuh_connector.send_active_response(
                 agent_id=agent_id, # This should ideally be the agent ID of the gateway/firewall
                 command="firewall-drop",
                 arguments=["-", device_ip],  # Drop traffic from this device IP
@@ -229,7 +231,7 @@ class EnforcementActions:
             # Command: traffic-control (custom script would be needed on agent)
             # This is a best-effort attempt to apply QOS/shaping
             
-            response = await self.settings.wazuh_connector.send_active_response(
+            response = await self.wazuh_connector.send_active_response(
                 agent_id=agent_id,
                 command="traffic-control", 
                 arguments=["limit", device_ip, "1mbps"], # Example: limit to 1Mbps

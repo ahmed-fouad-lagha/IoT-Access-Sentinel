@@ -41,6 +41,14 @@ class DecisionPipeline:
         self.model = settings.llm_model
         self.provider = settings.llm_provider.lower()
         
+        # Load policies
+        self.policies = self._load_policies()
+
+        # Initialize semantic cache
+        self.cache = {}
+        self.cache_hits = 0
+        self.cache_misses = 0
+        
         # Load prompts
         self.prompts = self._load_prompts()
         

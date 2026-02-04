@@ -59,7 +59,7 @@ async def lifespan(app: FastAPI):
     app.state.settings = settings
     app.state.wazuh_connector = WazuhConnector(settings)
     app.state.decision_pipeline = DecisionPipeline(settings)
-    app.state.enforcement = EnforcementActions(settings)
+    app.state.enforcement = EnforcementActions(settings, app.state.wazuh_connector)
     
     # Health checks
     wazuh_healthy = await app.state.wazuh_connector.health_check()
@@ -204,7 +204,12 @@ async def process_access_alert(alert: IoTAccessAlert):
             )
             
             # Create enforcement action
-            enforcement = EnforcementActions(app.state.settings)
+            # Reuse initialized enforcement handler from state if possible, but here we creating new one?
+            # Actually app.state.enforcement is already initialized in startup. Let's use it.
+            enforcement: EnforcementActions = app.state.enforcement
+            # Check if it was initialized correctly or create new one if needed (for safety)
+            # But creating new one requires wazuh_connector which is in app.state.
+            
             action = EnforcementAction(
                 action_type="BLOCK_IP",  # Default to IP blocking
                 target=alert.source_ip or "unknown",
