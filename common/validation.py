@@ -137,17 +137,38 @@ class InputValidator:
         
         return ValidationResult(True)
     
+    def validate_rule_description(self, rule_desc: Optional[str]) -> ValidationResult:
+        """Validate rule_description field from Wazuh."""
+        if not rule_desc:
+            return ValidationResult(True)  # Can be empty
+            
+        threat = self._detect_injection(rule_desc)
+        if threat:
+            self._log_threat("rule_description", rule_desc, threat)
+            return ValidationResult(False, "rule_description", f"Injection detected: {threat}", threat)
+            
+        # Basic length constraint for safety
+        if len(rule_desc) > 2000:
+            return ValidationResult(False, "rule_description", "rule_description exceeds maximum allowed length")
+            
+        return ValidationResult(True)
+        
     def validate_all(self, alert_data: dict) -> ValidationResult:
         """
         Validate all fields in an alert.
         
         Returns first validation failure, or success if all pass.
         """
+        rule_desc = None
+        if "rule" in alert_data and isinstance(alert_data["rule"], dict):
+            rule_desc = alert_data["rule"].get("description")
+            
         validations = [
             self.validate_device_id(alert_data.get("device_id")),
             self.validate_user_id(alert_data.get("user_id")),
             self.validate_device_type(alert_data.get("device_type")),
             self.validate_source_ip(alert_data.get("source_ip")),
+            self.validate_rule_description(rule_desc),
         ]
         
         for result in validations:

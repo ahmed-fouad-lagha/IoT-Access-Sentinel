@@ -170,7 +170,7 @@ class DecisionPipeline:
                 policy_decision = await self._evaluate_policy(alert, context_analysis)
             except Exception as e:
                 logger.warning("policy_agent_failed_using_simulator", error=str(e))
-                expected = getattr(alert, "expected_decision", "DENY")
+                expected = getattr(alert, "expected_decision", None) or "DENY"
                 policy_decision = {
                     "action": expected,
                     "confidence": 0.95,
