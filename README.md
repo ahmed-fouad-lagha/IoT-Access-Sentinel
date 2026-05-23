@@ -5,11 +5,12 @@
 
   **Autonomous Context-Aware Access Control for IoT via Multi-Agent Generative AI**
 
-</div>
-
-[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
+  [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![Docker](https://img.shields.io/badge/docker-ready-blue.svg)](#-one-command-deployment)
+
+
+</div>
 
 ---
 
@@ -194,27 +195,6 @@ Detailed performance metrics from Phase 4 Evaluation:
 *   **User Authorization**: +43.5% improvement over baseline.
 *   **Attack Scenarios**: +83.3% improvement (100% detection of injection/evasion/confusion).
 *   **Time/Network Logic**: Tied at 87.5%.
-
----
-
-## Project Structure
-
-```
-IoT-Access-Sentinel/
-├── docker-compose.yml           # Master Stack Orchestration
-├── Dockerfile                   # Sentinel App Containerization
-├── config/
-│   ├── settings.py              # Pydantic Configuration
-│   └── access_policies.yaml     # Human-Readable IoT Policies
-├── decision_engine/             # Hybrid Decision Intelligence
-│   ├── validators/              # Deterministic Path (M0801)
-│   ├── agents/                  # LLM Specialists (Policy + Context)
-│   └── decision_pipeline.py     # Pipeline Orchestrator
-├── enforcer/                    # Active Response Integration
-│   └── actions.py               # Remote IP blocking via Wazuh API
-├── main.py                      # FastAPI Webhook Endpoint
-└── tests/                       # 103 benchmark scenarios
-```
 
 ## Configuration
 
