@@ -286,7 +286,8 @@ class PerformanceBenchmark:
             "benchmark_results": all_results
         }
         
-        report_path = Path("tests/performance_report.json")
+        report_path = Path("results/performance_report.json")
+        report_path.parent.mkdir(exist_ok=True)
         with open(report_path, 'w') as f:
             json.dump(report, f, indent=2)
         

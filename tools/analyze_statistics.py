@@ -92,7 +92,7 @@ def calculate_confidence_interval(successes: int, total: int, confidence: float 
     }
 
 
-def analyze_baseline_comparison(report_path: str = "tests/baseline_comparison_report.json") -> Dict:
+def analyze_baseline_comparison(report_path: str = "results/baseline_comparison_report.json") -> Dict:
     """Perform statistical analysis on baseline comparison results"""
     
     print("=" * 70)
@@ -219,7 +219,8 @@ def analyze_baseline_comparison(report_path: str = "tests/baseline_comparison_re
     }
     
     # Save report
-    report_path_out = Path("tests/statistical_analysis_report.json")
+    report_path_out = Path("results/statistical_analysis_report.json")
+    report_path_out.parent.mkdir(exist_ok=True)
     with open(report_path_out, 'w') as f:
         json.dump(summary, f, indent=2)
     

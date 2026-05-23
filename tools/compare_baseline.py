@@ -192,7 +192,8 @@ async def main():
     comparison.print_summary(report)
     
     # Save report
-    report_path = Path('tests/baseline_comparison_report.json')
+    report_path = Path('results/baseline_comparison_report.json')
+    report_path.parent.mkdir(exist_ok=True)
     with open(report_path, 'w') as f:
         json.dump(report, f, indent=2)
     

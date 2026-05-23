@@ -1,5 +1,3 @@
-# Test Suite Documentation
-
 ## Overview
 
 Comprehensive test suite for validating the IoT-Access-Sentinel LLM Decision Engine.
