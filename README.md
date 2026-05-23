@@ -1,21 +1,26 @@
 # IoT-Access-Sentinel
 
-**Autonomous Context-Aware Access Control for IoT via Multi-Agent Generative AI**
+<div align="center">
+  <img src="assets/sentinel_architecture.png" alt="Sentinel Architecture" width="600"/>
 
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+  **Autonomous Context-Aware Access Control for IoT via Multi-Agent Generative AI**
+
+</div>
+
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![Docker](https://img.shields.io/badge/docker-ready-blue.svg)](#-one-command-deployment)
 
 ---
 
-## 🎯 Overview
+## Overview
 
 **IoT-Access-Sentinel** is a novel cybersecurity framework that addresses the **Access Management (M0801)** research gap by using a **Hybrid Architecture** (Deterministic Validation + LLM Reasoning) to actively enforce IoT authorization policies based on dynamic context.
 
-### 🏆 Key Achievement
+### Key Achievement
 In a comprehensive evaluation across **103 test scenarios** against a fair RBAC baseline with proper authentication, the Hybrid LLM system achieved **94.2% accuracy** (97/103 correct), representing a **+16.5% improvement** over the RBAC baseline's 77.7% (80/103), with high statistical significance (McNemar's **χ² = 9.0, p < 0.01**).
 
-### 🏛️ Hybrid Architecture (M0801)
+### Hybrid Architecture (M0801)
 
 Sentinel specifically addresses the MITRE M0801 gap (User Identification & Verification) by bridging the semantic gap between high-level policies and low-level logs.
 
@@ -138,7 +143,7 @@ sequenceDiagram
     end
 ```
 
-## 🚀 One-Command Deployment
+## One-Command Deployment
 
 The entire stack (Wazuh Manager + Sentinel AI Engine) can be started with a single command:
 
@@ -152,9 +157,7 @@ docker-compose up -d
 | **Wazuh Dashboard** | `443` | Security Management UI |
 | **Wazuh Manager** | `55000` | Rest API for Active Response |
 
----
-
-## 📊 Monitoring & Observability
+## Monitoring & Observability
 
 ### Prometheus Metrics
 The system exposes standard Prometheus metrics at `/metrics`. Key metrics include:
@@ -168,13 +171,13 @@ Interactive API documentation (Swagger UI) is available at:
 - **Swagger UI**: `http://localhost:8000/docs`
 - **ReDoc**: `http://localhost:8000/redoc`
 
-### 🛡️ Rate Limiting
+### Rate Limiting
 Built-in sliding window rate limiter protects against DoS and abuse:
 - **Default policy**: 100 req/min/IP
 - **LLM Endpoints**: Stricter limits (e.g., 20/min) for expensive inference calls.
 - **Headers**: Responses include `X-RateLimit-Limit` and `X-RateLimit-Remaining`.
 
-## 🧪 Testing & Validation
+## Testing & Validation
 
 Detailed performance metrics from Phase 4 Evaluation:
 
@@ -194,7 +197,7 @@ Detailed performance metrics from Phase 4 Evaluation:
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 IoT-Access-Sentinel/
@@ -213,9 +216,7 @@ IoT-Access-Sentinel/
 └── tests/                       # 103 benchmark scenarios
 ```
 
----
-
-## 🛠️ Configuration
+## Configuration
 
 ### 1. Environment (`.env`)
 ```bash
@@ -236,15 +237,11 @@ policies:
     allowed_hours: "09:00-17:00"
 ```
 
----
-
-## 🔬 Research Significance
+## Research Significance
 
 This project provides the first quantitative evidence that **Hybrid LLM Architectures** solve the M0801 gap more effectively than rule-based systems. It demonstrates that combining **deterministic security** with **generative reasoning** achieves both trustworthiness and flexibility.
 
----
-
-## 🔮 Future Work
+## Future Work
 
 ### Domain-Specific LLM Fine-Tuning
 While the current system leverages **zero-shot general-purpose LLMs** (demonstrating broad generalizability), fine-tuning domain-specific models could yield several benefits:
@@ -266,11 +263,6 @@ While the current system leverages **zero-shot general-purpose LLMs** (demonstra
 2. What is the optimal training data composition for IoT threat detection?
 3. How does model size affect the accuracy-latency tradeoff in real-time access control?
 
----
+## License
 
-## 📜 License
-
-MIT License. Developed by **Ahmed Fouad Lagha** (Eötvös Loránd University - ELTE).
-
-**Status**: ✅ **Research Phase Complete** (Journal Submission Draft Ready)
-**Version**: 0.9.0 (Pre-Release)
+Apache License. see [LICENSE](./LICENSE).
