@@ -1,0 +1,28 @@
+{
+  "rbac": {
+    "tp": 62,
+    "tn": 96,
+    "fp": 22,
+    "fn": 18,
+    "total": 198,
+    "accuracy": 79.7979797979798,
+    "precision": 73.80952380952381,
+    "recall": 77.5,
+    "f1_score": 75.60975609756099,
+    "false_permit_rate": 18.64406779661017,
+    "false_deny_rate": 22.5
+  },
+  "hybrid": {
+    "tp": 0,
+    "tn": 118,
+    "fp": 0,
+    "fn": 80,
+    "total": 198,
+    "accuracy": 59.59595959595959,
+    "precision": 0,
+    "recall": 0.0,
+    "f1_score": 0,
+    "false_permit_rate": 0.0,
+    "false_deny_rate": 100.0
+  }
+}

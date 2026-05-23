@@ -13,7 +13,7 @@ import json
 from pathlib import Path
 
 
-def calculate_safety_metrics(results_file="results_comparison.json"):
+def calculate_safety_metrics(results_file="results/results_comparison.json"):
     """Calculate safety metrics for both systems"""
     
     with open(results_file, 'r') as f:
@@ -158,11 +158,13 @@ def generate_latex_table(metrics):
 \textit{Note}: False Permit (FP) represents security breaches (incorrectly allowing unauthorized access). False Deny (FN) affects usability (incorrectly blocking legitimate users). Lower FP rate is critical for security.
 """
     
-    # Save to file
-    with open('safety_metrics_table.tex', 'w') as f:
+    results_dir = Path('results')
+    results_dir.mkdir(exist_ok=True)
+    out_path = results_dir / 'safety_metrics_table.tex'
+    with open(out_path, 'w') as f:
         f.write(latex)
     
-    print(f"\n✅ LaTeX table saved to: safety_metrics_table.tex\n")
+    print(f"\n✅ LaTeX table saved to: {out_path}\n")
     print("="*80)
     print("LaTeX Code Preview:")
     print("="*80)
@@ -170,8 +172,8 @@ def generate_latex_table(metrics):
 
 
 if __name__ == "__main__":
-    if not Path("results_comparison.json").exists():
-        print("❌ Error: results_comparison.json not found!")
+    if not Path("results/results_comparison.json").exists():
+        print("❌ Error: results/results_comparison.json not found!")
         print("Run tools/run_baseline_comparison.py first")
         exit(1)
     
@@ -180,7 +182,7 @@ if __name__ == "__main__":
     generate_latex_table(metrics)
     
     # Save metrics to JSON for later use
-    with open('safety_metrics.json', 'w') as f:
+    with open(Path('results') / 'safety_metrics.json', 'w') as f:
         json.dump(metrics, f, indent=2)
     
-    print("\n💾 Metrics saved to: safety_metrics.json")
+    print("\n💾 Metrics saved to: results/safety_metrics.json")

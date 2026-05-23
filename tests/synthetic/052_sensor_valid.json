@@ -1,0 +1,17 @@
+{
+  "id": "sensor-valid-3",
+  "timestamp": "2025-12-25T23:00:00Z",
+  "rule": {
+    "level": 5,
+    "description": "IoT sensor data transmission",
+    "id": "100020"
+  },
+  "device_id": "sensor-humidity-03",
+  "device_type": "sensor",
+  "source_ip": "192.168.2.242",
+  "destination_ip": "10.0.0.2",
+  "destination_port": 8883,
+  "protocol": "MQTTS",
+  "expected_decision": "ALLOW",
+  "description": "Sensor sensor-humidity-03 transmitting data (no auth required)"
+}

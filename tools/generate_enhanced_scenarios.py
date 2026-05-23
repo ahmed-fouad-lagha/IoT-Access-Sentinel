@@ -54,14 +54,14 @@ def random_ip_in_network(network: str) -> str:
 def generate_timestamp(hour: int, weekday: bool = True) -> str:
     """Generate timestamp"""
     day = random.randint(0, 4) if weekday else random.randint(5, 6)  # Mon-Fri or Sat-Sun
-    dt = datetime(2025, 12, 23) + timedelta(days=day, hours=hour)
+    dt = datetime(2025, 12, 22) + timedelta(days=day, hours=hour)
     return dt.isoformat() + "Z"
 
 
 class ScenarioGenerator:
     """Generates diverse test scenarios"""
     
-    def __init__(self, output_dir: str = "tests/synthetic_v2"):
+    def __init__(self, output_dir: str = "tests/synthetic"):
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.scenario_count = 0

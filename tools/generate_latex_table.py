@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 
 
-def generate_latex_table(results_file="results_comparison.json"):
+def generate_latex_table(results_file="results/results_comparison.json"):
     """Generate LaTeX table from comparison results"""
     
     with open(results_file, 'r') as f:
@@ -45,10 +45,11 @@ def generate_latex_table(results_file="results_comparison.json"):
     print(latex)
     
     # Save to file
-    with open("comparison_table.tex", 'w') as f:
+    out_path = Path('results') / 'comparison_table.tex'
+    with open(out_path, 'w') as f:
         f.write(latex)
     
-    print("\n✅ LaTeX table saved to: comparison_table.tex")
+    print(f"\n✅ LaTeX table saved to: {out_path}")
     print(f"\n📊 Summary:")
     print(f"   RBAC Baseline: {rbac_acc:.1f}%")
     print(f"   Hybrid LLM:    {hybrid_acc:.1f}%")
@@ -56,7 +57,7 @@ def generate_latex_table(results_file="results_comparison.json"):
 
 
 if __name__ == "__main__":
-    if Path("results_comparison.json").exists():
+    if Path("results/results_comparison.json").exists():
         generate_latex_table()
     else:
         print("❌ Run tools/run_baseline_comparison.py first!")

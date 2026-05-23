@@ -177,7 +177,7 @@ async def main():
         'tests/user_auth',       # User authorization tests (6 tests)
         'tests/scenarios',       # Manual test scenarios (8 tests)
         'tests/red_team',        # Red team tests (7 tests)
-        'tests/synthetic_v2',    # Enhanced synthetic scenarios (85 tests)
+        'tests/synthetic',       # Enhanced synthetic scenarios (85 tests)
     ]
     
     print("Starting Baseline Comparison Test Suite")

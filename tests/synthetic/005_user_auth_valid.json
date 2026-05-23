@@ -1,0 +1,20 @@
+{
+  "id": "user-auth-valid-6",
+  "timestamp": "2025-12-25T15:00:00Z",
+  "rule": {
+    "level": 5,
+    "description": "IoT camera access attempt",
+    "id": "100010"
+  },
+  "device_id": "camera-lobby-01",
+  "device_type": "camera",
+  "source_ip": "192.168.1.134",
+  "destination_ip": "10.0.0.1",
+  "destination_port": 443,
+  "protocol": "HTTPS",
+  "user_id": "bob@company.com",
+  "auth_token": "valid-token-3576",
+  "user_role": "security_staff",
+  "expected_decision": "ALLOW",
+  "description": "bob@company.com accessing authorized camera-lobby-01"
+}

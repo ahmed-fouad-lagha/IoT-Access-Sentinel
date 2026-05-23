@@ -1,0 +1,20 @@
+{
+  "id": "system-wildcard-5",
+  "timestamp": "2025-12-22T15:00:00Z",
+  "rule": {
+    "level": 5,
+    "description": "IoT sensor access attempt",
+    "id": "100010"
+  },
+  "device_id": "sensor-temp-02",
+  "device_type": "sensor",
+  "source_ip": "192.168.2.30",
+  "destination_ip": "10.0.0.1",
+  "destination_port": 443,
+  "protocol": "HTTPS",
+  "user_id": "security-system@company.com",
+  "auth_token": "system-token-master",
+  "user_role": "system",
+  "expected_decision": "ALLOW",
+  "description": "System account with wildcard access"
+}

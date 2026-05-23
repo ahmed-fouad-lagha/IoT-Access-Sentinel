@@ -10,7 +10,7 @@ from pathlib import Path
 def analyze_ablation_from_results():
     """Analyze ablation study from existing comparison results"""
     
-    with open('results_comparison.json', 'r') as f:
+    with open(Path('results') / 'results_comparison.json', 'r') as f:
         data = json.load(f)
     
     print("="*80)
@@ -121,16 +121,19 @@ def analyze_ablation_from_results():
         "cost_savings": 41.0
     }
     
-    with open('ablation_results.json', 'w') as f:
+    results_dir = Path("results")
+    results_dir.mkdir(exist_ok=True)
+    out_path = results_dir / "ablation_results.json"
+    with open(out_path, 'w') as f:
         json.dump(ablation_results, f, indent=2)
     
-    print("💾 Ablation results saved to: ablation_results.json")
+    print(f"💾 Ablation results saved to: {out_path}")
 
 
 def generate_ablation_table():
     """Generate LaTeX table for ablation study"""
     
-    with open('ablation_results.json', 'r') as f:
+    with open(Path('results') / 'ablation_results.json', 'r') as f:
         results = json.load(f)
     
     det_acc = results['configurations']['deterministic_only']['accuracy']
@@ -155,10 +158,11 @@ def generate_ablation_table():
 \textit{Analysis}: The deterministic-only configuration achieves 77.7\% accuracy, demonstrating that traditional RBAC handles rule-based scenarios effectively. Adding the multi-agent LLM layer increases accuracy to 94.2\%, a synergy effect of +16.5 percentage points. The LLM component excels in scenarios where deterministic rules are insufficient (semantic attacks, user authorization ambiguities). Notably, the deterministic pre-check handles 41\% of requests without LLM invocation, providing cost efficiency while preserving security.
 """
     
-    with open('ablation_table.tex', 'w') as f:
+    out_path = Path('results') / 'ablation_table.tex'
+    with open(out_path, 'w') as f:
         f.write(latex)
     
-    print("\n✅ LaTeX ablation table saved to: ablation_table.tex")
+    print(f"\n✅ LaTeX ablation table saved to: {out_path}")
     print()
     print("="*80)
     print("LaTeX Code Preview:")
@@ -167,8 +171,8 @@ def generate_ablation_table():
 
 
 if __name__ == "__main__":
-    if not Path("results_comparison.json").exists():
-        print("❌ Error: results_comparison.json not found!")
+    if not Path("results/results_comparison.json").exists():
+        print("❌ Error: results/results_comparison.json not found!")
         print("Run tools/run_baseline_comparison.py first")
         exit(1)
     

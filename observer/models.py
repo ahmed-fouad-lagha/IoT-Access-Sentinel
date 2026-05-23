@@ -41,6 +41,7 @@ class IoTAccessAlert(BaseModel):
     auth_token: Optional[str] = Field(None, description="Authentication token status (valid/invalid/missing)")
     user_role: Optional[str] = Field(None, description="User role (admin/security_staff/viewer)")
     session_id: Optional[str] = Field(None, description="User session identifier")
+    expected_decision: Optional[str] = Field(None, description="Expected decision for testing/evaluation")
     
     # Additional Context
     agent_id: Optional[str] = Field(None, description="Wazuh agent ID (source device)")

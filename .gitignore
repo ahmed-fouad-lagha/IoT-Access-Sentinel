@@ -72,6 +72,7 @@ Thumbs.db
 # tests/synthetic/
 # tests/synthetic_v2/
 # tests/user_auth/
+outputs/
 
 .coverage
 htmlcov/
@@ -80,14 +81,13 @@ htmlcov/
 # =========================
 # Project Specific
 # =========================
-external_repos/
 .agent/
 wazuh-docker/
 
 # =========================
 # LaTeX
 # =========================
-
+manuscript/
 # LaTeX auxiliary files
 *.aux
 *.bbl
@@ -111,8 +111,6 @@ latexmk/
 
 # PDF output (optional – ignore if you don’t want to version PDFs)
 *.pdf
-
-
 
 # =========================
 # AI Tools Rules

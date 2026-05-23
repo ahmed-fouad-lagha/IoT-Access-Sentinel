@@ -197,7 +197,9 @@ async def run_comparison():
         print(f"{'Hit Rate':<20} {hit_rate:>6.1f}%")
     
     # Save detailed results
-    output_file = "results_comparison.json"
+    output_dir = Path("results")
+    output_dir.mkdir(exist_ok=True)
+    output_file = output_dir / "results_comparison.json"
     with open(output_file, 'w') as f:
         json.dump(results, f, indent=2, default=str)
     

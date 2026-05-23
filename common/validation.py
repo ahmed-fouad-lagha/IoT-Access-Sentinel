@@ -176,6 +176,40 @@ class InputValidator:
         
         # Truncate to reasonable length
         return sanitized[:256]
+
+    def sanitize_secrets(self, text: str) -> str:
+        """
+        Redact sensitive information (passwords, tokens, keys) from text
+        to prevent leaking credentials to LLMs.
+        """
+        if not text:
+            return text
+        
+        # Redact passwords
+        sanitized = re.sub(
+            r'(password|passwd|pwd)\s*[:=]\s*\S+',
+            r'\1=***REDACTED***',
+            text,
+            flags=re.IGNORECASE
+        )
+        
+        # Redact API keys and secrets
+        sanitized = re.sub(
+            r'(api[_-]?key|token|secret)\s*[:=]\s*[\w\-]+',
+            r'\1=***REDACTED***',
+            sanitized,
+            flags=re.IGNORECASE
+        )
+        
+        # Redact Authorization header Bearer tokens
+        sanitized = re.sub(
+            r'(Bearer|Authorization:\s*Bearer)\s+[\w\-\.]+',
+            r'\1 ***REDACTED***',
+            sanitized,
+            flags=re.IGNORECASE
+        )
+        
+        return sanitized
     
     def normalize_text(self, text: str) -> str:
         """
@@ -247,3 +281,8 @@ validator = InputValidator(strict_mode=True)
 def validate_alert(alert_data: dict) -> ValidationResult:
     """Convenience function to validate alert data."""
     return validator.validate_all(alert_data)
+
+
+def sanitize_secrets(text: str) -> str:
+    """Convenience function to redact secrets from text."""
+    return validator.sanitize_secrets(text)

@@ -1,0 +1,28 @@
+{
+  "configurations": {
+    "deterministic_only": {
+      "accuracy": 79.7979797979798,
+      "correct": 158,
+      "total": 198,
+      "components": [
+        "User Authentication",
+        "RBAC",
+        "Time/Network Policies"
+      ]
+    },
+    "hybrid": {
+      "accuracy": 59.59595959595959,
+      "correct": 118,
+      "total": 198,
+      "components": [
+        "Deterministic Pre-check",
+        "Context Agent",
+        "Policy Agent"
+      ]
+    }
+  },
+  "synergy": -20.202020202020215,
+  "deterministic_contribution": 96,
+  "llm_contribution": 22,
+  "cost_savings": 41.0
+}

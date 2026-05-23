@@ -1,0 +1,17 @@
+{
+  "id": "sensor-network-deny-3",
+  "timestamp": "2025-12-23T08:00:00Z",
+  "rule": {
+    "level": 5,
+    "description": "IoT sensor data transmission",
+    "id": "100020"
+  },
+  "device_id": "sensor-temp-01",
+  "device_type": "sensor",
+  "source_ip": "172.16.190.141",
+  "destination_ip": "10.0.0.2",
+  "destination_port": 8883,
+  "protocol": "MQTTS",
+  "expected_decision": "DENY",
+  "description": "Sensor from unauthorized network"
+}
