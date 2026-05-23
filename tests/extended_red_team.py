@@ -173,16 +173,36 @@ async def run_extended_red_team():
             # Create IoTAccessAlert object
             try:
                 alert = IoTAccessAlert(**alert_data)
-                decision = await pipeline.make_decision(alert)
-                final_decision = decision.action
-                reason = decision.reason
-                decision_path = "llm"
                 
-                if final_decision == "DENY":
-                    results["summary"]["detected_by_llm"] += 1
-                    is_blocked = True
-                else:
-                    results["summary"]["failed_to_detect"] += 1
+                # Retry loop for rate limits
+                max_retries = 3
+                for attempt in range(max_retries):
+                    decision = await pipeline.make_decision(alert)
+                    final_decision = decision.action
+                    reason = decision.reason
+                    decision_path = "llm"
+                    
+                    if "429" in reason or "rate_limit" in reason.lower() or "Rate limit" in reason:
+                        if attempt < max_retries - 1:
+                            print(f"  [!] Rate limit hit, sleeping for 60s... (Attempt {attempt+1}/{max_retries})")
+                            await asyncio.sleep(60)
+                            continue
+                        else:
+                            final_decision = "ERROR"
+                            reason = "Rate limit exceeded"
+                            results["summary"]["failed_to_detect"] += 1
+                            break
+                    else:
+                        if final_decision == "DENY":
+                            results["summary"]["detected_by_llm"] += 1
+                            is_blocked = True
+                        else:
+                            results["summary"]["failed_to_detect"] += 1
+                        break
+                        
+                # Sleep to prevent hitting rate limits
+                await asyncio.sleep(4)
+                
             except Exception as e:
                 final_decision = "ERROR"
                 reason = str(e)

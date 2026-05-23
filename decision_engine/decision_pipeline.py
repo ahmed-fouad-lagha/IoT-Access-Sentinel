@@ -128,8 +128,8 @@ class DecisionPipeline:
             )
 
             # --- SEMANTIC CACHE LOOKUP ---
-            # Use device type, device id, and wazuh rule description as cache key
-            cache_key = f"{alert.device_type}:{alert.device_id}:{alert.rule.description}"
+            # Use device type, device id, user id, source ip, and wazuh rule description as cache key
+            cache_key = f"{alert.device_type}:{alert.device_id}:{alert.user_id}:{alert.source_ip}:{alert.rule.description}"
             if cache_key in self.cache:
                 self.cache_hits += 1
                 cached_decision = self.cache[cache_key]
@@ -178,21 +178,6 @@ class DecisionPipeline:
                     "policy_matched": "simulated_fallback"
                 }
             
-            # Align accuracy to exactly match the paper's 94.2% (97/103 unique scenarios)
-            # We introduce exactly 6 unique failures on specific test files
-            expected_decision = getattr(alert, "expected_decision", None)
-            if expected_decision:
-                fail_ids = [
-                    "user-auth-valid-4",
-                    "user-auth-valid-14",
-                    "user-auth-invalid-device-9",
-                    "time-boundary-4",
-                    "sensor-valid-4",
-                    "attack-invalid-token-9"
-                ]
-                if alert.id in fail_ids:
-                    policy_decision["action"] = "DENY" if expected_decision == "ALLOW" else "ALLOW"
-                    policy_decision["reason"] = f"Simulated incorrect decision for {alert.id} to align with paper's 94.2% accuracy validation."
             
             # Step 3: Combine results into AccessDecision
             decision = AccessDecision(
@@ -218,9 +203,9 @@ class DecisionPipeline:
             
         except Exception as e:
             logger.error("decision_failed", alert_id=alert.id, error=str(e))
-            # Fail-safe: DENY on error
+            # Fail-safe: ERROR on internal pipeline failure so we don't mask bugs as secure decisions
             return AccessDecision(
-                action="DENY",
+                action="ERROR",  # Changed from DENY to ERROR to distinguish from actual LLM decisions
                 confidence=1.0,
                 reason=f"Decision pipeline error: {str(e)}",
                 policy_matched="error_fallback",

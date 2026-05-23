@@ -11,7 +11,7 @@ from datetime import datetime
 class AccessDecision(BaseModel):
     """Decision output from the LLM decision engine"""
     
-    action: Literal["ALLOW", "DENY"] = Field(
+    action: Literal["ALLOW", "DENY", "ERROR"] = Field(
         ...,
         description="Final access control decision"
     )

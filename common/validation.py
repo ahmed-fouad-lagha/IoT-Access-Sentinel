@@ -82,8 +82,8 @@ class InputValidator:
     
     def validate_device_id(self, device_id: Optional[str]) -> ValidationResult:
         """Validate device_id field."""
-        if device_id is None:
-            return ValidationResult(True)  # Optional field
+        if not device_id:
+            return ValidationResult(False, "device_id", "device_id is required")
         
         # Check for injection patterns first
         threat = self._detect_injection(device_id)
@@ -114,8 +114,8 @@ class InputValidator:
     
     def validate_device_type(self, device_type: Optional[str]) -> ValidationResult:
         """Validate device_type field."""
-        if device_type is None:
-            return ValidationResult(True)
+        if not device_type:
+            return ValidationResult(False, "device_type", "device_type is required")
         
         threat = self._detect_injection(device_type)
         if threat:
