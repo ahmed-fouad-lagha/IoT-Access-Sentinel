@@ -193,61 +193,33 @@ class UserAuthValidator:
         """
         Validate authentication token.
         
-        Verifies JWT signature and expiration if it is a JWT token.
-        Otherwise, falls back to legacy/mock validation rules for test compatibility.
+        Verifies the JWT signature and expiration.
         """
         if not auth_token:
             return False
             
-        # Check if it looks like a JWT (starts with eyJ)
-        if auth_token.startswith("eyJ"):
-            try:
-                settings = get_settings()
-                # Decode and verify the JWT
-                decoded = jwt.decode(
-                    auth_token, 
-                    settings.jwt_secret_key, 
-                    algorithms=[settings.jwt_algorithm],
-                    options={"verify_signature": True, "verify_exp": True}
-                )
-                
-                # Verify subject matches user_id if expected_user_id is provided
-                if expected_user_id and decoded.get("sub") != expected_user_id:
-                    logger.warning("jwt_subject_mismatch", sub=decoded.get("sub"), expected=expected_user_id)
-                    return False
-                    
-                return True
-            except jwt.ExpiredSignatureError:
-                logger.warning("jwt_token_expired")
-                return False
-            except jwt.InvalidTokenError as e:
-                logger.warning("jwt_token_invalid", error=str(e))
+        try:
+            settings = get_settings()
+            # Decode and verify the JWT
+            decoded = jwt.decode(
+                auth_token, 
+                settings.jwt_secret_key, 
+                algorithms=[settings.jwt_algorithm],
+                options={"verify_signature": True, "verify_exp": True}
+            )
+            
+            # Verify subject matches user_id if expected_user_id is provided
+            if expected_user_id and decoded.get("sub") != expected_user_id:
+                logger.warning("jwt_subject_mismatch", sub=decoded.get("sub"), expected=expected_user_id)
                 return False
                 
-        # Legacy/Mock token check for test suite compatibility
-        if auth_token in ["expired", "revoked", "malformed-###"]:
-            logger.warning("auth_token_explicitly_invalid", status=auth_token)
+            return True
+        except jwt.ExpiredSignatureError:
+            logger.warning("jwt_token_expired")
             return False
-
-        token_rules = device_policy.get('auth_token_rules', {})
-        
-        # If no token rules specified, any non-empty token is valid
-        if not token_rules:
-            return bool(auth_token)
-        
-        # Check minimum length
-        min_length = token_rules.get('min_length', 0)
-        if len(auth_token) < min_length:
-            logger.warning("auth_token_too_short", token_length=len(auth_token), min_length=min_length)
+        except jwt.InvalidTokenError as e:
+            logger.warning("jwt_token_invalid", error=str(e))
             return False
-        
-        # Check required prefix
-        required_prefix = token_rules.get('must_start_with')
-        if required_prefix and not auth_token.startswith(required_prefix):
-            logger.warning("auth_token_invalid_prefix", required=required_prefix)
-            return False
-        
-        return True
     
     def _find_user_in_policy(self, user_id: str, allowed_users: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
         """Find user in allowed_users list"""

@@ -82,6 +82,7 @@ class EnforcementActions:
             elif action.action_type == "RATE_LIMIT":
                 result = await self._rate_limit_device(
                     device_id=action.target,
+                    device_ip=action.target,  # Pass the target IP
                     agent_id=action.agent_id,
                     alert_id=action.alert_id
                 )
@@ -221,12 +222,13 @@ class EnforcementActions:
             )
             return f"Failed to send isolation command for device {device_ip} to agent {agent_id}: {str(e)}"
     
-    async def _rate_limit_device(self, device_id: str, device_ip: str = "", agent_id: Optional[str] = None, alert_id: Optional[str] = None) -> str:
+    async def _rate_limit_device(self, device_id: str, device_ip: str, agent_id: Optional[str] = None, alert_id: Optional[str] = None) -> str:
         """
         Apply rate limiting to a device
         
         Args:
             device_id: Device identifier
+            device_ip: IP address of the device to rate limit
         
         Returns:
             Execution result message
