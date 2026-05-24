@@ -11,7 +11,7 @@ Hybrid Architecture:
 import json
 import yaml
 from typing import Dict, Any
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from cachetools import TTLCache
 
 from config.settings import Settings
@@ -120,9 +120,9 @@ class DecisionPipeline:
         
         try:
             # Automatically sign mock tokens during testing/evaluation
-            if alert.auth_token and not alert.auth_token.startswith("eyJ"):
+            # SECURITY: Only enabled when AUTO_SIGN_MOCK_TOKENS=true in .env
+            if self.settings.auto_sign_mock_tokens and alert.auth_token and not alert.auth_token.startswith("eyJ"):
                 import jwt
-                from datetime import timezone, timedelta
                 
                 # Check for explicit invalid mock tokens
                 if alert.auth_token in ["expired", "revoked", "malformed-###"]:
@@ -160,7 +160,7 @@ class DecisionPipeline:
                     confidence=1.0,
                     reason=f"User authorization failed: {user_auth_result.reason}",
                     policy_matched="user_authorization_check",
-                    timestamp=datetime.now()
+                    timestamp=datetime.now(timezone.utc)
                 )
             
             # User authorized (or not required) - proceed to LLM analysis
@@ -195,7 +195,7 @@ class DecisionPipeline:
                     reason=f"[CACHED] {cached_decision.reason}",
                     policy_matched=cached_decision.policy_matched,
                     context_analysis=cached_decision.context_analysis,
-                    timestamp=datetime.now()
+                    timestamp=datetime.now(timezone.utc)
                 )
             self.cache_misses += 1
             # --- END CACHE LOOKUP ---
@@ -228,7 +228,7 @@ class DecisionPipeline:
                         confidence=1.0,
                         reason=f"Context Agent failed (fail-secure): {str(e)}",
                         policy_matched="fail_secure_fallback",
-                        timestamp=datetime.now()
+                        timestamp=datetime.now(timezone.utc)
                     )
             
             # Step 2: Policy Decision (with context as input)
@@ -253,7 +253,7 @@ class DecisionPipeline:
                         confidence=1.0,
                         reason=f"Policy Agent failed (fail-secure): {str(e)}",
                         policy_matched="fail_secure_fallback",
-                        timestamp=datetime.now()
+                        timestamp=datetime.now(timezone.utc)
                     )
             
             
@@ -264,7 +264,7 @@ class DecisionPipeline:
                 reason=policy_decision["reason"],
                 policy_matched=policy_decision.get("policy_matched"),
                 context_analysis=context_analysis,
-                timestamp=datetime.now()
+                timestamp=datetime.now(timezone.utc)
             )
 
             # Store in cache
@@ -287,7 +287,7 @@ class DecisionPipeline:
                 confidence=1.0,
                 reason=f"Decision pipeline error: {str(e)}",
                 policy_matched="error_fallback",
-                timestamp=datetime.now()
+                timestamp=datetime.now(timezone.utc)
             )
     
     async def _analyze_context(self, alert: IoTAccessAlert) -> Dict[str, Any]:

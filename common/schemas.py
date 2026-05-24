@@ -5,7 +5,7 @@ Shared data models for access decisions and enforcement actions
 
 from pydantic import BaseModel, Field
 from typing import Optional, Literal
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 class AccessDecision(BaseModel):
@@ -39,7 +39,7 @@ class AccessDecision(BaseModel):
     )
     
     timestamp: datetime = Field(
-        default_factory=datetime.utcnow,
+        default_factory=lambda: datetime.now(timezone.utc),
         description="Decision timestamp"
     )
 
@@ -88,6 +88,6 @@ class EnforcementAction(BaseModel):
     )
     
     timestamp: datetime = Field(
-        default_factory=datetime.utcnow,
+        default_factory=lambda: datetime.now(timezone.utc),
         description="Action timestamp"
     )

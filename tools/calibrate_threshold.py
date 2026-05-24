@@ -11,7 +11,7 @@ def calibrate():
     # Load detailed results from the comparison script
     results_file = Path("results/results_comparison.json")
     if not results_file.exists():
-        print("❌ results/results_comparison.json not found. Run tools/run_baseline_comparison.py first.")
+        print("results/results_comparison.json not found. Run tools/run_baseline_comparison.py first.")
         return
 
     with open(results_file, 'r') as f:

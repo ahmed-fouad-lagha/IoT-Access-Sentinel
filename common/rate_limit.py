@@ -9,15 +9,15 @@ Protects against:
 """
 
 import time
-import logging
 from typing import Optional, Dict
 from collections import defaultdict, deque
 
 from fastapi import Request, HTTPException, status
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
+from common.logging_config import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class SlidingWindowRateLimiter:

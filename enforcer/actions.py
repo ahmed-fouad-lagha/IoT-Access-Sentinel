@@ -3,7 +3,6 @@ Enforcement Actions - IoT-Access-Sentinel Enforcer
 Executes active response actions based on access control decisions
 """
 
-import subprocess
 from typing import Optional
 from datetime import datetime
 

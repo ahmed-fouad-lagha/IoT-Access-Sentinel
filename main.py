@@ -283,7 +283,7 @@ async def process_access_alert(alert: IoTAccessAlert):
         )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Alert processing failed: {str(e)}"
+            detail="Internal processing error. Check server logs for details."
         )
 
 

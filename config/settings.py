@@ -55,9 +55,9 @@ class Settings(BaseSettings):
     log_level: str = "info"
     
     # JWT and Webhook Secrets
-    jwt_secret_key: str = "super-secret-key-change-in-production"
+    jwt_secret_key: str  # Required - loaded from .env
     jwt_algorithm: str = "HS256"
-    webhook_api_key: str = "sentinel-webhook-secret-key"
+    webhook_api_key: str  # Required - loaded from .env
     
     # Timeouts
     wazuh_api_timeout: int = 30
@@ -65,6 +65,9 @@ class Settings(BaseSettings):
     
     # Decision Confidence Threshold
     min_decision_confidence: float = 0.75  # Minimum confidence to enforce DENY
+
+    # Testing/Evaluation
+    auto_sign_mock_tokens: bool = False  # Set True ONLY for test/eval runs
 
     model_config = SettingsConfigDict(
         env_file=".env",

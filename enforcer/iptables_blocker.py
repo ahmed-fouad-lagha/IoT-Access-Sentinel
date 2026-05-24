@@ -17,14 +17,13 @@ Security:
 """
 
 import subprocess
-import logging
 import threading
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import List, Dict, Optional
 from dataclasses import dataclass
-import structlog
+from common.logging_config import get_logger
 
-logger = structlog.get_logger(__name__)
+logger = get_logger(__name__)
 
 
 @dataclass
@@ -67,7 +66,7 @@ class IptablesBlocker:
         self.dry_run = dry_run
         self.blocked_ips: Dict[str, BlockedIP] = {}
         self.block_count_this_minute = 0
-        self.last_minute_reset = datetime.now()
+        self.last_minute_reset = datetime.now(timezone.utc)
         self.unblock_timers: Dict[str, threading.Timer] = {}
         
         logger.info(
@@ -82,7 +81,7 @@ class IptablesBlocker:
     
     def _check_rate_limit(self) -> bool:
         """Check if we're within rate limit for blocking"""
-        now = datetime.now()
+        now = datetime.now(timezone.utc)
         
         # Reset counter every minute
         if (now - self.last_minute_reset).seconds >= 60:
@@ -185,7 +184,7 @@ class IptablesBlocker:
             return False
         
         # Record blocked IP
-        blocked_at = datetime.now()
+        blocked_at = datetime.now(timezone.utc)
         expires_at = blocked_at + timedelta(seconds=duration)
         
         blocked_ip = BlockedIP(
@@ -297,7 +296,7 @@ class IptablesBlocker:
     
     def cleanup_expired(self):
         """Remove expired block records from memory"""
-        now = datetime.now()
+        now = datetime.now(timezone.utc)
         expired = [
             ip for ip, block in self.blocked_ips.items()
             if block.expires_at < now and block.status != 'active'

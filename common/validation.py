@@ -10,11 +10,11 @@ Protects against:
 """
 
 import re
-import logging
 import unicodedata
 from typing import Optional, Tuple, List
+from common.logging_config import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 # Patterns for valid field values

@@ -36,12 +36,19 @@ class WazuhConnector:
         self._token: Optional[str] = None
         self._token_expiry: Optional[datetime] = None
 
+        # Shared HTTP client for connection pooling
+        self._client = httpx.AsyncClient(verify=self.verify_ssl)
+
         logger.info(
             "wazuh_connector_initialized",
             manager_url=self.base_url,
             username=self.username,
             verify_ssl=self.verify_ssl
         )
+
+    async def close(self):
+        """Close the shared HTTP client (call during app shutdown)."""
+        await self._client.aclose()
 
     async def _authenticate(self) -> str:
         """
@@ -63,22 +70,22 @@ class WazuhConnector:
         auth_url = f"{self.base_url}/security/user/authenticate"
 
         try:
-            async with httpx.AsyncClient(verify=self.verify_ssl) as client:
-                response = await client.post(
-                    auth_url,
-                    auth=(self.username, self.password),
-                    timeout=self.settings.wazuh_api_timeout or 30.0  # Default 30s timeout
-                )
-                response.raise_for_status()
+            client = self._client
+            response = await client.post(
+                auth_url,
+                auth=(self.username, self.password),
+                timeout=self.settings.wazuh_api_timeout or 30.0  # Default 30s timeout
+            )
+            response.raise_for_status()
 
-                data = response.json()
-                self._token = data["data"]["token"]
+            data = response.json()
+            self._token = data["data"]["token"]
 
-                # Cache token for 14 minutes (safe margin before 15-minute expiry)
-                self._token_expiry = datetime.now(timezone.utc) + timedelta(minutes=14)
+            # Cache token for 14 minutes (safe margin before 15-minute expiry)
+            self._token_expiry = datetime.now(timezone.utc) + timedelta(minutes=14)
 
-                logger.info("wazuh_authentication_success")
-                return self._token
+            logger.info("wazuh_authentication_success")
+            return self._token
 
         except httpx.HTTPError as e:
             logger.error(
@@ -136,26 +143,26 @@ class WazuhConnector:
         alerts_url = f"{self.base_url}/alerts"
 
         try:
-            async with httpx.AsyncClient(verify=self.verify_ssl) as client:
-                response = await client.get(
-                    alerts_url,
-                    headers={"Authorization": f"Bearer {token}"},
-                    params=params,
-                    timeout=self.settings.wazuh_api_timeout
-                )
-                response.raise_for_status()
+            client = self._client
+            response = await client.get(
+                alerts_url,
+                headers={"Authorization": f"Bearer {token}"},
+                params=params,
+                timeout=self.settings.wazuh_api_timeout
+            )
+            response.raise_for_status()
 
-                data = response.json()
-                alerts = data.get("data", {}).get("affected_items", [])
+            data = response.json()
+            alerts = data.get("data", {}).get("affected_items", [])
 
-                logger.info(
-                    "iot_access_alerts_fetched",
-                    count=len(alerts),
-                    min_level=min_level,
-                    time_range=time_range
-                )
+            logger.info(
+                "iot_access_alerts_fetched",
+                count=len(alerts),
+                min_level=min_level,
+                time_range=time_range
+            )
 
-                return alerts
+            return alerts
 
         except httpx.HTTPError as e:
             logger.error(
@@ -182,21 +189,21 @@ class WazuhConnector:
         alert_url = f"{self.base_url}/alerts/{alert_id}"
 
         try:
-            async with httpx.AsyncClient(verify=self.verify_ssl) as client:
-                response = await client.get(
-                    alert_url,
-                    headers={"Authorization": f"Bearer {token}"},
-                    timeout=self.settings.wazuh_api_timeout
-                )
+            client = self._client
+            response = await client.get(
+                alert_url,
+                headers={"Authorization": f"Bearer {token}"},
+                timeout=self.settings.wazuh_api_timeout
+            )
 
-                if response.status_code == 404:
-                    logger.warning("alert_not_found", alert_id=alert_id)
-                    return None
+            if response.status_code == 404:
+                logger.warning("alert_not_found", alert_id=alert_id)
+                return None
 
-                response.raise_for_status()
-                data = response.json()
+            response.raise_for_status()
+            data = response.json()
 
-                return data.get("data", {}).get("affected_items", [None])[0]
+            return data.get("data", {}).get("affected_items", [None])[0]
 
         except httpx.HTTPError as e:
             logger.error(
@@ -217,16 +224,16 @@ class WazuhConnector:
             token = await self._authenticate()
 
             # Try basic API call
-            async with httpx.AsyncClient(verify=self.verify_ssl) as client:
-                response = await client.get(
-                    f"{self.base_url}/?pretty=true",
-                    headers={"Authorization": f"Bearer {token}"},
-                    timeout=self.settings.wazuh_api_timeout
-                )
-                response.raise_for_status()
+            client = self._client
+            response = await client.get(
+                f"{self.base_url}/?pretty=true",
+                headers={"Authorization": f"Bearer {token}"},
+                timeout=self.settings.wazuh_api_timeout
+            )
+            response.raise_for_status()
 
-                logger.info("wazuh_health_check_passed")
-                return True
+            logger.info("wazuh_health_check_passed")
+            return True
 
         except Exception as e:
             logger.error("wazuh_health_check_failed", error=str(e))
@@ -284,30 +291,30 @@ class WazuhConnector:
         params = {"agents_list": agent_id}
         
         try:
-            async with httpx.AsyncClient(verify=self.verify_ssl) as client:
-                response = await client.put(
-                    active_response_url,
-                    headers={
-                        "Authorization": f"Bearer {token}",
-                        "Content-Type": "application/json"
-                    },
-                    json=payload,
-                    params=params,
-                    timeout=self.settings.wazuh_api_timeout
-                )
-                response.raise_for_status()
-                
-                data = response.json()
-                
-                logger.info(
-                    "wazuh_active_response_sent",
-                    agent_id=agent_id,
-                    command=command,
-                    arguments=arguments,
-                    alert_id=alert_id
-                )
-                
-                return data
+            client = self._client
+            response = await client.put(
+                active_response_url,
+                headers={
+                    "Authorization": f"Bearer {token}",
+                    "Content-Type": "application/json"
+                },
+                json=payload,
+                params=params,
+                timeout=self.settings.wazuh_api_timeout
+            )
+            response.raise_for_status()
+            
+            data = response.json()
+            
+            logger.info(
+                "wazuh_active_response_sent",
+                agent_id=agent_id,
+                command=command,
+                arguments=arguments,
+                alert_id=alert_id
+            )
+            
+            return data
         
         except httpx.HTTPError as e:
             logger.error(

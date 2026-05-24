@@ -15,15 +15,14 @@ This demonstrates the research gap that the LLM system fills.
 
 import yaml
 from typing import Dict, Any
-from datetime import datetime, time
+from datetime import datetime, time, timezone
 from ipaddress import ip_address, ip_network
 from pathlib import Path
-import structlog
-
 from common.schemas import AccessDecision
 from observer.models import IoTAccessAlert
+from common.logging_config import get_logger
 
-logger = structlog.get_logger(__name__)
+logger = get_logger(__name__)
 
 
 class StaticFirewall:
@@ -104,7 +103,7 @@ class StaticFirewall:
                 confidence=1.0,
                 reason=f"Static Firewall: Unknown device type '{alert.device_type}' (no rules defined)",
                 policy_matched="static_firewall_unknown_device",
-                timestamp=datetime.utcnow()
+                timestamp=datetime.now(timezone.utc)
             )
         
         rules = self.rules[alert.device_type]
@@ -117,20 +116,20 @@ class StaticFirewall:
                 confidence=1.0,
                 reason=f"Static Firewall: User authentication failed - invalid token",
                 policy_matched="static_firewall_auth_deny",
-                timestamp=datetime.utcnow()
+                timestamp=datetime.now(timezone.utc)
             )
         
         # Check User Authorization (Simple list match)
         # Note: In a real system this would be a lookup, here we use the rule's allowed_users if present
         # If the policy requires auth but no user is provided, we deny.
-        if alert.user_id and "alice" not in alert.user_id.lower() and "admin" not in alert.user_role.lower():
+        if alert.user_id and "alice" not in alert.user_id.lower() and "admin" not in (alert.user_role or "").lower():
             # Very basic hardcoded logic to simulate a fixed role mapping for the baseline
             return AccessDecision(
                 action="DENY",
                 confidence=1.0,
                 reason=f"Static Firewall: User '{alert.user_id}' not authorized for '{alert.device_id}'",
                 policy_matched="static_firewall_user_deny",
-                timestamp=datetime.utcnow()
+                timestamp=datetime.now(timezone.utc)
             )
 
         # Step 3: Check IP allowlist
@@ -142,7 +141,7 @@ class StaticFirewall:
                     confidence=1.0,
                     reason=f"Static Firewall: Source IP {alert.source_ip} not in allowed networks {rules['allowed_networks']}",
                     policy_matched="static_firewall_ip_deny",
-                    timestamp=datetime.utcnow()
+                    timestamp=datetime.now(timezone.utc)
                 )
         
         # Step 4: Check time window
@@ -153,7 +152,7 @@ class StaticFirewall:
                 confidence=1.0,
                 reason=f"Static Firewall: Connection outside allowed hours ({rules['allowed_hours']}) or days ({rules['allowed_days']})",
                 policy_matched="static_firewall_time_deny",
-                timestamp=datetime.utcnow()
+                timestamp=datetime.now(timezone.utc)
             )
         
         # All checks passed - ALLOW
@@ -162,7 +161,7 @@ class StaticFirewall:
             confidence=1.0,
             reason=f"Static Firewall: Device '{alert.device_id}' passed all RBAC checks (Auth, IP, Time)",
             policy_matched="static_firewall_allow",
-            timestamp=datetime.utcnow()
+            timestamp=datetime.now(timezone.utc)
         )
     
     def _check_ip_allowlist(self, source_ip: str, allowed_networks: list) -> bool:

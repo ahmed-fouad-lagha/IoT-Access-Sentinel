@@ -39,7 +39,7 @@ def get_llm_client(settings: Settings) -> Union[AsyncOpenAI, genai.Client]:
         client_kwargs = {
             "api_key": settings.openai_api_key,
             "default_headers": {
-                "User-Agent": "claude-code/0.2.9"
+                "User-Agent": "IoT-Access-Sentinel/0.1.0"
             }
         }
         if settings.openai_base_url:
@@ -72,7 +72,7 @@ def get_llm_client(settings: Settings) -> Union[AsyncOpenAI, genai.Client]:
         return AsyncOpenAI(
             api_key=settings.openai_api_key,
             default_headers={
-                "User-Agent": "claude-code/0.2.9"
+                "User-Agent": "IoT-Access-Sentinel/0.1.0"
             }
         )
     

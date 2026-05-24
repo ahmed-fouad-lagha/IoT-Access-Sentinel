@@ -10,7 +10,6 @@ Provides comprehensive monitoring:
 """
 
 import time
-import logging
 from typing import Optional, Callable
 from functools import wraps
 from contextlib import contextmanager
@@ -20,8 +19,10 @@ try:
     PROMETHEUS_AVAILABLE = True
 except ImportError:
     PROMETHEUS_AVAILABLE = False
-    
-logger = logging.getLogger(__name__)
+
+from common.logging_config import get_logger
+
+logger = get_logger(__name__)
 
 
 class SentinelMetrics:

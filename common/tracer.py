@@ -14,9 +14,9 @@ from datetime import datetime
 from typing import Any, Callable, Optional, List, Dict
 from pathlib import Path
 
-import structlog
+from common.logging_config import get_logger
 
-logger = structlog.get_logger(__name__)
+logger = get_logger(__name__)
 
 
 class DecisionTracer:
@@ -42,7 +42,7 @@ class DecisionTracer:
         if getattr(self, '_initialized', False):
             return
             
-        self._lock = threading.Lock()
+        self._lock = threading.RLock()
         self._activities: List[Dict[str, Any]] = []
         self._on_activity_callback: Optional[Callable[[Dict[str, Any]], None]] = None
         self._session_id: Optional[str] = None

@@ -1,5 +1,5 @@
 import pytest
-from enforcement import get_iptables_blocker
+from enforcer import get_iptables_blocker
 from enforcer.actions import EnforcementActions
 from config.settings import get_settings
 from common.schemas import EnforcementAction

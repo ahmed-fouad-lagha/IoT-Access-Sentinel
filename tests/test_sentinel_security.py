@@ -123,6 +123,7 @@ def test_jwt_verification_subject_mismatch():
 async def test_decision_pipeline_fail_secure():
     """Verify the pipeline fails secure (DENY) when LLM agents fail in production"""
     settings = get_settings()
+    settings.auto_sign_mock_tokens = True
     pipeline = DecisionPipeline(settings)
     
     # Alert with missing details that would fail context analysis (without expected_decision)

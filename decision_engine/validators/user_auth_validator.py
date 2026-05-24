@@ -18,12 +18,12 @@ Design rationale:
 from typing import Dict, Any, List, Optional
 from dataclasses import dataclass
 import yaml
-import structlog
 from pathlib import Path
 import jwt
 from config.settings import get_settings
+from common.logging_config import get_logger
 
-logger = structlog.get_logger(__name__)
+logger = get_logger(__name__)
 
 
 @dataclass
