@@ -121,7 +121,7 @@ class BaselineComparison:
                 
                 # Sleep on cache miss to avoid API rate limits
                 if self.llm_pipeline.cache_hits == old_hits:
-                    await asyncio.sleep(4.5)
+                    await asyncio.sleep(1.0)
             except Exception as e:
                 hybrid_action = 'ERROR'
                 hybrid_reason = str(e)
