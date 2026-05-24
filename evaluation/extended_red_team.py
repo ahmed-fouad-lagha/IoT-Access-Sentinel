@@ -231,11 +231,11 @@ async def run_extended_red_team():
     print(f"Failed to Detect: {results['summary']['failed_to_detect']}")
     print(f"Overall Accuracy: {results['summary']['accuracy']:.1%}")
     
-    os.makedirs("tests/red_team", exist_ok=True)
-    with open("tests/red_team/extended_results.json", "w") as f:
+    os.makedirs("results", exist_ok=True)
+    with open("results/extended_results.json", "w") as f:
         json.dump(results, f, indent=4)
         
-    print(f"\nResults saved to tests/red_team/extended_results.json")
+    print(f"\nResults saved to results/extended_results.json")
 
 if __name__ == "__main__":
     asyncio.run(run_extended_red_team())

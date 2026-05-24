@@ -2,7 +2,7 @@
 # Simple bash-based test runner using curl
 
 API_URL="http://localhost:8000"
-SCENARIOS_DIR="tests/scenarios"
+SCENARIOS_DIR="evaluation/scenarios"
 RESULTS_FILE="results/manual_test_$(date +%Y%m%d_%H%M%S).txt"
 
 mkdir -p results

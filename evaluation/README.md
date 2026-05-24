@@ -36,21 +36,16 @@ Server must be running:
 ### Run All Tests
 
 ```bash
-python3 tests/run_tests.py
-```
-
-Or:
-```bash
-./tests/run_tests.py
+bash evaluation/run_tests.sh
 ```
 
 ### Expected Output
 
 ```
-IoT-Access-Sentinel - Comprehensive Test Suite
-============================================================
+IoT-Access-Sentinel - Manual Test Suite
+==========================================================
 
-Loaded 10 test scenarios from tests/scenarios
+Loaded 8 test scenarios from evaluation/scenarios
 
 [Each test runs with detailed output showing:]
 - Test ID and category
@@ -61,8 +56,8 @@ Loaded 10 test scenarios from tests/scenarios
 
 TEST RESULTS SUMMARY
 ============================================================
-Total Tests: 10
-Successful API Calls: 10
+Total Tests: 8
+Successful API Calls: 8
 Correct Decisions: X
 Accuracy: XX.X%
 
