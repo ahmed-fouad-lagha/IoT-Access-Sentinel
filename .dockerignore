@@ -20,4 +20,8 @@ htmlcov/
 .agent/
 .gemini/
 tests/
-paper/
+evaluation/
+demo/
+results/
+tools/
+manuscript/
