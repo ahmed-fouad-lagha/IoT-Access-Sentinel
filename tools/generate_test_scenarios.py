@@ -18,7 +18,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 class IoTScenarioGenerator:
     """Generate synthetic IoT access scenarios for testing"""
     
-    def __init__(self, output_dir="tests/synthetic"):
+    def __init__(self, output_dir="evaluation/synthetic"):
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
         

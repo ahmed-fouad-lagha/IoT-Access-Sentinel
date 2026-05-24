@@ -37,7 +37,7 @@ async def run_comparison():
     hybrid = DecisionPipeline(settings)
     
     # Find all test files
-    test_dir = Path("tests")
+    test_dir = Path("evaluation")
     test_files = list(test_dir.rglob("*.json"))
     print(f"📋 Found {len(test_files)} test scenarios\n")
     

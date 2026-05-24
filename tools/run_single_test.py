@@ -29,7 +29,8 @@ def run_single_test(test_file: str):
     # Send to API
     response = requests.post(
         "http://localhost:8000/access-control",
-        json=alert_data
+        json=alert_data,
+        headers={"Authorization": "sentinel-webhook-secret-key"}
     )
     
     if response.status_code == 200:

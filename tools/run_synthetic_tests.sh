@@ -6,8 +6,8 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
-SYNTHETIC_DIR="$PROJECT_ROOT/tests/synthetic"
-RESULTS_DIR="$PROJECT_ROOT/tests/results"
+SYNTHETIC_DIR="$PROJECT_ROOT/evaluation/synthetic"
+RESULTS_DIR="$PROJECT_ROOT/results"
 API_URL="http://localhost:8000/access-control"
 
 # Create results directory
@@ -58,6 +58,7 @@ for scenario_file in "$SYNTHETIC_DIR"/*.json; do
     # Make API call
     RESPONSE=$(curl -s -X POST "$API_URL" \
         -H "Content-Type: application/json" \
+        -H "Authorization: sentinel-webhook-secret-key" \
         -d @"$scenario_file")
     
     # Extract actual decision

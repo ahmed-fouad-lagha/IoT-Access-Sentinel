@@ -11,8 +11,8 @@ from pathlib import Path
 from datetime import datetime
 
 PROJECT_ROOT = Path(__file__).parent.parent
-SYNTHETIC_DIR = PROJECT_ROOT / "tests" / "synthetic"
-RESULTS_DIR = PROJECT_ROOT / "tests" / "results"
+SYNTHETIC_DIR = PROJECT_ROOT / "evaluation" / "synthetic"
+RESULTS_DIR = PROJECT_ROOT / "results"
 API_URL = "http://localhost:8000/access-control"
 
 def main():
@@ -54,7 +54,8 @@ def main():
         
         # Make API call
         try:
-            response = requests.post(API_URL, json=scenario, timeout=30)
+            headers = {"Authorization": "sentinel-webhook-secret-key"}
+            response = requests.post(API_URL, json=scenario, headers=headers, timeout=30)
             result = response.json()
             actual = result.get("decision_action", "ERROR")
             confidence = result.get("decision_confidence", 0)

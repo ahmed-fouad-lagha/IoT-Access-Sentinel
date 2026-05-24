@@ -14,7 +14,7 @@ from decision_engine.decision_pipeline import DecisionPipeline
 from config.settings import get_settings
 
 async def run_extended_red_team():
-    print("🚀 Starting Extended Red-Team Evaluation (55 Scenarios)")
+    print("Starting Red-Team Evaluation (55 Scenarios)")
     print("-" * 60)
     
     settings = get_settings()
@@ -224,7 +224,7 @@ async def run_extended_red_team():
     results["summary"]["accuracy"] = (results["summary"]["blocked_by_layer0"] + results["summary"]["detected_by_llm"]) / results["summary"]["total"]
     
     print("-" * 60)
-    print(f"📊 FINAL RESULTS:")
+    print(f"FINAL RESULTS:")
     print(f"Total: {results['summary']['total']}")
     print(f"Blocked by Layer 0: {results['summary']['blocked_by_layer0']}")
     print(f"Detected by LLM: {results['summary']['detected_by_llm']}")
@@ -232,10 +232,10 @@ async def run_extended_red_team():
     print(f"Overall Accuracy: {results['summary']['accuracy']:.1%}")
     
     os.makedirs("results", exist_ok=True)
-    with open("results/extended_results.json", "w") as f:
+    with open("results/red_team_results.json", "w") as f:
         json.dump(results, f, indent=4)
         
-    print(f"\nResults saved to results/extended_results.json")
+    print(f"\nResults saved to results/red_team_results.json")
 
 if __name__ == "__main__":
     asyncio.run(run_extended_red_team())

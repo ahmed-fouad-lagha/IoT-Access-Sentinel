@@ -61,7 +61,7 @@ def generate_timestamp(hour: int, weekday: bool = True) -> str:
 class ScenarioGenerator:
     """Generates diverse test scenarios"""
     
-    def __init__(self, output_dir: str = "tests/synthetic"):
+    def __init__(self, output_dir: str = "evaluation/synthetic"):
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.scenario_count = 0

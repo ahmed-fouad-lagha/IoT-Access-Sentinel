@@ -174,10 +174,10 @@ async def main():
     
     # Test directories
     test_dirs = [
-        'tests/user_auth',       # User authorization tests (6 tests)
-        'tests/scenarios',       # Manual test scenarios (8 tests)
-        'tests/red_team',        # Red team tests (7 tests)
-        'tests/synthetic',       # Enhanced synthetic scenarios (85 tests)
+        'evaluation/user_auth',       # User authorization tests (6 tests)
+        'evaluation/scenarios',       # Manual test scenarios (8 tests)
+        'evaluation/red_team',        # Red team tests (7 tests)
+        'evaluation/synthetic',       # Enhanced synthetic scenarios (85 tests)
     ]
     
     print("Starting Baseline Comparison Test Suite")
