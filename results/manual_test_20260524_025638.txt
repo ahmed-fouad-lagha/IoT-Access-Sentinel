@@ -9,22 +9,22 @@ Test 2: camera_allow_2.json
   ✅ PASS - Expected: ALLOW, Got: ALLOW, Confidence: 0.95
 
 Test 3: camera_deny_1.json
-  ✅ PASS - Expected: DENY, Got: DENY, Confidence: 0.9
+  ✅ PASS - Expected: DENY, Got: DENY, Confidence: 0.95
 
 Test 4: camera_deny_2.json
   ✅ PASS - Expected: DENY, Got: DENY, Confidence: 0.95
 
 Test 5: camera_deny_3.json
-  ✅ PASS - Expected: DENY, Got: DENY, Confidence: 0.95
+  ✅ PASS - Expected: DENY, Got: DENY, Confidence: 1.0
 
 Test 6: sensor_allow_1.json
-  ✅ PASS - Expected: ALLOW, Got: ALLOW, Confidence: 0.8
+  ✅ PASS - Expected: ALLOW, Got: ALLOW, Confidence: 0.95
 
 Test 7: sensor_deny_1.json
-  ✅ PASS - Expected: DENY, Got: DENY, Confidence: 0.9
+  ✅ PASS - Expected: DENY, Got: DENY, Confidence: 0.95
 
 Test 8: smartlock_deny_1.json
-  ✅ PASS - Expected: DENY, Got: DENY, Confidence: 0.99
+  ✅ PASS - Expected: DENY, Got: DENY, Confidence: 0.95
 
 ==========================================================
 SUMMARY
@@ -34,4 +34,4 @@ Passed: 8
 Failed: 0
 Accuracy: 100.0%
 
-Full results saved to: tests/results/manual_test_20251223_162722.txt
+Full results saved to: tests/results/manual_test_20260524_025638.txt

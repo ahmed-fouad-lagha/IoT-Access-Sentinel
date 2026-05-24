@@ -68,8 +68,6 @@ Thumbs.db
 # =========================
 # Test Results
 # =========================
-tests/results/
-
 .coverage
 htmlcov/
 .pytest_cache/

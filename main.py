@@ -1,7 +1,7 @@
 """
 Main Application - IoT-Access-Sentinel
 FastAPI webhook receiver for Wazuh IoT access alerts
-Production-grade with metrics, rate limiting, and input validation
+With metrics, rate limiting, and input validation
 
 Workflow:
 1. Receive IoT access alert from Wazuh (webhook or polling)

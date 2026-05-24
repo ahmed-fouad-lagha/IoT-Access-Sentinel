@@ -1,7 +1,3 @@
-## Overview
-
-Comprehensive test suite for validating the IoT-Access-Sentinel LLM Decision Engine.
-
 ## Test Scenarios
 
 ### Camera Tests (5 scenarios)
@@ -87,7 +83,7 @@ Results by Category:
 
 Results are automatically saved to:
 ```
-tests/results/test_results_YYYYMMDD_HHMMSS.json
+results/test_results_YYYYMMDD_HHMMSS.json
 ```
 
 JSON format includes:
@@ -122,51 +118,3 @@ Each test JSON file includes:
   "description": "what this test validates"
 }
 ```
-
-## Adding New Tests
-
-1. Create new JSON file in `tests/scenarios/`
-2. Follow the test scenario format
-3. Include `expected_decision` and `test_category`
-4. Run test suite - new tests auto-discovered
-
-## Interpreting Results
-
-### High Accuracy (>90%)
-✅ LLM decision engine is working well
-✅ Policies are correctly interpreted
-✅ Context analysis is effective
-
-### Medium Accuracy (70-90%)
-⚠️ Some edge cases may need attention
-⚠️ Policy definitions may need refinement
-⚠️ Consider prompt engineering improvements
-
-### Low Accuracy (<70%)
-❌ Significant issues with decision logic
-❌ Review policy definitions
-❌ Check LLM prompt engineering
-❌ Verify test scenarios are valid
-
-## Known Limitations
-
-1. **LLM Conservatism**: Gemini tends to be strict ("when in doubt, DENY")
-   - High-severity alerts (level 8+) often trigger DENY
-   - Missing historical data can cause DENY
-   
-2. **Response Time**: ~25-40 seconds per decision
-   - Sequential tests to avoid rate limits
-   - Full suite may take 5-10 minutes
-
-3. **Gemini Free Tier**: 60 requests/min, 1,500/day
-   - Adequate for development
-   - May need paid tier for large-scale testing
-
-## Next Steps
-
-After running tests:
-1. Review accuracy metrics
-2. Analyze failed tests
-3. Adjust policies or prompts if needed
-4. Compare vs simple baseline (future)
-5. Document results for research paper
