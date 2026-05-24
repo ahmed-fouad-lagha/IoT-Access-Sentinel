@@ -1,7 +1,6 @@
 # IoT-Access-Sentinel
 
-<div align="center">
-  <img src="assets/sentinel_architecture.png" alt="Sentinel Architecture" width="600"/>
+<div align="center"
 
   **Autonomous Context-Aware Access Control for IoT via Multi-Agent Generative AI**
 
@@ -9,16 +8,13 @@
 [![Python](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![Docker](https://img.shields.io/badge/docker-ready-blue.svg)](#-one-command-deployment)
 
-
 </div>
 
----
 
 ## Overview
 
-**IoT-Access-Sentinel** is a novel cybersecurity framework that addresses the **Access Management (M0801)** research gap by using a **Hybrid Architecture** (Deterministic Validation + LLM Reasoning) to actively enforce IoT authorization policies based on dynamic context.
+IoT-Access-Sentinel is a novel cybersecurity framework that addresses the **Access Management (M0801)** research gap by using a Hybrid Architecture (Deterministic Validation + LLM Reasoning) to actively enforce IoT authorization policies based on dynamic context.
 
-### Key Achievement
 In a comprehensive evaluation across **103 test scenarios** against a fair RBAC baseline with proper authentication, the Hybrid LLM system achieved **94.2% accuracy** (97/103 correct), representing a **+16.5% improvement** over the RBAC baseline's 77.7% (80/103), with high statistical significance (McNemar's **χ² = 9.0, p < 0.01**).
 
 ### Hybrid Architecture (M0801)

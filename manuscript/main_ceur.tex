@@ -9,6 +9,10 @@
 %% Minted listings support 
 %% Need pygment <http://pygments.org/> <http://pypi.python.org/pypi/Pygments>
 \usepackage{listings}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning, fit, calc, backgrounds}
 %% auto break lines
 \lstset{breaklines=true}
 
@@ -64,25 +68,25 @@ We introduce \textit{IoT-Access-Sentinel}, a novel hybrid framework that address
 
 Evaluating our system on a benchmark of 103 test scenarios and a red-team suite of 105 adversarial attempts, we observe that combining deterministic checks with LLM reasoning introduces complex security trade-offs. Initially, the LLM layer was susceptible to advanced prompt injection (resulting in an initial 66.7\% defense rate). By implementing a robust mitigation strategy—where a deterministic pre-filtering layer effectively mitigates 63.8\% of structural attacks and strict data delimiters harden the LLM—we successfully neutralized all tested adversarial attempts. This empirical finding underscores that LLM semantic reliance must be paired with strict deterministic input sanitization.
 
-\textbf{Research Contributions.} This work makes the following contributions:
+This work makes the following contributions:
 
 \begin{itemize}
-    \item \textbf{Hybrid Architecture Design}: First framework combining deterministic user authorization validation with multi-agent LLM reasoning for IoT access control, addressing both security criticality (M0801 compliance) and cost-effectiveness (41\% reduction in API calls).
+    \item \textbf{Hybrid Architecture Design.} First framework combining deterministic user authorization validation with multi-agent LLM reasoning for IoT access control, addressing both security criticality (M0801 compliance) and cost-effectiveness (41\% reduction in API calls).
 
-    \item \textbf{Quantitative Baseline Evaluation}: Comprehensive evaluation on 103 test scenarios and 105 red-team attacks demonstrating the security trade-offs of LLM-based authorization. We identify prompt injection and metadata smuggling as critical vulnerabilities, and demonstrate a successful mitigation strategy combining Layer 0 schema validation and prompt delimiters to neutralize all tested evasion attempts.
+    \item \textbf{Quantitative Baseline Evaluation.} Comprehensive evaluation on 103 test scenarios and 105 red-team attacks demonstrating the security trade-offs of LLM-based authorization. We identify prompt injection and metadata smuggling as critical vulnerabilities, and demonstrate a successful mitigation strategy combining Layer 0 schema validation and prompt delimiters to neutralize all tested evasion attempts.
 
-    \item \textbf{High-Fidelity Implementation}: Complete implementation with Wazuh SIEM integration, distributed enforcement via Active Response API, and Docker-based deployment achieving 97ms average latency and 31.5 requests/second throughput.
+    \item \textbf{High-Fidelity Implementation.} Complete implementation with Wazuh SIEM integration, distributed enforcement via Active Response API, and Docker-based deployment achieving 97ms average latency and 31.5 requests/second throughput.
 
-    \item \textbf{Statistical Validation}: Rigorous methodology including McNemar's significance testing, 95\% confidence intervals, and category-wise performance breakdown providing publication-quality evidence.
+    \item \textbf{Statistical Validation.} Rigorous methodology including McNemar's significance testing, 95\% confidence intervals, and category-wise performance breakdown providing publication-quality evidence.
 
-    \item \textbf{Availability vs. Security}: Our fail-secure response to the 34 observed timeouts prioritizes security over availability. In critical infrastructure, this default-DENY behavior is essential, though it requires the semantic caching layer evaluated in Section~\ref{sec:caching_results} to maintain operational continuity during transient network failures.
+    \item \textbf{Availability vs. Security.} Our fail-secure response to the 34 observed timeouts prioritizes security over availability. In critical infrastructure, this default-DENY behavior is essential, though it requires the semantic caching layer evaluated in Section~\ref{sec:caching_results} to maintain operational continuity during transient network failures.
 
-    \item \textbf{Security Hardening}: Zero-trust system prompts with anti-manipulation guardrails, fail-secure defaults, and evidence-based reasoning constraints to mitigate LLM vulnerabilities.
+    \item \textbf{Security Hardening.} Zero-trust system prompts with anti-manipulation guardrails, fail-secure defaults, and evidence-based reasoning constraints to mitigate LLM vulnerabilities.
 
-    \item \textbf{Open Source}: Complete codebase, 103 test scenarios, baseline comparison framework, and statistical analysis tools released for reproducibility.
+    \item \textbf{Open Source.} Complete codebase, 103 test scenarios, baseline comparison framework, and statistical analysis tools released for reproducibility.
 \end{itemize}
 
-\textbf{Key Findings.} Our evaluation reveals compelling evidence for hybrid LLM-based access control:
+Our evaluation reveals compelling evidence for hybrid LLM-based access control:
 
 \textbf{Quantitative Performance \& Mitigation}: The hybrid system achieved a 100\% defense rate across the evaluated red-team suite post-mitigation. While initial testing showed LLM vulnerability to prompt injection, our hardened pipeline successfully divided the defense: the deterministic validator blocked 67 out of 105 attacks (63.8\%), and the hardened LLM reasoning layer securely blocked the remaining 38 advanced semantic attacks.
 
@@ -92,7 +96,7 @@ Evaluating our system on a benchmark of 103 test scenarios and a red-team suite 
 
 \textbf{Deployment Feasibility}: System achieves 97ms average end-to-end latency (including Wazuh enforcement), 31.5 RPS throughput under concurrent load, and minimal resource usage (94MB memory, $<$1\% CPU), demonstrating feasibility for constrained enterprise deployments.
 
-\section{Background and Related Work}
+\section{Related Work}
 
 \subsection{LLM-based Access Control for IoT}
 
@@ -102,7 +106,7 @@ Recent work has explored large language models for IoT access control~\cite{llm4
 
 \textbf{CollabIoT}~\cite{collabiot2025} employs LLM-driven capability-based access control for transient IoT collaboration. Their LLM pipeline generates validated access control tokens with 100\% policy correctness and achieves sub-millisecond enforcement overhead (0.3 ms). CollabIoT excels at \textit{proactive token generation} for device auto-configuration but does not use LLMs for runtime authorization decisions. Our work complements this by addressing the \textit{reactive decision path}, where LLMs are used to resolve semantic ambiguities in real-time alerts. While CollabIoT demonstrates the feasibility of avoiding LLMs in the ``hot path'' for performance, our architecture prioritizes contextual reasoning depth for high-integrity decisions where rigid tokens may be too restrictive.
 
-\textbf{Key Distinction}: Both LACE and CollabIoT leverage LLMs for \textit{policy creation}—translating human intent into machine-enforceable rules. Our system addresses a different challenge: making \textit{real-time access decisions} on alerts using multi-agent LLM reasoning when deterministic validation cannot resolve semantic ambiguity. Table~\ref{tab:related_comparison} summarizes these differences.
+Both LACE and CollabIoT leverage LLMs for \textit{policy creation}—translating human intent into machine-enforceable rules. Our system addresses a different challenge: making \textit{real-time access decisions} on alerts using multi-agent LLM reasoning when deterministic validation cannot resolve semantic ambiguity. Table~\ref{tab:related_comparison} summarizes these differences.
 
 \begin{table}[h]
     \centering
@@ -226,7 +230,14 @@ We evaluated robustness against 105 diverse red-team scenarios spanning 10 disti
 
 \section{System Architecture}
 
-IoT-Access-Sentinel implements a hybrid three-stage pipeline: Observe $\rightarrow$ Decide (Deterministic + LLM) $\rightarrow$ Act.
+IoT-Access-Sentinel implements a hybrid three-stage pipeline: Observe $\rightarrow$ Decide (Deterministic + LLM) $\rightarrow$ Act. Figure~\ref{fig:architecture} illustrates the end-to-end enforcement flow.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.9\textwidth]{architecture.png}
+    \caption{IoT-Access-Sentinel Architecture Pipeline. Layer 0 provides deterministic M0801 compliance and structural containment, while Layer 1 performs specialized semantic reasoning on ambiguous alerts.}
+    \label{fig:architecture}
+\end{figure}
 
 \subsection{Observe: Wazuh SIEM Integration}
 
@@ -373,24 +384,39 @@ This performance lift is attributed to several architectural advantages: (1) \te
 
 \subsection{Category-Wise Performance Analysis}
 
-Table~\ref{tab:categories} reveals where the LLM provides the greatest advantage over static rules.
+Figure~\ref{fig:performance_chart} reveals where the LLM provides the greatest advantage over static rules.
 
-\begin{table}[h]
+\begin{figure}[ht]
     \centering
-    \caption{Performance Breakdown by Test Category}
-    \label{tab:categories}
-    \begin{tabular}{lccc}
-        \toprule
-        \textbf{Category}       & \textbf{Baseline} & \textbf{Hybrid LLM} & \textbf{$\Delta$} \\
-        \midrule
-        User Authorization (43) & 88.4\%            & 97.7\%              & +9.3\%            \\
-        Attack Scenarios (12)   & 16.7\%            & 100\%               & +83.3\%           \\
-        Time/Network (24)       & 87.5\%            & 87.5\%              & 0\%               \\
-        Device-Specific (20)    & 85.0\%            & 95.0\%              & +10.0\%           \\
-        Edge Cases (4)          & 50.0\%            & 75.0\%              & +25.0\%           \\
-        \bottomrule
-    \end{tabular}
-\end{table}
+    \begin{tikzpicture}
+        \begin{axis}[
+            ybar,
+            bar width=15pt,
+            width=0.95\textwidth,
+            height=6.5cm,
+            enlarge x limits=0.15,
+            legend style={at={(0.5,-0.2)}, anchor=north, legend columns=-1},
+            ylabel={Accuracy (\%)},
+            symbolic x coords={User Auth, Attacks, Time/Net, Device Pol., Edge Cases},
+            xtick=data,
+            nodes near coords,
+            nodes near coords align={vertical},
+            ymin=0, ymax=125,
+            ytick={0,20,40,60,80,100},
+            every node near coord/.append style={font=\small},
+        ]
+        % RBAC Baseline Data
+        \addplot[fill=gray!40] coordinates {(User Auth,88.4) (Attacks,16.7) (Time/Net,87.5) (Device Pol.,85.0) (Edge Cases,50.0)};
+        
+        % Hybrid LLM Data
+        \addplot[fill=black!80, text=black] coordinates {(User Auth,97.7) (Attacks,100) (Time/Net,87.5) (Device Pol.,95.0) (Edge Cases,75.0)};
+        
+        \legend{RBAC Baseline, Hybrid LLM}
+        \end{axis}
+    \end{tikzpicture}
+    \caption{Category-wise performance comparison showing the Hybrid LLM's significant advantage in semantic reasoning categories (Attacks, Edge Cases).}
+    \label{fig:performance_chart}
+\end{figure}
 
 \textbf{User Authorization}: The hybrid system achieved 97.7\% accuracy (42/43 correct) compared to the RBAC baseline's 88.4\% (38/43). It is important to note that the high baseline performance (88.4\%) is primarily due to the deterministic validation in Layer 0 (user$\rightarrow$device permission matching), which is conceptually shared with the RBAC baseline. The LLM semantic layer provides a critical \textit{incremental} gain of 9.3\%, successfully resolving subtle permission conflicts, wildcard overlaps, and ambiguous role-based delegations that static rules fail to categorize accurately.
 
