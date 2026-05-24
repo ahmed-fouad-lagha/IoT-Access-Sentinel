@@ -3,7 +3,7 @@ Alert Models - IoT-Access-Sentinel Observer
 Pydantic models for Wazuh IoT access alerts
 """
 
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import BaseModel, Field, field_validator, model_validator, ConfigDict
 from typing import Optional, Dict, Any, List
 from datetime import datetime
 
@@ -106,9 +106,7 @@ class IoTAccessAlert(BaseModel):
         
         return data
     
-    class Config:
-        # Allow extra fields from Wazuh that we might not explicitly model
-        extra = "allow"
+    model_config = ConfigDict(extra="allow")
 
 
 class EnrichedIoTAlert(IoTAccessAlert):

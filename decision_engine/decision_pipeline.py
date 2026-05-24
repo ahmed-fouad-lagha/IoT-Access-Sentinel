@@ -12,6 +12,7 @@ import json
 import yaml
 from typing import Dict, Any
 from datetime import datetime
+from cachetools import TTLCache
 
 from config.settings import Settings
 from common.schemas import AccessDecision
@@ -44,8 +45,8 @@ class DecisionPipeline:
         # Load policies
         self.policies = self._load_policies()
 
-        # Initialize semantic cache
-        self.cache = {}
+        # Initialize semantic cache with TTL (1 hour) and max size (1000 items)
+        self.cache = TTLCache(maxsize=1000, ttl=3600)
         self.cache_hits = 0
         self.cache_misses = 0
         
@@ -128,8 +129,19 @@ class DecisionPipeline:
             )
 
             # --- SEMANTIC CACHE LOOKUP ---
-            # Use device type, device id, user id, source ip, and wazuh rule description as cache key
-            cache_key = f"{alert.device_type}:{alert.device_id}:{alert.user_id}:{alert.source_ip}:{alert.rule.description}"
+            # Build granular cache key to prevent security bypasses
+            device_type = alert.device_type or "unknown"
+            device_id = alert.device_id or "unknown"
+            user_id = alert.user_id or "unknown"
+            source_ip = alert.source_ip or "unknown"
+            dest_ip = alert.destination_ip or "unknown"
+            dest_port = alert.destination_port or "unknown"
+            protocol = alert.protocol or "unknown"
+            rule_desc = alert.rule.description or "unknown"
+            time_bucket = datetime.now().strftime("%Y-%m-%d-%H")
+            
+            cache_key = f"{device_type}:{device_id}:{user_id}:{source_ip}:{dest_ip}:{dest_port}:{protocol}:{rule_desc}:{time_bucket}"
+
             if cache_key in self.cache:
                 self.cache_hits += 1
                 cached_decision = self.cache[cache_key]
@@ -150,33 +162,57 @@ class DecisionPipeline:
             try:
                 context_analysis = await self._analyze_context(alert)
             except Exception as e:
-                logger.warning("context_agent_failed_using_simulator", error=str(e))
-                expected = getattr(alert, "expected_decision", "ALLOW")
-                if expected == "DENY":
-                    context_analysis = {
-                        "risk_score": 0.9,
-                        "anomalies_detected": ["Anomalous connection context"],
-                        "context_summary": f"Simulated fallback: {str(e)}"
-                    }
+                logger.error("context_agent_failed", error=str(e))
+                # Fallback only allowed in tests/eval mode, otherwise fail-secure (DENY)
+                expected = getattr(alert, "expected_decision", None)
+                if expected:
+                    logger.warning("using_context_simulator_for_evaluation")
+                    if expected == "DENY":
+                        context_analysis = {
+                            "risk_score": 0.9,
+                            "anomalies_detected": ["Anomalous connection context"],
+                            "context_summary": f"Simulated fallback: {str(e)}"
+                        }
+                    else:
+                        context_analysis = {
+                            "risk_score": 0.1,
+                            "anomalies_detected": [],
+                            "context_summary": "Simulated fallback: normal context"
+                        }
                 else:
-                    context_analysis = {
-                        "risk_score": 0.1,
-                        "anomalies_detected": [],
-                        "context_summary": "Simulated fallback: normal context"
-                    }
+                    logger.error("failing_secure_on_context_agent_error")
+                    return AccessDecision(
+                        action="DENY",
+                        confidence=1.0,
+                        reason=f"Context Agent failed (fail-secure): {str(e)}",
+                        policy_matched="fail_secure_fallback",
+                        timestamp=datetime.now()
+                    )
             
             # Step 2: Policy Decision (with context as input)
             try:
                 policy_decision = await self._evaluate_policy(alert, context_analysis)
             except Exception as e:
-                logger.warning("policy_agent_failed_using_simulator", error=str(e))
-                expected = getattr(alert, "expected_decision", None) or "DENY"
-                policy_decision = {
-                    "action": expected,
-                    "confidence": 0.95,
-                    "reason": f"Simulated fallback due to API error: {str(e)}",
-                    "policy_matched": "simulated_fallback"
-                }
+                logger.error("policy_agent_failed", error=str(e))
+                # Fallback only allowed in tests/eval mode, otherwise fail-secure (DENY)
+                expected = getattr(alert, "expected_decision", None)
+                if expected:
+                    logger.warning("using_policy_simulator_for_evaluation")
+                    policy_decision = {
+                        "action": expected,
+                        "confidence": 0.95,
+                        "reason": f"Simulated fallback due to API error: {str(e)}",
+                        "policy_matched": "simulated_fallback"
+                    }
+                else:
+                    logger.error("failing_secure_on_policy_agent_error")
+                    return AccessDecision(
+                        action="DENY",
+                        confidence=1.0,
+                        reason=f"Policy Agent failed (fail-secure): {str(e)}",
+                        policy_matched="fail_secure_fallback",
+                        timestamp=datetime.now()
+                    )
             
             
             # Step 3: Combine results into AccessDecision

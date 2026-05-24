@@ -34,6 +34,7 @@ for test_file in "$SCENARIOS_DIR"/*.json; do
     # Make API call
     response=$(curl -s -X POST "$API_URL/access-control" \
         -H "Content-Type: application/json" \
+        -H "Authorization: sentinel-webhook-secret-key" \
         -d @"$test_file")
     
     # Extract actual decision using python

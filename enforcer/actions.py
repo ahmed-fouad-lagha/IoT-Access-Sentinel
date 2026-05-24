@@ -74,9 +74,17 @@ class EnforcementActions:
                     alert_id=action.alert_id
                 )
             elif action.action_type == "ISOLATE_DEVICE":
-                result = await self._isolate_device(action.target)
+                result = await self._isolate_device(
+                    device_ip=action.target,
+                    agent_id=action.agent_id,
+                    alert_id=action.alert_id
+                )
             elif action.action_type == "RATE_LIMIT":
-                result = await self._rate_limit_device(action.target)
+                result = await self._rate_limit_device(
+                    device_id=action.target,
+                    agent_id=action.agent_id,
+                    alert_id=action.alert_id
+                )
             elif action.action_type == "ALERT_ONLY":
                 result = "Alert logged - no enforcement action taken"
             else:

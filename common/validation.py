@@ -153,6 +153,51 @@ class InputValidator:
             
         return ValidationResult(True)
         
+    def validate_auth_token(self, auth_token: Optional[str]) -> ValidationResult:
+        """Validate auth_token field."""
+        if auth_token is None:
+            return ValidationResult(True)
+        
+        threat = self._detect_injection(auth_token)
+        if threat:
+            self._log_threat("auth_token", auth_token, threat)
+            return ValidationResult(False, "auth_token", f"Injection detected: {threat}", threat)
+        
+        if len(auth_token) > 1024:
+            return ValidationResult(False, "auth_token", "auth_token exceeds maximum allowed length")
+        
+        return ValidationResult(True)
+
+    def validate_user_role(self, user_role: Optional[str]) -> ValidationResult:
+        """Validate user_role field."""
+        if user_role is None:
+            return ValidationResult(True)
+        
+        threat = self._detect_injection(user_role)
+        if threat:
+            self._log_threat("user_role", user_role, threat)
+            return ValidationResult(False, "user_role", f"Injection detected: {threat}", threat)
+        
+        if len(user_role) > 64:
+            return ValidationResult(False, "user_role", "user_role exceeds maximum allowed length")
+        
+        return ValidationResult(True)
+
+    def validate_session_id(self, session_id: Optional[str]) -> ValidationResult:
+        """Validate session_id field."""
+        if session_id is None:
+            return ValidationResult(True)
+        
+        threat = self._detect_injection(session_id)
+        if threat:
+            self._log_threat("session_id", session_id, threat)
+            return ValidationResult(False, "session_id", f"Injection detected: {threat}", threat)
+        
+        if len(session_id) > 128:
+            return ValidationResult(False, "session_id", "session_id exceeds maximum allowed length")
+        
+        return ValidationResult(True)
+
     def validate_all(self, alert_data: dict) -> ValidationResult:
         """
         Validate all fields in an alert.
@@ -169,6 +214,9 @@ class InputValidator:
             self.validate_device_type(alert_data.get("device_type")),
             self.validate_source_ip(alert_data.get("source_ip")),
             self.validate_rule_description(rule_desc),
+            self.validate_auth_token(alert_data.get("auth_token")),
+            self.validate_user_role(alert_data.get("user_role")),
+            self.validate_session_id(alert_data.get("session_id")),
         ]
         
         for result in validations:
@@ -236,6 +284,7 @@ class InputValidator:
         """
         Normalize and strip hidden characters from text.
         Uses NFKC normalization to resolve homoglyph attacks.
+        Also strips prompt delimiters to prevent injection/evasion.
         """
         if not text:
             return text
@@ -246,6 +295,9 @@ class InputValidator:
         # 2. Strip invisible characters, RTLO, Bidi Isolates, and control characters
         # Matches: \x00-\x1F, \x7F-\x9F, zero-width, directional overrides, and isolates
         stripped = re.sub(r'[\x00-\x1f\x7f-\x9f\u200b-\u200f\u202a-\u202e\u2066-\u2069\ufeff]', '', normalized)
+        
+        # 3. Strip prompt delimiters <<< and >>> to prevent delimiter collusion
+        stripped = stripped.replace("<<<", "").replace(">>>", "")
         
         return stripped
 

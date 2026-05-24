@@ -11,9 +11,10 @@ Workflow:
 5. Return enriched alert with decision and enforcement results
 """
 
-from fastapi import FastAPI, HTTPException, status, Response
+from fastapi import FastAPI, HTTPException, status, Response, Security, Depends
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security.api_key import APIKeyHeader
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from typing import List
@@ -93,11 +94,40 @@ app.add_middleware(
 app.add_middleware(RateLimitMiddleware, default_limit=100, default_window=60)
 
 
+API_KEY_NAME = "Authorization"
+api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
+
+
+async def verify_webhook_api_key(
+    api_key: str = Security(api_key_header),
+    settings = Depends(get_settings)
+):
+    """Verify the API key passed in the Authorization header"""
+    if not api_key:
+        logger.warning("missing_webhook_api_key")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required: Webhook API key missing"
+        )
+        
+    actual_key = api_key
+    if api_key.lower().startswith("bearer "):
+        actual_key = api_key[7:]
+        
+    if actual_key != settings.webhook_api_key:
+        logger.warning("invalid_webhook_api_key")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Forbidden: Invalid Webhook API key"
+        )
+
+
 @app.post(
     "/access-control",
     response_model=EnrichedIoTAlert,
     status_code=status.HTTP_200_OK,
     summary="Process IoT access alert",
+    dependencies=[Depends(verify_webhook_api_key)],
     description="""
     Primary webhook endpoint for Wazuh IoT access alerts.
     

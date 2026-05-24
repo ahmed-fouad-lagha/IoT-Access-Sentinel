@@ -89,15 +89,15 @@ async def call_policy_agent(client: Union[AsyncOpenAI, genai.Client], model: str
     logger.debug("calling_policy_agent", provider=provider)
     
     if provider == "gemini":
-        # Use new Gemini API
+        # Gemini API (async)
         full_prompt = f"{POLICY_AGENT_SYSTEM_MESSAGE}\n\n{prompt}"
-        response = client.models.generate_content(
+        response = await client.aio.models.generate_content(
             model=model,
             contents=full_prompt
         )
         return response.text
     else:
-        # Use OpenAI API
+        # OpenAI API
         response = await client.chat.completions.create(
             model=model,
             messages=[

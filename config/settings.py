@@ -9,7 +9,7 @@ Manages settings for:
 - Service endpoints
 """
 
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from functools import lru_cache
 from typing import Optional
 
@@ -54,6 +54,11 @@ class Settings(BaseSettings):
     port: int = 8000
     log_level: str = "info"
     
+    # JWT and Webhook Secrets
+    jwt_secret_key: str = "super-secret-key-change-in-production"
+    jwt_algorithm: str = "HS256"
+    webhook_api_key: str = "sentinel-webhook-secret-key"
+    
     # Timeouts
     wazuh_api_timeout: int = 30
     llm_api_timeout: int = 60
@@ -61,10 +66,11 @@ class Settings(BaseSettings):
     # Decision Confidence Threshold
     min_decision_confidence: float = 0.75  # Minimum confidence to enforce DENY
 
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-        case_sensitive = False
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=False
+    )
 
 
 @lru_cache()

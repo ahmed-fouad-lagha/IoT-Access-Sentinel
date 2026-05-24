@@ -75,15 +75,15 @@ async def call_context_agent(client: Union[AsyncOpenAI, genai.Client], model: st
     logger.debug("calling_context_agent", provider=provider)
     
     if provider == "gemini":
-        # Use new Gemini API
+        # Gemini API (async)
         full_prompt = f"{CONTEXT_AGENT_SYSTEM_MESSAGE}\n\n{prompt}"
-        response = client.models.generate_content(
+        response = await client.aio.models.generate_content(
             model=model,
             contents=full_prompt
         )
         return response.text
     else:
-        # Use OpenAI API
+        # OpenAI API
         response = await client.chat.completions.create(
             model=model,
             messages=[
