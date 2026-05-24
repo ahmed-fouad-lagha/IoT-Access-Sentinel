@@ -69,10 +69,6 @@ Thumbs.db
 # Test Results
 # =========================
 # tests/results/
-# tests/synthetic/
-# tests/synthetic_v2/
-# tests/user_auth/
-outputs/
 
 .coverage
 htmlcov/
@@ -81,13 +77,11 @@ htmlcov/
 # =========================
 # Project Specific
 # =========================
-.agent/
 wazuh-docker/
 
 # =========================
 # LaTeX
 # =========================
-manuscript/
 # LaTeX auxiliary files
 *.aux
 *.bbl
@@ -105,30 +99,8 @@ manuscript/
 *.nav
 *.snm
 *.vrb
-
-# Latexmk
-latexmk/
-
-# PDF output (optional – ignore if you don’t want to version PDFs)
+*.xmpi
+*.xmpdata
+*.synctex
+*.abs
 *.pdf
-
-# =========================
-# AI Tools Rules
-# =========================
-.clinerules/
-.kilocode/
-.roo/
-.windsurf/
-.cursor/
-.kiro/
-.qoder/
-.augment/
-.clinerules/byterover-rules.md
-.kilocode/rules/byterover-rules.md
-.roo/rules/byterover-rules.md
-.windsurf/rules/byterover-rules.md
-.cursor/rules/byterover-rules.mdc
-.kiro/steering/byterover-rules.md
-.qoder/rules/byterover-rules.md
-.augment/rules/byterover-rules.md
-.sonarlint/connectedMode.json

@@ -8,6 +8,8 @@
     },
     "device_id": "camera-office-01",
     "device_type": "camera",
+    "user_id": "alice@company.com",
+    "auth_token": "valid-token-123",
     "source_ip": "10.5.5.100",
     "destination_ip": "10.0.0.1",
     "destination_port": 443,
