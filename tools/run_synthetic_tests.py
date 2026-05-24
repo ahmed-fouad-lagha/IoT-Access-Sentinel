@@ -20,7 +20,7 @@ def main():
     try:
         requests.get("http://localhost:8000/", timeout=2)
     except:
-        print("❌ Error: Server not running on http://localhost:8000")
+        print("Error: Server not running on http://localhost:8000")
         print("Start with: ./venv/bin/python main.py")
         sys.exit(1)
     
@@ -62,7 +62,7 @@ def main():
         except Exception as e:
             actual = "ERROR"
             confidence = 0
-            print(f"  ❌ {scenario_id}: API error - {e}")
+            print(f"  {scenario_id}: API error - {e}")
         
         # Check result
         if expected == actual:
@@ -71,7 +71,7 @@ def main():
         else:
             failed += 1
             status = "FAIL"
-            print(f"  ❌ {scenario_id}: Expected {expected}, Got {actual}")
+            print(f"  {scenario_id}: Expected {expected}, Got {actual}")
         
         results.append({
             "scenario": scenario_id,

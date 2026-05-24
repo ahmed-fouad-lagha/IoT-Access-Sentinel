@@ -83,5 +83,13 @@ def calibrate():
     for m in metrics:
         print(f"{m['threshold']:<10.2f} {m['accuracy']:<10.2f} {m['fpr']:<12.2f} {m['fdr']:<12.2f}")
 
+    # Save results to JSON
+    results_dir = Path("results")
+    results_dir.mkdir(exist_ok=True)
+    out_path = results_dir / "threshold_calibration.json"
+    with open(out_path, 'w') as f:
+        json.dump(metrics, f, indent=2)
+    print(f"\n💾 Calibration results saved to: {out_path}")
+
 if __name__ == "__main__":
     calibrate()

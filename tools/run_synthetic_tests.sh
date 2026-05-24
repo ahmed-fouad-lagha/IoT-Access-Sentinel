@@ -15,7 +15,7 @@ mkdir -p "$RESULTS_DIR"
 
 # Check if server is running
 if ! curl -s "$API_URL" > /dev/null 2>&1; then
-    echo "❌ Error: IoT-Access-Sentinel server not running on $API_URL"
+    echo "Error: IoT-Access-Sentinel server not running on $API_URL"
     echo "Start with: ./venv/bin/python main.py"
     exit 1
 fi
@@ -71,7 +71,7 @@ for scenario_file in "$SYNTHETIC_DIR"/*.json; do
     else
         ((FAILED++))
         STATUS="FAIL"
-        echo "  ❌ $SCENARIO_ID: Expected $EXPECTED, Got $ACTUAL"
+        echo "  $SCENARIO_ID: Expected $EXPECTED, Got $ACTUAL"
     fi
     
     # Add to results JSON

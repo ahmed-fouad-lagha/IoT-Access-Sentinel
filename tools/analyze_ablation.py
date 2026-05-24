@@ -79,14 +79,14 @@ def analyze_ablation_from_results():
     print("KEY FINDINGS:")
     print("="*80)
     print()
-    print("1. Deterministic-only (RBAC): 77.7%")
+    print(f"1. Deterministic-only (RBAC): {rbac_accuracy:.1f}%")
     print("   - Excellent for rule-based validation (user auth, time, network)")
     print("   - Struggles with semantic attacks and edge cases")
     print()
-    print("2. Hybrid (Deterministic + LLM): 94.2%")
+    print(f"2. Hybrid (Deterministic + LLM): {hybrid_accuracy:.1f}%")
     print("   - Preserves deterministic strengths (security-critical checks)")
     print("   - Adds LLM semantic reasoning (complex scenarios)")
-    print("   - Synergy: +16.5 percentage points")
+    print(f"   - Synergy: +{synergy:.1f} percentage points")
     print()
     print("3. Multi-Agent Architecture:")
     print("   - Context Agent: Behavioral anomaly detection")
@@ -94,7 +94,8 @@ def analyze_ablation_from_results():
     print("   - Separation improves accuracy vs single monolithic prompt")
     print()
     print("4. Cost Efficiency:")
-    print("   - Deterministic pre-check handles 41% of requests")
+    cost_savings = (deterministic_denies / len(rbac_decisions) * 100) if rbac_decisions else 0
+    print(f"   - Deterministic pre-check handles {cost_savings:.0f}% of requests")
     print("   - LLM only invoked when deterministic cannot decide")
     print("   - Reduces API costs while maintaining accuracy")
     print()
@@ -118,7 +119,7 @@ def analyze_ablation_from_results():
         "synergy": synergy,
         "deterministic_contribution": deterministic_denies,
         "llm_contribution": llm_adds_value,
-        "cost_savings": 41.0
+        "cost_savings": cost_savings
     }
     
     results_dir = Path("results")

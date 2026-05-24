@@ -98,7 +98,7 @@ async def run_benchmark():
     pipeline = SingleAgentPipeline(settings)
     
     # Locate all test scenarios
-    test_dir = Path("tests")
+    test_dir = Path("evaluation")
     test_files = list(test_dir.rglob("*.json"))
     
     # Filter and prioritize
@@ -173,7 +173,9 @@ async def run_benchmark():
             results['total'] += 1
 
     # Save results
-    output_file = "single_agent_results.json"
+    results_dir = Path("results")
+    results_dir.mkdir(exist_ok=True)
+    output_file = results_dir / "single_agent_results.json"
     with open(output_file, 'w') as f:
         json.dump(results, f, indent=2)
 
