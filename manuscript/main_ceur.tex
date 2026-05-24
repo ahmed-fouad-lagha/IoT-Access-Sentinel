@@ -90,13 +90,13 @@ This work makes the following contributions:
 
 Our evaluation reveals compelling evidence for hybrid LLM-based access control:
 
-\textbf{Quantitative Performance \& Mitigation}: The hybrid system achieved a 100\% defense rate across the evaluated red-team suite post-mitigation. While initial testing showed LLM vulnerability to prompt injection, our hardened pipeline successfully divided the defense: the deterministic validator blocked 67 out of 105 attacks (63.8\%), and the hardened LLM reasoning layer securely blocked the remaining 38 advanced semantic attacks.
+The hybrid system achieved a 100\% defense rate across the evaluated red-team suite post-mitigation. While initial testing showed LLM vulnerability to prompt injection, our hardened pipeline successfully divided the defense: the deterministic validator blocked 67 out of 105 attacks (63.8\%), and the hardened LLM reasoning layer securely blocked the remaining 38 advanced semantic attacks.
 
-\textbf{Category-Wise Strengths}: The LLM excels in scenarios requiring semantic understanding—attack detection (+83.3\% improvement), edge case resolution (+25.0%), and device-specific policies (+10.0%)—while providing a critical 9.3\% incremental gain in user authorization by resolving semantic ambiguities that escape deterministic rules. Performance on static time/network matching remains at parity (87.5\% for both).
+The LLM excels in scenarios requiring semantic understanding—attack detection (+83.3\% improvement), edge case resolution (+25.0\%), and device-specific policies (+10.0\%)—while providing a critical 9.3\% incremental gain in user authorization by resolving semantic ambiguities that escape deterministic rules. Performance on static time/network matching remains at parity (87.5\% for both).
 
-\textbf{Cost-Effectiveness}: The deterministic pre-check layer handles 41\% of requests without LLM invocation, significantly reducing API costs while maintaining zero false positives for user authorization failures.
+The deterministic pre-check layer handles 41\% of requests without LLM invocation, significantly reducing API costs while maintaining zero false positives for user authorization failures.
 
-\textbf{Deployment Feasibility}: System achieves 97ms average end-to-end latency (including Wazuh enforcement), 31.5 RPS throughput under concurrent load, and minimal resource usage (94MB memory, $<$1\% CPU), demonstrating feasibility for constrained enterprise deployments.
+System achieves 97ms average end-to-end latency (including Wazuh enforcement), 31.5 RPS throughput under concurrent load, and minimal resource usage (94MB memory, $<$1\% CPU), demonstrating feasibility for constrained enterprise deployments.
 
 \section{Related Work}
 

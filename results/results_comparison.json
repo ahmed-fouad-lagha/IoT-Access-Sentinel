@@ -2982,7 +2982,7 @@
     ]
   },
   "categories": {
-    "synthetic_v2": {
+    "synthetic": {
       "rbac": 134,
       "hybrid": 100,
       "total": 170
