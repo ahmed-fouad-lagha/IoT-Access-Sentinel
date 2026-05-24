@@ -1,0 +1,20 @@
+{
+  "id": "synthetic-camera-time-1",
+  "timestamp": "2025-12-23T22:48:01Z",
+  "rule": {
+    "level": 7,
+    "description": "Camera outside business hours",
+    "id": "100011"
+  },
+  "device_id": "camera-parking-01",
+  "device_type": "camera",
+  "source_ip": "192.168.1.109",
+  "destination_ip": "10.0.0.1",
+  "destination_port": 443,
+  "protocol": "HTTPS",
+  "user_id": "bob@company.com",
+  "auth_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJib2JAY29tcGFueS5jb20iLCJyb2xlIjoic2VjdXJpdHlfc3RhZmYiLCJleHAiOjE3Nzk2NjU1OTIsImlhdCI6MTc3OTY1ODM5Mn0.PcxkMrrIExz0qL461NJD146qXpPuaIxQmQGUTmouew0",
+  "user_role": "security_staff",
+  "expected_decision": "DENY",
+  "category": "camera_time_violation"
+}

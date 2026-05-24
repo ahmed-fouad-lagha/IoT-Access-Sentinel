@@ -1,0 +1,17 @@
+{
+  "id": "synthetic-sensor-network-4",
+  "timestamp": "2025-12-25T21:15:18Z",
+  "rule": {
+    "level": 7,
+    "description": "Sensor from unauthorized network",
+    "id": "100021"
+  },
+  "device_id": "sensor-humidity-03",
+  "device_type": "sensor",
+  "source_ip": "172.16.85.86",
+  "destination_ip": "10.0.0.5",
+  "destination_port": 8883,
+  "protocol": "MQTT",
+  "expected_decision": "DENY",
+  "category": "sensor_network_violation"
+}

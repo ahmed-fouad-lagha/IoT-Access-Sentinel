@@ -1,0 +1,17 @@
+{
+  "id": "synthetic-sensor-valid-7",
+  "timestamp": "2025-12-22T10:55:12Z",
+  "rule": {
+    "level": 4,
+    "description": "IoT sensor telemetry transmission",
+    "id": "100020"
+  },
+  "device_id": "sensor-humidity-02",
+  "device_type": "sensor",
+  "source_ip": "192.168.2.30",
+  "destination_ip": "10.0.0.5",
+  "destination_port": 8883,
+  "protocol": "MQTT",
+  "expected_decision": "ALLOW",
+  "category": "legitimate_sensor"
+}

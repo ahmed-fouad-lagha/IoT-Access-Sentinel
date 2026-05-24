@@ -1,0 +1,20 @@
+{
+  "id": "synthetic-camera-network-2",
+  "timestamp": "2025-12-25T16:50:52Z",
+  "rule": {
+    "level": 8,
+    "description": "Camera from unauthorized network",
+    "id": "100012"
+  },
+  "device_id": "camera-office-01",
+  "device_type": "camera",
+  "source_ip": "10.5.233.103",
+  "destination_ip": "10.0.0.1",
+  "destination_port": 443,
+  "protocol": "HTTPS",
+  "user_id": "alice@company.com",
+  "auth_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhbGljZUBjb21wYW55LmNvbSIsInJvbGUiOiJzZWN1cml0eV9hZG1pbiIsImV4cCI6MTc3OTY2NTU5MiwiaWF0IjoxNzc5NjU4MzkyfQ.ZiJHw9lgxeYux_re6HFd_7XhqXRJL95zy3cIzfMkgas",
+  "user_role": "security_admin",
+  "expected_decision": "DENY",
+  "category": "camera_network_violation"
+}

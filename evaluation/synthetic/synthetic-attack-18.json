@@ -1,0 +1,18 @@
+{
+  "id": "synthetic-attack-18",
+  "timestamp": "2025-12-23T09:24:18Z",
+  "rule": {
+    "level": 8,
+    "description": "Suspicious input detected",
+    "id": "100040"
+  },
+  "device_type": "camera",
+  "source_ip": "192.168.1.220",
+  "destination_ip": "10.0.0.1",
+  "destination_port": 443,
+  "protocol": "HTTPS",
+  "expected_decision": "DENY",
+  "category": "attack_sql_injection",
+  "attack_payload": "admin' --",
+  "device_id": "admin' --"
+}

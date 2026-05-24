@@ -112,11 +112,16 @@ class BaselineComparison:
             # 2. Hybrid Decision
             try:
                 iot_alert = IoTAccessAlert(**alert_data)
+                old_hits = self.llm_pipeline.cache_hits
                 hybrid_decision = await self.llm_pipeline.make_decision(iot_alert)
                 hybrid_action = hybrid_decision.action
                 hybrid_reason = hybrid_decision.reason
                 hybrid_conf = hybrid_decision.confidence
                 hybrid_correct = (hybrid_action == expected)
+                
+                # Sleep on cache miss to avoid API rate limits
+                if self.llm_pipeline.cache_hits == old_hits:
+                    await asyncio.sleep(4.5)
             except Exception as e:
                 hybrid_action = 'ERROR'
                 hybrid_reason = str(e)

@@ -9,7 +9,7 @@
     "device_id": "camera-entrance-02",
     "device_type": "camera",
     "user_id": "security-system@company.com",
-    "auth_token": "system-token-master",
+    "auth_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzZWN1cml0eS1zeXN0ZW1AY29tcGFueS5jb20iLCJyb2xlIjoidXNlciIsImV4cCI6MTc3OTY2NTYxOSwiaWF0IjoxNzc5NjU4NDE5fQ.1gROc_a02wW0rlN4L23XpYru0KMuWUSeViVsc1heS2c",
     "source_ip": "192.168.1.105",
     "destination_ip": "10.0.0.1",
     "destination_port": 443,

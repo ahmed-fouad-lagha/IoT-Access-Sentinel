@@ -1,0 +1,18 @@
+{
+  "id": "attack-no-userid-7",
+  "timestamp": "2025-12-26T11:31:13Z",
+  "rule": {
+    "level": 5,
+    "description": "IoT camera access attempt",
+    "id": "100010"
+  },
+  "device_id": "camera-office-02",
+  "device_type": "camera",
+  "source_ip": "192.168.1.200",
+  "destination_ip": "10.0.0.1",
+  "destination_port": 443,
+  "protocol": "HTTPS",
+  "expected_decision": "DENY",
+  "category": "attack_no_userid",
+  "description": "Camera access without user_id (auth required)"
+}

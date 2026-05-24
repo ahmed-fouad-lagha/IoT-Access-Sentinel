@@ -18,7 +18,7 @@
     "destination_port": 443,
     "protocol": "HTTPS",
     "user_id": "security-system@company.com",
-    "auth_token": "system-token-abc123",
+    "auth_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzZWN1cml0eS1zeXN0ZW1AY29tcGFueS5jb20iLCJyb2xlIjoic3lzdGVtIiwiZXhwIjoxNzc5NjY1NjE5LCJpYXQiOjE3Nzk2NTg0MTl9.GrCC3bVIT4pl1x6Wy9m2_wJW8e71CwP3MgBa5FIQ7dE",
     "user_role": "system",
     "session_id": "sys-sess-001",
     "expected_decision": "ALLOW",

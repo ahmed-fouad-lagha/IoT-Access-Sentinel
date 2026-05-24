@@ -1,0 +1,19 @@
+{
+  "id": "synthetic-camera-unknown-1",
+  "timestamp": "2025-12-22T13:27:44Z",
+  "rule": {
+    "level": 8,
+    "description": "Unknown camera device",
+    "id": "100040"
+  },
+  "device_type": "camera",
+  "source_ip": "192.168.1.204",
+  "destination_ip": "10.0.0.1",
+  "destination_port": 443,
+  "protocol": "HTTPS",
+  "user_id": "alice@company.com",
+  "auth_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhbGljZUBjb21wYW55LmNvbSIsInJvbGUiOiJzZWN1cml0eV9hZG1pbiIsImV4cCI6MTc3OTY2NTU5MiwiaWF0IjoxNzc5NjU4MzkyfQ.ZiJHw9lgxeYux_re6HFd_7XhqXRJL95zy3cIzfMkgas",
+  "user_role": "security_admin",
+  "expected_decision": "DENY",
+  "category": "unknown_device"
+}

@@ -7,13 +7,15 @@ and enhanced edge-case tests (LLM-specific).
 
 import json
 import random
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import List, Dict
 import sys
 from pathlib import Path
+import jwt
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
+from config.settings import Settings
 
 # User database for realistic user auth scenarios
 USERS = [
@@ -46,9 +48,20 @@ class UnifiedScenarioGenerator:
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.scenario_count = 0
         self.scenarios_data = {}
+        self.settings = Settings()
 
         # Time ranges
         self.camera_hours = (9, 17)  # 09:00-17:00
+
+    def generate_token(self, user_id: str, role: str) -> str:
+        """Generate a valid signed JWT token for the user"""
+        payload = {
+            "sub": user_id,
+            "role": role,
+            "exp": datetime.now(timezone.utc) + timedelta(hours=2),
+            "iat": datetime.now(timezone.utc)
+        }
+        return jwt.encode(payload, self.settings.jwt_secret_key, algorithm=self.settings.jwt_algorithm)
 
     def save_scenario(self, scenario: Dict, name: str, category_list: List[Dict]):
         """Save scenario to JSON file and add to list"""
@@ -91,16 +104,21 @@ class UnifiedScenarioGenerator:
     def generate_camera_valid(self, count: int = 20) -> List[Dict]:
         scenarios = []
         for i in range(count):
+            user = random.choice(USERS[:2])
+            device = random.choice(user['devices'])
             scenario = {
                 "id": f"synthetic-camera-valid-{i+1}",
                 "timestamp": self.generate_timestamp(hour_range=self.camera_hours),
                 "rule": {"level": 5, "description": "IoT camera connection attempt", "id": "100010"},
-                "device_id": random.choice(CAMERAS),
+                "device_id": device,
                 "device_type": "camera",
                 "source_ip": self.generate_ip(ALLOWED_CAMERA_NET),
                 "destination_ip": "10.0.0.1",
                 "destination_port": 443,
                 "protocol": "HTTPS",
+                "user_id": user['user_id'],
+                "auth_token": self.generate_token(user['user_id'], user['role']),
+                "user_role": user['role'],
                 "expected_decision": "ALLOW",
                 "category": "legitimate_camera"
             }
@@ -111,16 +129,21 @@ class UnifiedScenarioGenerator:
         scenarios = []
         # Time violations
         for i in range(count // 3):
+            user = random.choice(USERS[:2])
+            device = random.choice(user['devices'])
             scenario = {
                 "id": f"synthetic-camera-time-{i+1}",
                 "timestamp": self.generate_timestamp(hour_range=(21, 24)), 
                 "rule": {"level": 7, "description": "Camera outside business hours", "id": "100011"},
-                "device_id": random.choice(CAMERAS),
+                "device_id": device,
                 "device_type": "camera",
                 "source_ip": self.generate_ip(ALLOWED_CAMERA_NET),
                 "destination_ip": "10.0.0.1",
                 "destination_port": 443,
                 "protocol": "HTTPS",
+                "user_id": user['user_id'],
+                "auth_token": self.generate_token(user['user_id'], user['role']),
+                "user_role": user['role'],
                 "expected_decision": "DENY",
                 "category": "camera_time_violation"
             }
@@ -128,16 +151,21 @@ class UnifiedScenarioGenerator:
         
         # Network violations
         for i in range(count // 3):
+            user = random.choice(USERS[:2])
+            device = random.choice(user['devices'])
             scenario = {
                 "id": f"synthetic-camera-network-{i+1}",
                 "timestamp": self.generate_timestamp(hour_range=self.camera_hours),
                 "rule": {"level": 8, "description": "Camera from unauthorized network", "id": "100012"},
-                "device_id": random.choice(CAMERAS),
+                "device_id": device,
                 "device_type": "camera",
                 "source_ip": f"10.5.{random.randint(1, 254)}.{random.randint(1, 254)}",
                 "destination_ip": "10.0.0.1",
                 "destination_port": 443,
                 "protocol": "HTTPS",
+                "user_id": user['user_id'],
+                "auth_token": self.generate_token(user['user_id'], user['role']),
+                "user_role": user['role'],
                 "expected_decision": "DENY",
                 "category": "camera_network_violation"
             }
@@ -145,6 +173,7 @@ class UnifiedScenarioGenerator:
         
         # Unknown devices
         for i in range(count - 2 * (count // 3)):
+            user = random.choice(USERS[:2])
             scenario = {
                 "id": f"synthetic-camera-unknown-{i+1}",
                 "timestamp": self.generate_timestamp(hour_range=self.camera_hours),
@@ -154,6 +183,9 @@ class UnifiedScenarioGenerator:
                 "destination_ip": "10.0.0.1",
                 "destination_port": 443,
                 "protocol": "HTTPS",
+                "user_id": user['user_id'],
+                "auth_token": self.generate_token(user['user_id'], user['role']),
+                "user_role": user['role'],
                 "expected_decision": "DENY",
                 "category": "unknown_device"
             }
@@ -248,7 +280,7 @@ class UnifiedScenarioGenerator:
                 "destination_port": 443,
                 "protocol": "HTTPS",
                 "user_id": user['user_id'],
-                "auth_token": f"valid-token-{random.randint(1000, 9999)}",
+                "auth_token": self.generate_token(user['user_id'], user['role']),
                 "user_role": user['role'],
                 "expected_decision": "ALLOW",
                 "category": "user_auth_valid",
@@ -278,7 +310,7 @@ class UnifiedScenarioGenerator:
                     "destination_port": 443,
                     "protocol": "HTTPS",
                     "user_id": user['user_id'],
-                    "auth_token": f"valid-token-{random.randint(1000, 9999)}",
+                    "auth_token": self.generate_token(user['user_id'], user['role']),
                     "user_role": user['role'],
                     "expected_decision": "DENY",
                     "category": "user_auth_invalid_device",
@@ -305,7 +337,7 @@ class UnifiedScenarioGenerator:
                 "destination_port": 443,
                 "protocol": "HTTPS",
                 "user_id": "security-system@company.com",
-                "auth_token": "system-token-master",
+                "auth_token": self.generate_token("security-system@company.com", "system"),
                 "user_role": "system",
                 "expected_decision": "ALLOW",
                 "category": "system_wildcard",
@@ -340,7 +372,7 @@ class UnifiedScenarioGenerator:
                 "destination_port": 443,
                 "protocol": "HTTPS",
                 "user_id": user['user_id'],
-                "auth_token": f"valid-token-{random.randint(1000, 9999)}",
+                "auth_token": self.generate_token(user['user_id'], user['role']),
                 "user_role": user['role'],
                 "expected_decision": expected,
                 "category": "time_boundary",
@@ -367,7 +399,7 @@ class UnifiedScenarioGenerator:
                 "destination_port": 443,
                 "protocol": "HTTPS",
                 "user_id": user['user_id'],
-                "auth_token": f"valid-token-{random.randint(1000, 9999)}",
+                "auth_token": self.generate_token(user['user_id'], user['role']),
                 "user_role": user['role'],
                 "expected_decision": "DENY",
                 "category": "weekend_violation",

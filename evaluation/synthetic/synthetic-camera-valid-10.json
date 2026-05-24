@@ -1,0 +1,20 @@
+{
+  "id": "synthetic-camera-valid-10",
+  "timestamp": "2025-12-23T12:15:14Z",
+  "rule": {
+    "level": 5,
+    "description": "IoT camera connection attempt",
+    "id": "100010"
+  },
+  "device_id": "camera-office-02",
+  "device_type": "camera",
+  "source_ip": "192.168.1.96",
+  "destination_ip": "10.0.0.1",
+  "destination_port": 443,
+  "protocol": "HTTPS",
+  "user_id": "alice@company.com",
+  "auth_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhbGljZUBjb21wYW55LmNvbSIsInJvbGUiOiJzZWN1cml0eV9hZG1pbiIsImV4cCI6MTc3OTY2NTU5MiwiaWF0IjoxNzc5NjU4MzkyfQ.ZiJHw9lgxeYux_re6HFd_7XhqXRJL95zy3cIzfMkgas",
+  "user_role": "security_admin",
+  "expected_decision": "ALLOW",
+  "category": "legitimate_camera"
+}

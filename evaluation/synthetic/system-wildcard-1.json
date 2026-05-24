@@ -1,0 +1,21 @@
+{
+  "id": "system-wildcard-1",
+  "timestamp": "2025-12-25T12:48:48Z",
+  "rule": {
+    "level": 5,
+    "description": "IoT sensor access attempt",
+    "id": "100010"
+  },
+  "device_id": "sensor-temp-01",
+  "device_type": "sensor",
+  "source_ip": "192.168.2.179",
+  "destination_ip": "10.0.0.1",
+  "destination_port": 443,
+  "protocol": "HTTPS",
+  "user_id": "security-system@company.com",
+  "auth_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzZWN1cml0eS1zeXN0ZW1AY29tcGFueS5jb20iLCJyb2xlIjoic3lzdGVtIiwiZXhwIjoxNzc5NjY1NTkyLCJpYXQiOjE3Nzk2NTgzOTJ9.pFfECjv9JisdzKUZ8sz7HkpJos4bSXpujOLZEp1NFNc",
+  "user_role": "system",
+  "expected_decision": "ALLOW",
+  "category": "system_wildcard",
+  "description": "System account with wildcard access"
+}

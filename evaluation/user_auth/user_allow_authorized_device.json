@@ -18,7 +18,7 @@
     "destination_port": 443,
     "protocol": "HTTPS",
     "user_id": "alice@company.com",
-    "auth_token": "valid",
+    "auth_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhbGljZUBjb21wYW55LmNvbSIsInJvbGUiOiJzZWN1cml0eV9hZG1pbiIsImV4cCI6MTc3OTY2NTYxOSwiaWF0IjoxNzc5NjU4NDE5fQ.tn6tqi0L4fk1O87cWhdSOh6hH2r9ZnB1QokDs_vSL6w",
     "user_role": "security_admin",
     "session_id": "sess-12345",
     "expected_decision": "ALLOW",

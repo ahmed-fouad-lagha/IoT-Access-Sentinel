@@ -241,7 +241,7 @@ class DecisionPipeline:
                 timestamp=datetime.now(timezone.utc)
             )
     
-    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
+    @retry(stop=stop_after_attempt(5), wait=wait_exponential(multiplier=2, min=4, max=30))
     async def _analyze_context(self, alert: IoTAccessAlert) -> Dict[str, Any]:
         """
         Use Context Agent to analyze connection context
@@ -286,7 +286,7 @@ class DecisionPipeline:
         
         return context_data
     
-    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
+    @retry(stop=stop_after_attempt(5), wait=wait_exponential(multiplier=2, min=4, max=30))
     async def _evaluate_policy(self, alert: IoTAccessAlert, context: Dict[str, Any]) -> Dict[str, Any]:
         """
         Use Policy Agent to evaluate access policies

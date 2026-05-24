@@ -1,0 +1,19 @@
+{
+  "generated_at": "2026-05-24T23:33:12.539078",
+  "total_scenarios": 145,
+  "categories": {
+    "camera_valid": 20,
+    "camera_violations": 15,
+    "sensors": 20,
+    "attacks_basic": 20,
+    "user_auth_valid": 15,
+    "user_auth_unauth": 15,
+    "system_wildcard": 5,
+    "boundary_time": 10,
+    "weekend_violations": 5,
+    "missing_userid": 10,
+    "invalid_tokens": 10
+  },
+  "expected_allow": 61,
+  "expected_deny": 84
+}

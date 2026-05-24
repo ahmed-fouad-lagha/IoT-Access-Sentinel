@@ -9,7 +9,7 @@
     "device_id": "camera-office-01",
     "device_type": "camera",
     "user_id": "alice@company.com",
-    "auth_token": "valid-token-123",
+    "auth_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhbGljZUBjb21wYW55LmNvbSIsInJvbGUiOiJ1c2VyIiwiZXhwIjoxNzc5NjY1NjE5LCJpYXQiOjE3Nzk2NTg0MTl9.IfIjsC8hm0A0dwRqTUjCZGwAkgQSkWEFlWo5l7rLVuM",
     "source_ip": "10.5.5.100",
     "destination_ip": "10.0.0.1",
     "destination_port": 443,

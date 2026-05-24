@@ -9,7 +9,7 @@
     "device_id": "lock-main-entrance",
     "device_type": "smart_lock",
     "user_id": "alice@company.com",
-    "auth_token": "valid-token-123",
+    "auth_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhbGljZUBjb21wYW55LmNvbSIsInJvbGUiOiJ1c2VyIiwiZXhwIjoxNzc5NjY1NjE5LCJpYXQiOjE3Nzk2NTg0MTl9.IfIjsC8hm0A0dwRqTUjCZGwAkgQSkWEFlWo5l7rLVuM",
     "source_ip": "192.168.3.10",
     "destination_ip": "10.0.0.3",
     "destination_port": 8080,

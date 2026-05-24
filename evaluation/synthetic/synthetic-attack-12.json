@@ -1,0 +1,17 @@
+{
+  "id": "synthetic-attack-12",
+  "timestamp": "2025-12-23T01:14:25Z",
+  "rule": {
+    "level": 8,
+    "description": "Suspicious input detected",
+    "id": "100040"
+  },
+  "device_type": "../../../etc/passwd",
+  "source_ip": "192.168.1.113",
+  "destination_ip": "10.0.0.1",
+  "destination_port": 443,
+  "protocol": "HTTPS",
+  "expected_decision": "DENY",
+  "category": "attack_path_traversal",
+  "attack_payload": "../../../etc/passwd"
+}
