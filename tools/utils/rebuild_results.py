@@ -10,7 +10,7 @@ from collections import Counter
 def rebuild():
     report_path = Path("results/baseline_comparison_report.json")
     if not report_path.exists():
-        print("❌ results/baseline_comparison_report.json not found!")
+        print("results/baseline_comparison_report.json not found!")
         return
 
     with open(report_path) as f:

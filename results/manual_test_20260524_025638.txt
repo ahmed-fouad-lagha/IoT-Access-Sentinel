@@ -3,28 +3,28 @@ IoT-Access-Sentinel - Manual Test Suite
 ==========================================================
 
 Test 1: camera_allow_1.json
-  ✅ PASS - Expected: ALLOW, Got: ALLOW, Confidence: 0.95
+  PASS - Expected: ALLOW, Got: ALLOW, Confidence: 0.95
 
 Test 2: camera_allow_2.json
-  ✅ PASS - Expected: ALLOW, Got: ALLOW, Confidence: 0.95
+  PASS - Expected: ALLOW, Got: ALLOW, Confidence: 0.95
 
 Test 3: camera_deny_1.json
-  ✅ PASS - Expected: DENY, Got: DENY, Confidence: 0.95
+  PASS - Expected: DENY, Got: DENY, Confidence: 0.95
 
 Test 4: camera_deny_2.json
-  ✅ PASS - Expected: DENY, Got: DENY, Confidence: 0.95
+  PASS - Expected: DENY, Got: DENY, Confidence: 0.95
 
 Test 5: camera_deny_3.json
-  ✅ PASS - Expected: DENY, Got: DENY, Confidence: 1.0
+  PASS - Expected: DENY, Got: DENY, Confidence: 1.0
 
 Test 6: sensor_allow_1.json
-  ✅ PASS - Expected: ALLOW, Got: ALLOW, Confidence: 0.95
+  PASS - Expected: ALLOW, Got: ALLOW, Confidence: 0.95
 
 Test 7: sensor_deny_1.json
-  ✅ PASS - Expected: DENY, Got: DENY, Confidence: 0.95
+  PASS - Expected: DENY, Got: DENY, Confidence: 0.95
 
 Test 8: smartlock_deny_1.json
-  ✅ PASS - Expected: DENY, Got: DENY, Confidence: 0.95
+  PASS - Expected: DENY, Got: DENY, Confidence: 0.95
 
 ==========================================================
 SUMMARY

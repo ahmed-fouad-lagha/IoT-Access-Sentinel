@@ -43,10 +43,10 @@ for test_file in "$SCENARIOS_DIR"/*.json; do
     
     # Check result
     if [ "$expected" == "$actual" ]; then
-        echo "  ✅ PASS - Expected: $expected, Got: $actual, Confidence: $confidence" | tee -a "$RESULTS_FILE"
+        echo "  PASS - Expected: $expected, Got: $actual, Confidence: $confidence" | tee -a "$RESULTS_FILE"
         passed=$((passed + 1))
     else
-        echo "  ❌ FAIL - Expected: $expected, Got: $actual, Confidence: $confidence" | tee -a "$RESULTS_FILE"
+        echo "  FAIL - Expected: $expected, Got: $actual, Confidence: $confidence" | tee -a "$RESULTS_FILE"
         failed=$((failed + 1))
     fi
     
