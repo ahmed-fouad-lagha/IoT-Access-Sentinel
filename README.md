@@ -15,7 +15,7 @@
 
 IoT-Access-Sentinel is a novel cybersecurity framework that addresses the **Access Management (M0801)** research gap by using a Hybrid Architecture (Deterministic Validation + LLM Reasoning) to actively enforce IoT authorization policies based on dynamic context.
 
-In a comprehensive evaluation across **103 test scenarios** against a fair RBAC baseline with proper authentication, the Hybrid LLM system achieved **94.2% accuracy** (97/103 correct), representing a **+16.5% improvement** over the RBAC baseline's 77.7% (80/103), with high statistical significance (McNemar's **χ² = 9.0, p < 0.01**).
+In a comprehensive evaluation across **103 test scenarios** (for functional baseline comparison) and **105 red-team adversarial attacks** (for security hardening), the Hybrid LLM system achieved **94.2% accuracy** (97/103 correct) on the functional tests. This represents a **+16.5% improvement** over the fair RBAC baseline's 77.7% (80/103), with high statistical significance (McNemar's **χ² = 9.0, p < 0.01**). Against adversarial attacks, the mitigated system achieved a **100% defense rate** (105/105 detected).
 
 ### Hybrid Architecture (M0801)
 
@@ -233,14 +233,12 @@ policies:
     allowed_hours: "09:00-17:00"
 ```
 
-## Research Significance
-
-This project provides the first quantitative evidence that **Hybrid LLM Architectures** solve the M0801 gap more effectively than rule-based systems. It demonstrates that combining **deterministic security** with **generative reasoning** achieves both trustworthiness and flexibility.
+This project provides the first quantitative evidence that Hybrid LLM Architectures solve the M0801 gap more effectively than rule-based systems. It demonstrates that combining deterministic security with generative reasoning achieves both trustworthiness and flexibility.
 
 ## Future Work
 
 ### Domain-Specific LLM Fine-Tuning
-While the current system leverages **zero-shot general-purpose LLMs** (demonstrating broad generalizability), fine-tuning domain-specific models could yield several benefits:
+While the current system leverages zero-shot general-purpose LLMs (demonstrating broad generalizability), fine-tuning domain-specific models could yield several benefits:
 
 **Potential Improvements:**
 - **Reduced Latency**: Smaller fine-tuned models (e.g., Llama 3 8B) could achieve sub-50ms inference times vs current ~150ms
