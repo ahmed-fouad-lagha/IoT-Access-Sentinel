@@ -66,9 +66,6 @@ class Settings(BaseSettings):
     # Decision Confidence Threshold
     min_decision_confidence: float = 0.75  # Minimum confidence to enforce DENY
 
-    # Testing/Evaluation
-    auto_sign_mock_tokens: bool = False  # Set True ONLY for test/eval runs
-
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

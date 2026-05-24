@@ -10,9 +10,11 @@ Hybrid Architecture:
 
 import json
 import yaml
+import hashlib
 from typing import Dict, Any
 from datetime import datetime, timezone, timedelta
 from cachetools import TTLCache
+from tenacity import retry, stop_after_attempt, wait_exponential
 
 from config.settings import Settings
 from common.schemas import AccessDecision
@@ -119,31 +121,6 @@ class DecisionPipeline:
         logger.info("making_decision", alert_id=alert.id, device_type=alert.device_type)
         
         try:
-            # Automatically sign mock tokens during testing/evaluation
-            # SECURITY: Only enabled when AUTO_SIGN_MOCK_TOKENS=true in .env
-            if self.settings.auto_sign_mock_tokens and alert.auth_token and not alert.auth_token.startswith("eyJ"):
-                import jwt
-                
-                # Check for explicit invalid mock tokens
-                if alert.auth_token in ["expired", "revoked", "malformed-###"]:
-                    if alert.auth_token == "expired":
-                        payload = {
-                            "sub": alert.user_id or "unknown",
-                            "role": alert.user_role or "user",
-                            "exp": datetime.now(timezone.utc) - timedelta(hours=1)
-                        }
-                        alert.auth_token = jwt.encode(payload, self.settings.jwt_secret_key, algorithm=self.settings.jwt_algorithm)
-                    else:
-                        alert.auth_token = "invalid-mock-token"
-                else:
-                    # Valid mock token condition
-                    payload = {
-                        "sub": alert.user_id or "unknown",
-                        "role": alert.user_role or "user",
-                        "exp": datetime.now(timezone.utc) + timedelta(hours=1)
-                    }
-                    alert.auth_token = jwt.encode(payload, self.settings.jwt_secret_key, algorithm=self.settings.jwt_algorithm)
-
             # Step 0: User Authorization Pre-Check (M0801)
             # This is deterministic and runs BEFORE the LLM
             user_auth_result = self._validate_user_authorization(alert)
@@ -182,7 +159,9 @@ class DecisionPipeline:
             rule_desc = alert.rule.description or "unknown"
             time_bucket = datetime.now().strftime("%Y-%m-%d-%H")
             
-            cache_key = f"{device_type}:{device_id}:{user_id}:{source_ip}:{dest_ip}:{dest_port}:{protocol}:{rule_desc}:{time_bucket}"
+            # Use SHA-256 hash of JSON serialized fields to prevent cache poisoning
+            key_data = json.dumps([device_type, device_id, user_id, source_ip, dest_ip, dest_port, protocol, rule_desc, time_bucket])
+            cache_key = hashlib.sha256(key_data.encode('utf-8')).hexdigest()
 
             if cache_key in self.cache:
                 self.cache_hits += 1
@@ -205,56 +184,28 @@ class DecisionPipeline:
                 context_analysis = await self._analyze_context(alert)
             except Exception as e:
                 logger.error("context_agent_failed", error=str(e))
-                # Fallback only allowed in tests/eval mode, otherwise fail-secure (DENY)
-                expected = getattr(alert, "expected_decision", None)
-                if expected:
-                    logger.warning("using_context_simulator_for_evaluation")
-                    if expected == "DENY":
-                        context_analysis = {
-                            "risk_score": 0.9,
-                            "anomalies_detected": ["Anomalous connection context"],
-                            "context_summary": f"Simulated fallback: {str(e)}"
-                        }
-                    else:
-                        context_analysis = {
-                            "risk_score": 0.1,
-                            "anomalies_detected": [],
-                            "context_summary": "Simulated fallback: normal context"
-                        }
-                else:
-                    logger.error("failing_secure_on_context_agent_error")
-                    return AccessDecision(
-                        action="DENY",
-                        confidence=1.0,
-                        reason=f"Context Agent failed (fail-secure): {str(e)}",
-                        policy_matched="fail_secure_fallback",
-                        timestamp=datetime.now(timezone.utc)
-                    )
+                logger.error("failing_secure_on_context_agent_error")
+                return AccessDecision(
+                    action="DENY",
+                    confidence=1.0,
+                    reason=f"Context Agent failed (fail-secure): {str(e)}",
+                    policy_matched="fail_secure_fallback",
+                    timestamp=datetime.now(timezone.utc)
+                )
             
             # Step 2: Policy Decision (with context as input)
             try:
                 policy_decision = await self._evaluate_policy(alert, context_analysis)
             except Exception as e:
                 logger.error("policy_agent_failed", error=str(e))
-                # Fallback only allowed in tests/eval mode, otherwise fail-secure (DENY)
-                expected = getattr(alert, "expected_decision", None)
-                if expected:
-                    logger.warning("using_policy_simulator_for_evaluation")
-                    policy_decision = {
-                        "action": expected,
-                        "confidence": 0.95,
-                        "reason": f"Simulated fallback due to API error: {str(e)}",
-                        "policy_matched": "simulated_fallback"
-                    }
-                else:
-                    logger.error("failing_secure_on_policy_agent_error")
-                    return AccessDecision(
-                        action="DENY",
-                        confidence=1.0,
-                        reason=f"Policy Agent failed (fail-secure): {str(e)}",
-                        policy_matched="fail_secure_fallback",
-                        timestamp=datetime.now(timezone.utc)
-                    )
+                logger.error("failing_secure_on_policy_agent_error")
+                return AccessDecision(
+                    action="DENY",
+                    confidence=1.0,
+                    reason=f"Policy Agent failed (fail-secure): {str(e)}",
+                    policy_matched="fail_secure_fallback",
+                    timestamp=datetime.now(timezone.utc)
+                )
             
             
             # Step 3: Combine results into AccessDecision
@@ -281,15 +232,16 @@ class DecisionPipeline:
             
         except Exception as e:
             logger.error("decision_failed", alert_id=alert.id, error=str(e))
-            # Fail-safe: ERROR on internal pipeline failure so we don't mask bugs as secure decisions
+            # Fail-safe: DENY on internal pipeline failure to ensure fail-secure enforcement
             return AccessDecision(
-                action="ERROR",  # Changed from DENY to ERROR to distinguish from actual LLM decisions
+                action="DENY",
                 confidence=1.0,
                 reason=f"Decision pipeline error: {str(e)}",
                 policy_matched="error_fallback",
                 timestamp=datetime.now(timezone.utc)
             )
     
+    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
     async def _analyze_context(self, alert: IoTAccessAlert) -> Dict[str, Any]:
         """
         Use Context Agent to analyze connection context
@@ -334,6 +286,7 @@ class DecisionPipeline:
         
         return context_data
     
+    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
     async def _evaluate_policy(self, alert: IoTAccessAlert, context: Dict[str, Any]) -> Dict[str, Any]:
         """
         Use Policy Agent to evaluate access policies
