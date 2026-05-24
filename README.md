@@ -178,23 +178,43 @@ Built-in sliding window rate limiter protects against DoS and abuse:
 - **LLM Endpoints**: Stricter limits (e.g., 20/min) for expensive inference calls.
 - **Headers**: Responses include `X-RateLimit-Limit` and `X-RateLimit-Remaining`.
 
+## Project Structure
+
+```
+IoT-Access-Sentinel/
+├── common/              # Shared utilities (logging, validation, schemas)
+├── config/              # Settings and access_policies.yaml
+├── decision_engine/     # Hybrid pipeline (LLM agents + deterministic)
+├── observer/            # Wazuh alert ingestion & models
+├── enforcer/            # Wazuh Active Response enforcement
+├── enforcement/         # Enforcement action definitions
+├── demo/                # React dashboard (Vite + Tailwind)
+├── evaluation/          # Red-team, scenario, and synthetic test data
+├── tests/               # Pytest unit & integration tests
+├── tools/               # Benchmarking, analysis, and LaTeX generators
+├── results/             # Experiment outputs (JSON, .tex tables)
+├── manuscript/          # LaTeX paper sources
+├── main.py              # FastAPI application entrypoint
+├── docker-compose.yml   # Full stack deployment (Wazuh + Sentinel)
+└── requirements.txt     # Python dependencies
+```
+
 ## Testing & Validation
 
-Detailed performance metrics from Phase 4 Evaluation:
+Detailed performance metrics from the latest evaluation (103 scenarios × 2 runs = 206 decisions):
 
 | Metric | Result |
 |--------|--------|
-| **Accuracy (Hybrid LLM)** | **82.1%** |
-| **Accuracy (Static Baseline)** | 64.2% |
-| **Improvement** | **+17.9% (p < 0.01)** |
-| **Latency (Avg)** | **97ms** |
-| **Throughput** | **31.5 RPS** |
-| **Resource Usage** | **94 MB Memory** |
+| **Accuracy (Hybrid LLM)** | **94.2%** |
+| **Accuracy (RBAC Baseline)** | 77.7% |
+| **Improvement** | **+16.5% (χ² = 9.0, p < 0.01)** |
+| **Latency (Avg)** | **~150ms** |
+| **False Permit Rate** | **0%** |
 
 ### Category Breakdown
-*   **User Authorization**: +43.5% improvement over baseline.
-*   **Attack Scenarios**: +83.3% improvement (100% detection of injection/evasion/confusion).
-*   **Time/Network Logic**: Tied at 87.5%.
+*   **User Authorization**: Hybrid excels at semantic user→device mapping where RBAC fails.
+*   **Attack Scenarios**: 100% detection of injection, evasion, and prompt-manipulation attacks.
+*   **Time/Network Logic**: Both systems perform comparably on rule-based scenarios.
 
 ## Configuration
 
@@ -239,7 +259,7 @@ While the current system leverages **zero-shot general-purpose LLMs** (demonstra
 - Real-world edge cases from production deployments
 
 **Research Questions:**
-1. Can a 7B parameter fine-tuned model match GPT-4's 82.1% accuracy?
+1. Can a 7B parameter fine-tuned model match the current system's 94.2% accuracy?
 2. What is the optimal training data composition for IoT threat detection?
 3. How does model size affect the accuracy-latency tradeoff in real-time access control?
 

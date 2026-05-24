@@ -81,7 +81,7 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Add CORS middleware to allow frontend access
+# Add CORS middleware to allow demo frontend access
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
