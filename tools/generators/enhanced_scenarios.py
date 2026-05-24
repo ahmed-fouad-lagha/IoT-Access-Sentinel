@@ -5,8 +5,6 @@ Enhanced Synthetic Test Scenario Generator
 Generates comprehensive test scenarios focusing on areas where:
 1. LLM excels (user auth, context, edge cases)
 2. Baseline fails (no user checking, rigid rules)
-
-This maximizes the performance gap for stronger paper results.
 """
 
 import json

@@ -1,6 +1,6 @@
 """
 Ablation Study Analysis
-Compares different system configurations to justify architectural choices
+Compares different system configurations
 """
 
 import json
@@ -39,7 +39,7 @@ def analyze_ablation_from_results():
     
     # Calculate synergy
     synergy = hybrid_accuracy - rbac_accuracy
-    print(f"🎯 Synergy Effect: +{synergy:.1f} percentage points")
+    print(f"Synergy Effect: +{synergy:.1f} percentage points")
     print()
     
     # Analyze deterministic pre-check contribution
@@ -58,13 +58,13 @@ def analyze_ablation_from_results():
         elif not rbac_dec['correct'] and hybrid_dec['correct'] and '429' not in hybrid_dec.get('reason', ''):
             llm_adds_value += 1
     
-    print(f"📊 Component Contribution:")
+    print(f"Component Contribution:")
     print(f"  Deterministic pre-check: {deterministic_denies} scenarios (security-critical)")
     print(f"  LLM semantic layer: {llm_adds_value} scenarios (RBAC failed, LLM succeeded)")
     print()
     
     # Analyze by category to show where each component excels
-    print("📈 Category-Wise Contribution:")
+    print("Category-Wise Contribution:")
     for category, stats in sorted(data['categories'].items()):
         if stats['total'] > 0:
             rbac_cat = (stats['rbac'] / stats['total']) * 100
@@ -163,7 +163,7 @@ def generate_ablation_table():
     with open(out_path, 'w') as f:
         f.write(latex)
     
-    print(f"\n✅ LaTeX ablation table saved to: {out_path}")
+    print(f"\nLaTeX ablation table saved to: {out_path}")
     print()
     print("="*80)
     print("LaTeX Code Preview:")
@@ -173,7 +173,7 @@ def generate_ablation_table():
 
 if __name__ == "__main__":
     if not Path("results/results_comparison.json").exists():
-        print("❌ Error: results/results_comparison.json not found!")
+        print("Error: results/results_comparison.json not found!")
         print("Run tools/run_baseline_comparison.py first")
         exit(1)
     

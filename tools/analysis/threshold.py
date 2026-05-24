@@ -89,7 +89,7 @@ def calibrate():
     out_path = results_dir / "threshold_calibration.json"
     with open(out_path, 'w') as f:
         json.dump(metrics, f, indent=2)
-    print(f"\n💾 Calibration results saved to: {out_path}")
+    print(f"\nCalibration results saved to: {out_path}")
 
 if __name__ == "__main__":
     calibrate()

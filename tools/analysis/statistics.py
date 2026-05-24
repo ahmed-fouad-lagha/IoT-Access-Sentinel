@@ -111,14 +111,14 @@ def analyze_baseline_comparison(report_path: str = "results/baseline_comparison_
     llm_accuracy = report['llm']['accuracy']
     improvement = report['improvement']
     
-    print(f"\n📊 Dataset Overview:")
+    print(f"\nDataset Overview:")
     print(f"   Total tests: {total_tests}")
     print(f"   Baseline: {baseline_correct}/{total_tests} correct ({baseline_accuracy:.1f}%)")
     print(f"   LLM System: {llm_correct}/{total_tests} correct ({llm_accuracy:.1f}%)")
     print(f"   Improvement: +{improvement:.1f}%")
     
     # Chi-square test
-    print(f"\n\n🧪 Chi-Square Test for Independence")
+    print(f"\n\nChi-Square Test for Independence")
     print(f"   H0: No difference in accuracy between systems")
     print(f"   H1: LLM accuracy significantly higher than baseline")
     print(f"   Significance level: α = 0.05")
@@ -138,13 +138,13 @@ def analyze_baseline_comparison(report_path: str = "results/baseline_comparison_
     print(f"   - Significant: {'YES ✓' if chi_result['significant'] else 'NO ✗'}")
     
     if chi_result['significant']:
-        print(f"\n   ✅ CONCLUSION: The 17.9% improvement IS statistically significant!")
+        print(f"\n   CONCLUSION: The 17.9% improvement IS statistically significant!")
         print(f"      We can reject H0 and conclude the LLM system performs better.")
     else:
-        print(f"\n   ⚠️  CONCLUSION: Not enough evidence of statistical difference.")
+        print(f"\n   CONCLUSION: Not enough evidence of statistical difference.")
     
     # Confidence intervals
-    print(f"\n\n📈 Confidence Intervals (95%)")
+    print(f"\n\nConfidence Intervals (95%)")
     
     baseline_ci = calculate_confidence_interval(baseline_correct, total_tests)
     llm_ci = calculate_confidence_interval(llm_correct, total_tests)
@@ -154,7 +154,7 @@ def analyze_baseline_comparison(report_path: str = "results/baseline_comparison_
     print(f"   Improvement: {improvement:.1f}%")
     
     # Category breakdown
-    print(f"\n\n📂 Category Breakdown")
+    print(f"\n\nCategory Breakdown")
     print(f"   Analyzing performance by test category...")
     
     categories = {}
@@ -224,7 +224,7 @@ def analyze_baseline_comparison(report_path: str = "results/baseline_comparison_
     with open(report_path_out, 'w') as f:
         json.dump(summary, f, indent=2)
     
-    print(f"\n\n✅ Statistical analysis complete!")
+    print(f"\n\nStatistical analysis complete!")
     print(f"   Report saved to: {report_path_out}")
     print("=" * 70)
     

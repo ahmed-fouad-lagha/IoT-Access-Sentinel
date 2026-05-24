@@ -109,27 +109,27 @@ def print_metrics_table(metrics):
     print("\n" + "="*80)
     
     # Key insights
-    print("\n🔐 SECURITY ANALYSIS:\n")
+    print("\nSECURITY ANALYSIS:\n")
     
     if hybrid['false_permit_rate'] < rbac['false_permit_rate']:
-        print(f"✅ Hybrid has LOWER false permit rate ({hybrid['false_permit_rate']:.1f}% vs {rbac['false_permit_rate']:.1f}%)")
+        print(f"Hybrid has LOWER false permit rate ({hybrid['false_permit_rate']:.1f}% vs {rbac['false_permit_rate']:.1f}%)")
         print("   → More secure against unauthorized access")
     else:
-        print(f"⚠️  Hybrid has HIGHER false permit rate ({hybrid['false_permit_rate']:.1f}% vs {rbac['false_permit_rate']:.1f}%)")
+        print(f"Hybrid has HIGHER false permit rate ({hybrid['false_permit_rate']:.1f}% vs {rbac['false_permit_rate']:.1f}%)")
         print("   → Needs improvement in blocking unauthorized access")
     
     print()
     
     if hybrid['false_deny_rate'] < rbac['false_deny_rate']:
-        print(f"✅ Hybrid has LOWER false deny rate ({hybrid['false_deny_rate']:.1f}% vs {rbac['false_deny_rate']:.1f}%)")
+        print(f"Hybrid has LOWER false deny rate ({hybrid['false_deny_rate']:.1f}% vs {rbac['false_deny_rate']:.1f}%)")
         print("   → Better usability (fewer legitimate users blocked)")
     else:
-        print(f"⚠️  Hybrid has HIGHER false deny rate ({hybrid['false_deny_rate']:.1f}% vs {rbac['false_deny_rate']:.1f}%)")
+        print(f"Hybrid has HIGHER false deny rate ({hybrid['false_deny_rate']:.1f}% vs {rbac['false_deny_rate']:.1f}%)")
         print("   → May frustrate legitimate users")
 
 
 def generate_latex_table(metrics):
-    """Generate LaTeX table for paper"""
+    """Generate LaTeX table"""
     
     rbac = metrics['rbac']
     hybrid = metrics['hybrid']
@@ -164,7 +164,7 @@ def generate_latex_table(metrics):
     with open(out_path, 'w') as f:
         f.write(latex)
     
-    print(f"\n✅ LaTeX table saved to: {out_path}\n")
+    print(f"\nLaTeX table saved to: {out_path}\n")
     print("="*80)
     print("LaTeX Code Preview:")
     print("="*80)
@@ -173,7 +173,7 @@ def generate_latex_table(metrics):
 
 if __name__ == "__main__":
     if not Path("results/results_comparison.json").exists():
-        print("❌ Error: results/results_comparison.json not found!")
+        print("Error: results/results_comparison.json not found!")
         print("Run tools/run_baseline_comparison.py first")
         exit(1)
     
@@ -185,4 +185,4 @@ if __name__ == "__main__":
     with open(Path('results') / 'safety_metrics.json', 'w') as f:
         json.dump(metrics, f, indent=2)
     
-    print("\n💾 Metrics saved to: results/safety_metrics.json")
+    print("\nMetrics saved to: results/safety_metrics.json")

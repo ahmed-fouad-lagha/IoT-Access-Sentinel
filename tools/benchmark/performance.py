@@ -2,7 +2,7 @@
 """
 Performance Benchmark Suite for IoT-Access-Sentinel
 ===================================================
-Measures latency, throughput, and resource usage for paper metrics.
+Measures latency, throughput, and resource usage.
 
 Metrics:
 - End-to-end latency (alert → decision)

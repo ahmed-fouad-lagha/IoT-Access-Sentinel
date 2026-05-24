@@ -1,0 +1,7 @@
+- [x] Review architecture and maintainability of IoT-Access-Sentinel.
+- [x] Analyzed `decision_engine/decision_pipeline.py`.
+- [x] Evaluated fail-secure mechanisms and discovered a fail-open flaw when returning "ERROR" instead of "DENY".
+- [x] Evaluated exception and API rate limit handling, finding no retries leading to network-wide DoS on 429s.
+- [x] Verified semantic cache key implementation and found a fatal cache poisoning vulnerability due to unescaped colon delimiters.
+- [x] Analyzed pipeline logic soundness and identified evaluation backdoors in production code.
+- [x] Documented findings in `/home/lagha/PhD/projects/IoT-Access-Sentinel/review.md`.
