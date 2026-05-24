@@ -68,7 +68,7 @@ Thumbs.db
 # =========================
 # Test Results
 # =========================
-# tests/results/
+tests/results/
 
 .coverage
 htmlcov/

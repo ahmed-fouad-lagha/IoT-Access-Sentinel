@@ -1,7 +1,0 @@
-==========================================================
-IoT-Access-Sentinel - Manual Test Suite
-==========================================================
-
-Test 1: camera_allow_1.json
-  ❌ FAIL - Expected: ALLOW, Got: DENY, Confidence: 1.0
-
