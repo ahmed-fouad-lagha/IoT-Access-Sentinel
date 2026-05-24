@@ -103,6 +103,8 @@ async def verify_webhook_api_key(
     settings = Depends(get_settings)
 ):
     """Verify the API key passed in the Authorization header"""
+    import secrets
+    
     if not api_key:
         logger.warning("missing_webhook_api_key")
         raise HTTPException(
@@ -114,7 +116,7 @@ async def verify_webhook_api_key(
     if api_key.lower().startswith("bearer "):
         actual_key = api_key[7:]
         
-    if actual_key != settings.webhook_api_key:
+    if not secrets.compare_digest(actual_key, settings.webhook_api_key):
         logger.warning("invalid_webhook_api_key")
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
