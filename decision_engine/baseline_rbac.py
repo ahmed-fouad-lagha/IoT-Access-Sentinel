@@ -1,7 +1,6 @@
 """
-Fair RBAC Baseline for Comparison
 This implements a rule-based access control system WITH user authentication
-to provide a fair baseline comparison against the hybrid LLM system.
+to provide a baseline comparison against the hybrid LLM system.
 
 Key Features:
 - User authentication (token validation)
@@ -170,7 +169,7 @@ class RBACBaseline:
         for network in allowed_networks:
             if '/' in network:
                 # Simple CIDR check (e.g., "192.168.1.0/24")
-                network_prefix = '.'.join(network.split('/')  [0].split('.')[:-1])
+                network_prefix = '.'.join(network.split('/')[0].split('.')[:-1])
                 if source_ip.startswith(network_prefix):
                     return True
             else:

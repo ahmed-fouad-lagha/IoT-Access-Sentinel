@@ -1,11 +1,15 @@
+#!/usr/bin/env python3
 """
 Generate LaTeX Table from Comparison Results
 Reads results_comparison.json and generates a publication-ready LaTeX table
 """
 
 import json
+import sys
 from pathlib import Path
 
+# Add project root to path
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 def generate_latex_table(results_file="results/results_comparison.json"):
     """Generate LaTeX table from comparison results"""
@@ -46,11 +50,12 @@ def generate_latex_table(results_file="results/results_comparison.json"):
     
     # Save to file
     out_path = Path('results') / 'comparison_table.tex'
+    out_path.parent.mkdir(exist_ok=True)
     with open(out_path, 'w') as f:
         f.write(latex)
     
-    print(f"\n✅ LaTeX table saved to: {out_path}")
-    print(f"\n📊 Summary:")
+    print(f"\nLaTeX table saved to: {out_path}")
+    print(f"\nSummary:")
     print(f"   RBAC Baseline: {rbac_acc:.1f}%")
     print(f"   Hybrid LLM:    {hybrid_acc:.1f}%")
     print(f"   Improvement:   +{hybrid_acc - rbac_acc:.1f}%")
@@ -60,4 +65,4 @@ if __name__ == "__main__":
     if Path("results/results_comparison.json").exists():
         generate_latex_table()
     else:
-        print("❌ Run tools/run_baseline_comparison.py first!")
+        print("Run python scripts/02_evaluate_system.py --mode rbac first!")

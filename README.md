@@ -187,7 +187,7 @@ IoT-Access-Sentinel/
 ├── demo/                # React dashboard (Vite + Tailwind)
 ├── evaluation/          # Red-team, scenario, and synthetic test data
 ├── tests/               # Pytest unit & integration tests
-├── tools/               # Benchmarking, analysis, and LaTeX generators
+├── scripts/             # Sequential evaluation and analysis pipeline
 ├── results/             # Experiment outputs (JSON, .tex tables)
 ├── manuscript/          # LaTeX paper sources
 ├── main.py              # FastAPI application entrypoint

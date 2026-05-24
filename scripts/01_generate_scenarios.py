@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Unified Synthetic Test Scenario Generator
+Synthetic Test Scenario Generator
 Generates comprehensive test scenarios combining basic baseline tests
 and enhanced edge-case tests (LLM-specific).
 """
@@ -13,7 +13,7 @@ import sys
 from pathlib import Path
 
 # Add project root to path
-sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 # User database for realistic user auth scenarios
 USERS = [
@@ -473,7 +473,7 @@ class UnifiedScenarioGenerator:
         print(f"\nExpected results:")
         print(f"  - ALLOW: {expected_allow}")
         print(f"  - DENY:  {expected_deny}")
-        print("\n💡 Run tests with: ./tools/runners/synthetic.sh")
+        print("\n💡 Run tests with: python scripts/02_evaluate_system.py --mode rbac")
 
 if __name__ == "__main__":
     generator = UnifiedScenarioGenerator()

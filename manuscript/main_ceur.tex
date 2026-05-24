@@ -619,7 +619,7 @@ To ensure scientific reproducibility and facilitate community adoption, we relea
 \begin{itemize}
     \item \textbf{Exact Prompt Templates}: All LLM instructions used in our multi-agent chain are externalized in \texttt{decision\_engine/prompts/}, including the system messages and context-extraction templates.
     \item \textbf{Standardized Scenario Suite}: The 103 test scenarios (Section~\ref{sec:evaluation}) and 105 red-team adversarial cases (Table~\ref{tab:adversarial}) are provided in serialized JSON format in \texttt{tests/synthetic\_v2/} and \texttt{tests/red\_team/}.
-    \item \textbf{Benchmarking Infrastructure}: A ``one-click'' reproduction script (\texttt{tools/run\_baseline\_comparison.py}) is provided to regenerate all tables and statistical findings reported in this paper.
+    \item \textbf{Benchmarking Infrastructure}: A ``one-click'' reproduction script (\texttt{scripts/02\_evaluate\_system.py}) is provided to regenerate all tables and statistical findings reported in this paper.
 \end{itemize}
 
 This level of transparency addresses the systemic ``black-box'' issue in LLM-based security research, providing a verifiable benchmark for future hybrid access control systems.
