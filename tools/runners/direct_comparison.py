@@ -25,6 +25,8 @@ from decision_engine.decision_pipeline import DecisionPipeline
 from config.settings import Settings
 
 
+from collections import defaultdict
+
 class BaselineComparison:
     """Compares LLM system vs static firewall baseline"""
     
@@ -34,8 +36,9 @@ class BaselineComparison:
         self.llm_pipeline = DecisionPipeline(self.settings)
         
         self.results = {
-            'llm': {'correct': 0, 'total': 0, 'decisions': []},
-            'baseline': {'correct': 0, 'total': 0, 'decisions': []}
+            'hybrid': {'correct': 0, 'total': 0, 'decisions': []},
+            'rbac': {'correct': 0, 'total': 0, 'decisions': []},
+            'categories': defaultdict(lambda: {'rbac': 0, 'hybrid': 0, 'total': 0})
         }
     
     def load_test_scenario(self, test_path: Path) -> Tuple[IoTAccessAlert, str]:
@@ -99,13 +102,28 @@ class BaselineComparison:
             print(f"           {llm_decision.reason[:80]}...")
         
         # Update stats
-        self.results['baseline']['total'] += 1
-        self.results['baseline']['correct'] += (1 if baseline_correct else 0)
-        self.results['baseline']['decisions'].append(result['baseline'])
+        self.results['rbac']['total'] += 1
+        self.results['rbac']['correct'] += (1 if baseline_correct else 0)
+        self.results['rbac']['decisions'].append({
+            'expected': expected,
+            'actual': baseline_decision.action,
+            'correct': baseline_correct,
+            'reason': baseline_decision.reason
+        })
         
-        self.results['llm']['total'] += 1
-        self.results['llm']['correct'] += (1 if llm_correct else 0)
-        self.results['llm']['decisions'].append(result['llm'])
+        self.results['hybrid']['total'] += 1
+        self.results['hybrid']['correct'] += (1 if llm_correct else 0)
+        self.results['hybrid']['decisions'].append({
+            'expected': expected,
+            'actual': llm_decision.action if llm_decision else 'ERROR',
+            'correct': llm_correct,
+            'reason': llm_decision.reason if llm_decision else 'LLM failed'
+        })
+        
+        category = test_path.parent.name
+        self.results['categories'][category]['total'] += 1
+        self.results['categories'][category]['rbac'] += (1 if baseline_correct else 0)
+        self.results['categories'][category]['hybrid'] += (1 if llm_correct else 0)
         
         return result
     
@@ -128,43 +146,29 @@ class BaselineComparison:
                 all_results.append(result)
         
         # Calculate metrics
-        baseline_accuracy = (self.results['baseline']['correct'] / self.results['baseline']['total']) * 100
-        llm_accuracy = (self.results['llm']['correct'] / self.results['llm']['total']) * 100
+        baseline_accuracy = (self.results['rbac']['correct'] / self.results['rbac']['total']) * 100
+        llm_accuracy = (self.results['hybrid']['correct'] / self.results['hybrid']['total']) * 100
         improvement = llm_accuracy - baseline_accuracy
         
-        # Generate report
-        report = {
-            'timestamp': datetime.now().isoformat(),
-            'total_tests': len(all_results),
-            'baseline': {
-                'correct': self.results['baseline']['correct'],
-                'total': self.results['baseline']['total'],
-                'accuracy': baseline_accuracy
-            },
-            'llm': {
-                'correct': self.results['llm']['correct'],
-                'total': self.results['llm']['total'],
-                'accuracy': llm_accuracy
-            },
-            'improvement': improvement,
-            'test_results': all_results
-        }
-        
-        return report
+        return self.results
     
     def print_summary(self, report: Dict):
         """Print comparison summary"""
+        baseline_accuracy = (report['rbac']['correct'] / report['rbac']['total']) * 100
+        llm_accuracy = (report['hybrid']['correct'] / report['hybrid']['total']) * 100
+        improvement = llm_accuracy - baseline_accuracy
+        
         print(f"\n{'='*60}")
         print(f"COMPARISON SUMMARY")
         print(f"{'='*60}")
-        print(f"Total Tests: {report['total_tests']}")
+        print(f"Total Tests: {report['rbac']['total']}")
         print(f"\nStatic Firewall Baseline:")
-        print(f"  Correct: {report['baseline']['correct']}/{report['baseline']['total']}")
-        print(f"  Accuracy: {report['baseline']['accuracy']:.1f}%")
+        print(f"  Correct: {report['rbac']['correct']}/{report['rbac']['total']}")
+        print(f"  Accuracy: {baseline_accuracy:.1f}%")
         print(f"\nHybrid LLM System:")
-        print(f"  Correct: {report['llm']['correct']}/{report['llm']['total']}")
-        print(f"  Accuracy: {report['llm']['accuracy']:.1f}%")
-        print(f"\n{'🎯 IMPROVEMENT: ' if report['improvement'] > 0 else '⚠️  REGRESSION: '}{report['improvement']:+.1f}%")
+        print(f"  Correct: {report['hybrid']['correct']}/{report['hybrid']['total']}")
+        print(f"  Accuracy: {llm_accuracy:.1f}%")
+        print(f"\n{'IMPROVEMENT: ' if improvement > 0 else 'REGRESSION: '}{improvement:+.1f}%")
         print(f"{'='*60}")
 
 
@@ -192,10 +196,10 @@ async def main():
     comparison.print_summary(report)
     
     # Save report
-    report_path = Path('results/baseline_comparison_report.json')
+    report_path = Path('results/results_comparison.json')
     report_path.parent.mkdir(exist_ok=True)
     with open(report_path, 'w') as f:
-        json.dump(report, f, indent=2)
+        json.dump(report, f, indent=2, default=str)
     
     print(f"\nDetailed report saved to: {report_path}")
     
