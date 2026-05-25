@@ -15,7 +15,11 @@
 
 The framework specifically addresses the MITRE ATT&CK **Access Management (M0801)** gap (User Identification & Verification) by bridging the semantic gap between high-level policies and low-level logs. It places a deterministic validation pre-filter and multi-agent Large Language Model (LLM) reasoning in a unified real-time runtime authorization path.
 
-## System Architecture & Workflow
+![Hybrid Architecture](./assets/hybrid-architecture.png)
+
+_Figure 1: The high-level architecture of the IoT-Access-Sentinel framework_
+
+## Workflow
 
 Sentinel enforces zero-trust authorization policies using a hybrid design that operates under an **Observe → Decide → Act** pipeline:
 
