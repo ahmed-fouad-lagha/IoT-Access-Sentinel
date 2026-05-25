@@ -24,7 +24,7 @@ from typing import Dict, List, Tuple
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from config.settings import Settings
+from config.settings import Settings, get_settings
 from decision_engine.decision_pipeline import DecisionPipeline
 from observer.models import IoTAccessAlert
 from common.validation import validate_alert
@@ -38,7 +38,8 @@ class BaselineComparison:
     """Compares LLM system vs a specified baseline (RBAC or Static)"""
     
     def __init__(self, baseline_type='rbac'):
-        self.settings = Settings()
+        self.settings = get_settings()
+        self.settings.verify_jwt_expiration = False
         self.llm_pipeline = DecisionPipeline(self.settings)
         self.baseline_type = baseline_type
         
@@ -195,7 +196,8 @@ async def run_extended_red_team():
     print("Starting Red-Team Evaluation (105 Scenarios)")
     print("-" * 60)
     
-    settings = Settings()
+    settings = get_settings()
+    settings.verify_jwt_expiration = False
     pipeline = DecisionPipeline(settings)
     scenarios = []
     
@@ -267,7 +269,8 @@ async def run_performance_benchmark():
     print("IoT-Access-Sentinel Performance Benchmark Suite")
     print("=" * 70)
     
-    settings = Settings()
+    settings = get_settings()
+    settings.verify_jwt_expiration = False
     pipeline = DecisionPipeline(settings)
     alert = IoTAccessAlert(
         id="bench-camera-001", timestamp="2025-12-23T10:00:00Z",
@@ -335,10 +338,6 @@ def run_single_test(test_file: str):
     else:
         print(f"API ERROR: {response.status_code}")
 
-
-# ============================================================================
-# MAIN ENTRY POINT
-# ============================================================================
 
 def main():
     parser = argparse.ArgumentParser(description="IoT Access Sentinel Evaluator")

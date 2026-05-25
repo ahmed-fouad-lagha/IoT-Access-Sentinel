@@ -58,6 +58,7 @@ class Settings(BaseSettings):
     jwt_secret_key: str  # Required - loaded from .env
     jwt_algorithm: str = "HS256"
     webhook_api_key: str  # Required - loaded from .env
+    verify_jwt_expiration: bool = True
     
     # Timeouts
     wazuh_api_timeout: int = 30

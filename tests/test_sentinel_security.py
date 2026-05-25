@@ -123,7 +123,6 @@ def test_jwt_verification_subject_mismatch():
 async def test_decision_pipeline_fail_secure():
     """Verify the pipeline fails secure (DENY) when LLM agents fail in production"""
     settings = get_settings()
-    settings.auto_sign_mock_tokens = True
     pipeline = DecisionPipeline(settings)
     
     # Alert with missing details that would fail context analysis (without expected_decision)
@@ -133,6 +132,14 @@ async def test_decision_pipeline_fail_secure():
         
     pipeline._analyze_context = mock_fail
     
+    # Generate a valid JWT token for Step 0 validation to pass
+    payload = {
+        "sub": "alice@company.com",
+        "role": "security_admin",
+        "exp": datetime.now(timezone.utc) + timedelta(hours=1)
+    }
+    token = jwt.encode(payload, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
+
     alert = IoTAccessAlert(
         id="test-fail-secure",
         timestamp=datetime.now().isoformat(),
@@ -140,7 +147,7 @@ async def test_decision_pipeline_fail_secure():
         device_id="camera-office-01",
         device_type="camera",
         user_id="alice@company.com",
-        auth_token="valid-token-123",
+        auth_token=token,
         user_role="security_admin"
     )
     

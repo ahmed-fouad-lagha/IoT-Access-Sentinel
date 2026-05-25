@@ -1,0 +1,18 @@
+{
+  "configurations": {
+    "deterministic_only": {
+      "accuracy": 82.35294117647058,
+      "correct": 168,
+      "total": 204
+    },
+    "hybrid": {
+      "accuracy": 94.11764705882352,
+      "correct": 192,
+      "total": 204
+    }
+  },
+  "synergy": 11.764705882352942,
+  "deterministic_contribution": 94,
+  "llm_contribution": 28,
+  "cost_savings": 46.07843137254902
+}

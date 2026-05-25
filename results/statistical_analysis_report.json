@@ -1,0 +1,23 @@
+{
+  "overall": {
+    "total_tests": 204,
+    "baseline_accuracy": 82.35294117647058,
+    "llm_accuracy": 94.11764705882352,
+    "improvement": 11.764705882352942,
+    "chi_square": 13.6,
+    "p_value": "< 0.001",
+    "statistically_significant": true
+  },
+  "confidence_intervals_95": {
+    "baseline": {
+      "lower": 76.53775490301355,
+      "upper": 86.97214879287792,
+      "center": 81.75495184794573
+    },
+    "llm": {
+      "lower": 90.00100806355688,
+      "upper": 96.60340606720423,
+      "center": 93.30220706538056
+    }
+  }
+}

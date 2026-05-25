@@ -11,7 +11,8 @@ Hybrid Architecture:
 import json
 import yaml
 import hashlib
-from typing import Dict, Any
+import ipaddress
+from typing import Dict, Any, Optional, List, Tuple
 from datetime import datetime, timezone, timedelta
 from cachetools import TTLCache
 from tenacity import retry, stop_after_attempt, wait_exponential
@@ -147,6 +148,42 @@ class DecisionPipeline:
                 reason=user_auth_result.reason
             )
 
+            # Enrich alert metadata from user authorization results
+            if user_auth_result.matched_role and not alert.user_role:
+                alert.user_role = user_auth_result.matched_role
+            if user_auth_result.token_status:
+                if user_auth_result.token_status == "VALID":
+                    alert.auth_token = "VALID (Cryptographically Verified)"
+                elif user_auth_result.token_status == "NOT_REQUIRED":
+                    alert.auth_token = "NOT REQUIRED"
+                elif user_auth_result.token_status == "MISSING":
+                    alert.auth_token = "MISSING"
+                elif user_auth_result.token_status == "INVALID":
+                    alert.auth_token = "INVALID"
+                else:
+                    alert.auth_token = str(user_auth_result.token_status)
+
+            # Run deterministic temporal and network checks
+            policy = self._get_policy(alert.device_type)
+            time_check_status = "PASS"
+            network_check_status = "PASS"
+            
+            if policy:
+                # 1. Temporal Check
+                allowed_hours = policy.get('allowed_hours')
+                allowed_days = policy.get('allowed_days')
+                if allowed_hours and alert.timestamp:
+                    time_ok, time_reason = self._check_time_policy(alert.timestamp, allowed_hours, allowed_days)
+                    if not time_ok:
+                        time_check_status = f"FAIL ({time_reason})"
+                
+                # 2. Network Check
+                allowed_networks = policy.get('allowed_source_networks')
+                if allowed_networks and alert.source_ip:
+                    net_ok, net_reason = self._check_network_policy(alert.source_ip, allowed_networks)
+                    if not net_ok:
+                        network_check_status = f"FAIL ({net_reason})"
+
             # --- SEMANTIC CACHE LOOKUP ---
             # Build granular cache key to prevent security bypasses
             device_type = alert.device_type or "unknown"
@@ -192,6 +229,15 @@ class DecisionPipeline:
                     policy_matched="fail_secure_fallback",
                     timestamp=datetime.now(timezone.utc)
                 )
+
+            # Inject deterministic pre-check outcomes into context_summary for Policy Agent
+            original_summary = context_analysis.get('context_summary', '')
+            precheck_info = (
+                f"\n\nDeterministic Pre-checks:\n"
+                f"- Deterministic Time check: {time_check_status}\n"
+                f"- Deterministic Network check: {network_check_status}"
+            )
+            context_analysis['context_summary'] = original_summary + precheck_info
             
             # Step 2: Policy Decision (with context as input)
             try:
@@ -356,3 +402,63 @@ class DecisionPipeline:
             device_type=alert.device_type,
             user_role=alert.user_role
         )
+
+    def _get_policy(self, device_type: str) -> Optional[Dict[str, Any]]:
+        """Find policy for device type in config policies list"""
+        for policy in self.policies.get('policies', []):
+            if policy.get('device_type') == device_type:
+                return policy
+        return None
+
+    def _check_time_policy(self, timestamp: str, allowed_hours: str, allowed_days: Optional[List[str]] = None) -> Tuple[bool, str]:
+        """Check if timestamp falls within allowed hours and days"""
+        try:
+            # Parse timestamp supporting both Z and timezone offsets
+            dt = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
+            
+            # Check day of week if specified
+            if allowed_days:
+                day_name = dt.strftime('%A')
+                if day_name not in allowed_days:
+                    return False, f"Outside allowed days (day: {day_name}, allowed: {allowed_days})"
+            
+            # Check hour/minutes if allowed_hours is specified
+            if allowed_hours:
+                start_str, end_str = allowed_hours.split('-')
+                start_hour, start_min = map(int, start_str.split(':'))
+                end_hour, end_min = map(int, end_str.split(':'))
+                
+                current_minutes = dt.hour * 60 + dt.minute
+                start_minutes = start_hour * 60 + start_min
+                end_minutes = end_hour * 60 + end_min
+                
+                if not (start_minutes <= current_minutes < end_minutes):
+                    return False, f"Outside allowed hours (time: {dt.strftime('%H:%M')}, allowed: {allowed_hours})"
+            
+            return True, "PASS"
+        except Exception as e:
+            logger.warning("time_policy_check_parse_failed", timestamp=timestamp, error=str(e))
+            return True, "PASS (Parse error, lenient)"
+
+    def _check_network_policy(self, source_ip: str, allowed_source_networks: List[str]) -> Tuple[bool, str]:
+        """Check if source IP is in allowed networks (using standard ipaddress CIDR matching)"""
+        if not source_ip:
+            return False, "Source IP is missing"
+            
+        try:
+            ip_obj = ipaddress.ip_address(source_ip)
+        except ValueError:
+            return False, f"Invalid source IP address format: {source_ip}"
+            
+        for network_str in allowed_source_networks:
+            try:
+                # Parse as network
+                net_obj = ipaddress.ip_network(network_str, strict=False)
+                if ip_obj in net_obj:
+                    return True, "PASS"
+            except ValueError:
+                # If it's not a valid network, maybe it's a raw IP
+                if source_ip == network_str:
+                    return True, "PASS"
+                    
+        return False, f"Source IP {source_ip} not in allowed networks {allowed_source_networks}"

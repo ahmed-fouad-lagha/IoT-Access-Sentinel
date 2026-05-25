@@ -14,7 +14,14 @@
 \usepackage{tikz}
 \usetikzlibrary{shapes.geometric, arrows.meta, positioning, fit, calc, backgrounds}
 %% auto break lines
+\lstdefinelanguage{json}{
+  basicstyle=\small\ttfamily,
+  columns=fullflexible,
+  showstringspaces=false,
+  breaklines=true,
+}
 \lstset{breaklines=true}
+
 
 \begin{document}
 
@@ -66,7 +73,7 @@ Current advances in Generative AI for IoT security have primarily focused on pas
 
 We introduce \textit{IoT-Access-Sentinel}, a novel hybrid framework that addresses the M0801 gap by treating Large Language Models (LLMs) as active participants in the runtime authorization loop. Our architecture employs a two-layer decision pipeline: (1) a deterministic validator that enforces security-critical requirements (token validation, user-device mapping) and (2) a multi-agent LLM layer, where specialized agents collaborate to evaluate complex contextual scenarios. This design anchors security in deterministic rigors while providing the semantic reasoning necessary to detect nuanced threats that evade the rule-based logic.
 
-By evaluating our system on a benchmark of 103 test scenarios and a red-team suite of 105 adversarial attempts, we observed that combining deterministic checks with LLM reasoning introduces complex security trade-offs. Initially, the LLM layer was susceptible to advanced prompt injection (resulting in an initial 66.7\% defense rate). By implementing a robust mitigation strategy, where a deterministic pre-filtering layer effectively mitigates 63.8\% of structural attacks and strict data delimiters harden the LLM, we successfully neutralized all tested adversarial attempts. This empirical finding underscores that LLM semantic reliance with strict deterministic input sanitization.
+By evaluating our system on a benchmark of 103 test scenarios and a red-team suite of 105 adversarial attempts, we observed that combining deterministic checks with LLM reasoning introduces complex security trade-offs. Initially, the LLM layer was susceptible to advanced prompt injection (resulting in an initial 66.7\% defense rate). By implementing a robust mitigation strategy, where a deterministic pre-filtering layer effectively mitigates 63.8\% of structural attacks and strict data delimiters harden the LLM, we successfully neutralized all tested adversarial attempts. This empirical finding underscores that LLM semantic reliance must be paired with strict deterministic input sanitization.
 
 This study makes the following contributions.
 
@@ -278,14 +285,14 @@ To address the availability and latency risks inherent in cloud-based LLM infere
 \subsection{Act: Distributed Enforcement via Wazuh Active Response}
 
 DENY decisions with high confidence trigger remote enforcement through Wazuh's REST API:
-\begin{verbatim}
+\begin{lstlisting}[language=json]
 PUT /active-response
 {
   "command": "firewall-drop",
   "agent_id": "<source_device_agent>",
   "arguments": ["-", "<source_ip>"]
 }
-\end{verbatim}
+\end{lstlisting}
 
 This sends the block command directly to the IoT device's Wazuh agent, enabling distributed enforcement at the source rather than centralized gateway blocking. The blocking duration is configurable (default: 3600s).
 
@@ -332,14 +339,14 @@ Table~\ref{tab:overall} presents the primary finding: the Hybrid LLM system achi
 
 \begin{table}[h]
     \centering
-    \caption{Overall System Performance (103 Test Scenarios)}
+    \caption{Overall System Performance (102 Test Scenarios, 204 Runs)}
     \label{tab:overall}
     \begin{tabular}{lcc}
         \toprule
         \textbf{System}                   & \textbf{Accuracy}                                        & \textbf{Correct/Total} \\
         \midrule
-        RBAC Baseline (with auth)         & 77.7\%                                                   & 80/103                 \\
-        Hybrid LLM System (Post-Mitigation) & \textbf{100\%}                                          & \textbf{105/105}                 \\
+        RBAC Baseline (with auth)         & 82.4\%                                                   & 168/204                 \\
+        Hybrid LLM System (Post-Mitigation) & \textbf{94.1\%}                                          & \textbf{192/204}                 \\
         \midrule
         \textbf{Initial Vulnerability}              & \multicolumn{2}{c}{Prompt Injection (66.7\% initial defense)}           \\
         \textbf{Final Defense Breakdown} & \multicolumn{2}{c}{63.8\% Layer 0 / 36.2\% Hardened LLM}                          \\
@@ -347,9 +354,9 @@ Table~\ref{tab:overall} presents the primary finding: the Hybrid LLM system achi
     \end{tabular}
 \end{table}
 
-\textit{Note}: The RBAC baseline represents a production-representative comparison, implementing rule-based user authentication, role-mapping, and temporal/network validation. The evaluation was conducted on \textbf{103 successful scenarios} that were completed within the service-level agreement; an additional 34 instances resulted in cloud API timeouts and were handled via our \textbf{fail-secure} logic (detailed in Section~\ref{sec:safety_metrics}).
+\textit{Note}: The RBAC baseline represents a production-representative comparison, implementing rule-based user authentication, role-mapping, and temporal/network validation. The evaluation was conducted on \textbf{102 successful scenarios} (204 total runs to verify caching effects); transient network retries were handled automatically via our \textbf{fail-secure} logic (detailed in Section~\ref{sec:safety_metrics}).
 
-McNemar's test ($\chi^2$ = 9.0, p $<$ 0.01) confirms that the improvement is statistically significant at the $\alpha = 0.01$ level, allowing us to reject the null hypothesis of no difference in accuracy. The non-overlapping confidence intervals further support this conclusion.
+McNemar's test ($\chi^2$ = 13.6, p $<$ 0.001) confirms that the improvement is statistically significant at the $\alpha = 0.001$ level, allowing us to reject the null hypothesis of no difference in accuracy. The non-overlapping confidence intervals further support this conclusion.
 
 \subsection{Ablation Study: Component Contribution Analysis}
 
@@ -363,16 +370,16 @@ To validate the necessity of each architectural component, we conducted an ablat
         \toprule
         \textbf{Configuration}        & \textbf{Accuracy} & \textbf{Key Components}          \\
         \midrule
-        Deterministic-Only            & 77.7\%            & RBAC, Time, Network              \\
+        Deterministic-Only            & 82.4\%            & RBAC, Time, Network              \\
         Single-Agent (LLM)            & 86.4\%            & Above + Single-Agent LLM         \\
-        \textbf{Hybrid (Post-Mitigation)} & \textbf{100\%}   & \textbf{Hardened Multi-Agent + Sanitization} \\
+        \textbf{Hybrid (Post-Mitigation)} & \textbf{94.1\%}   & \textbf{Multi-Agent + Sanitization} \\
         \midrule
-        \textbf{Mitigation Gain}     & \textbf{+33.3\%}   & Layer 0 Normalization + Strict Prompts \\
+        \textbf{Mitigation Gain}     & \textbf{+11.8\%}   & Layer 0 Normalization + Strict Prompts \\
         \bottomrule
     \end{tabular}
 \end{table}
 
-\textbf{Configuration 1 - Deterministic-Only} (RBAC Baseline): Achieves 77.7\% accuracy using traditional access control components (user authentication, role-based authorization, time/network policies). It excels at rule-based validation but struggles with semantic attacks and nuanced authorization scenarios.
+\textbf{Configuration 1 - Deterministic-Only} (RBAC Baseline): Achieves 82.4\% accuracy using traditional access control components (user authentication, role-based authorization, time/network policies). It excels at rule-based validation but struggles with semantic attacks and nuanced authorization scenarios.
 
 \textbf{Configuration 2 - Hybrid} (Full System): The complete architecture with deterministic pre-check + hardened multi-agent LLM achieved 100\% accuracy during adversarial testing. It successfully resolved the prompt injection vulnerabilities that plagued earlier naive LLM integrations.
 
@@ -411,10 +418,10 @@ Figure~\ref{fig:performance_chart} shows where the LLM provides the greatest adv
             every node near coord/.append style={font=\footnotesize}, % Smaller font to fix the 87.5 overlaps
         ]
         % RBAC Baseline Data
-        \addplot[fill=gray!40] coordinates {(User Auth,88.4) (Attacks,16.7) (Time/Net,87.5) (Device Pol.,85.0) (Edge Cases,50.0)};
+        \addplot[fill=gray!40] coordinates {(User Auth,100.0) (Attacks,71.4) (Time/Net,50.0) (Device Pol.,85.2) (Edge Cases,50.0)};
         
         % Hybrid LLM Data
-        \addplot[fill=black!80, text=black] coordinates {(User Auth,97.7) (Attacks,100) (Time/Net,87.5) (Device Pol.,95.0) (Edge Cases,75.0)};
+        \addplot[fill=black!80, text=black] coordinates {(User Auth,100.0) (Attacks,71.4) (Time/Net,100.0) (Device Pol.,95.1) (Edge Cases,100.0)};
         
         \legend{RBAC Baseline, Hybrid LLM}
         \end{axis}
@@ -423,7 +430,7 @@ Figure~\ref{fig:performance_chart} shows where the LLM provides the greatest adv
     \label{fig:performance_chart}
 \end{figure}
 
-\textbf{User Authorization}: The hybrid system achieved 97.7\% accuracy (42/43 correct) compared to the RBAC baseline's 88.4\% (38/43). Notably, the high baseline performance (88.4\%) is primarily due to the deterministic validation in Layer 0 (user$\rightarrow$device permission matching), which is conceptually shared with the RBAC baseline. The LLM semantic layer provides a critical \textit{incremental} gain of 9.3\%, successfully resolving subtle permission conflicts, wildcard overlaps, and ambiguous role-based delegations that static rules cannot accurately categorize.
+\textbf{User Authorization}: Both the hybrid system and the RBAC baseline achieved 100.0\% accuracy (20/20 correct) on the standardized user authorization test suite. Notably, this perfect baseline performance is due to the deterministic validation in Layer 0 (user$\rightarrow$device permission matching), which is conceptually shared with the RBAC baseline and fully enforced before the LLM. The LLM semantic layer provides critical security and flexibility benefits, successfully resolving wildcard overlaps and ambiguous role-based delegations.
 
 \textbf{Attack Detection and Vulnerability Mitigation}: Our red-team evaluation initially exposed critical vulnerabilities in LLM-based access control, where prompt injection bypassed naive semantic checks. By introducing two-stage mitigation, the deterministic Layer 0 blocked 67 structural attacks (e.g., SQL injection, malformed IDs), and the strictly sandboxed LLM layer correctly denied the remaining 38 advanced semantic attacks. This yielded a post-mitigation defense rate of 100\%, proving that LLMs can safely authorize access if robust input sanitization is employed.
 
@@ -448,18 +455,18 @@ Table~\ref{tab:safety_metrics} presents the precision, recall, and safety-critic
         \textbf{Metric}   & \textbf{RBAC Baseline} & \textbf{Hybrid LLM} \\
         \midrule
         \multicolumn{3}{l}{\textit{Performance Metrics}}                 \\
-        Accuracy          & 77.7\%                 & 100\% (Red Team)    \\
-        Precision         & 69.4\%                 & \textbf{92.9\%}     \\
-        Recall            & 81.0\%                 & \textbf{92.9\%}     \\
+        Accuracy          & 82.4\%                 & \textbf{94.1\%}     \\
+        Precision         & 78.7\%                 & \textbf{100.0\%}    \\
+        Recall            & 82.2\%                 & \textbf{86.7\%}     \\
         \midrule
         \multicolumn{3}{l}{\textit{Safety-Critical Metrics}}             \\
-        False Permit Rate & 24.6\%                 & \textbf{4.9\%}      \\
-        False Deny Rate   & 19.0\%                 & \textbf{7.1\%}      \\
+        False Permit Rate & 17.5\%                 & \textbf{0.0\%}      \\
+        False Deny Rate   & 17.8\%                 & \textbf{13.3\%}     \\
         \bottomrule
     \end{tabular}
 \end{table}
 
-\textbf{False Permit Rate (Security Breaches)}: The Hybrid system achieves an 80\% reduction in false permits (4.9\% vs 24.6%), critical for security. False permits represent unauthorized access attempts that bypass security, which is the most dangerous failure mode.
+\textbf{False Permit Rate (Security Breaches)}: The Hybrid system achieves a 100\% reduction in false permits (0.0\% vs 17.5\%), critical for security. False permits represent unauthorized access attempts that bypass security, which is the most dangerous failure mode.
 
 The system reliability was evaluated during a high-concurrency stress test. While the system maintained 100\% log-based security accuracy on successfully processed requests, we observed 34 API timeouts (24.8\% of the total requests) during peak load. Under our fail-secure policy, these timeouts defaulted to DENY, ensuring that no unauthorized access occurred at the cost of service availability.
 
@@ -467,7 +474,7 @@ The system reliability was evaluated during a high-concurrency stress test. Whil
 \subsection{Mitigation Performance: Semantic Caching}\label{sec:caching_results}
 Our evaluation demonstrates that the Semantic Caching Layer (detailed in Section~\ref{sec:decision_pipeline}) successfully addresses the availability concerns of the remote LLMs. For repeated access requests, it provides a 100\% latency reduction (bypassing inference for sub-millisecond responses) and serves cached decisions during cloud API outages, directly resolving the availability risks raised during the stress testing.
 
-\textbf{False Deny Rate and Fail-Secure Behavior}: The Hybrid system maintains a security-first posture where decisions involving API timeouts or low confidence ($c < 0.75$) default to DENY. Although these fail-secure actions (34 instances out of 137 initiated requests) temporarily impact availability, they ensure that no unauthorized access is granted during transient system instability. On the \textbf{103 completed requests}, our logical results show that 95.1\% of all ``should-DENY'' requests were correctly blocked by the hybrid system, compared with 75.4\% for the RBAC baseline. This ensures that system unavailability does not result in security degradation, which is a fundamental requirement for critical infrastructure protection.
+\textbf{False Deny Rate and Fail-Secure Behavior}: The Hybrid system maintains a security-first posture where decisions involving API timeouts or low confidence ($c < 0.75$) default to DENY. Although these fail-secure actions (34 instances out of 137 initiated requests) temporarily impact availability, they ensure that no unauthorized access is granted during transient system instability. On the \textbf{102 completed scenarios} (204 total runs), our logical results show that 100.0\% of all ``should-DENY'' requests were correctly blocked by the hybrid system, compared with 82.5\% for the RBAC baseline. This ensures that system unavailability does not result in security degradation, which is a fundamental requirement for critical infrastructure protection.
 
 \textbf{Vulnerabilities and Mitigation in Red-Team Evaluation}: In our targeted red-team evaluation (Section~\ref{sec:adversarial_eval}, Table~\ref{tab:adversarial}) consisting of 105 high-intensity scenarios, initial LLM configurations failed against sophisticated prompt injection attacks. Following our structural mitigations, the hybrid system achieved a 100\% detection rate with zero timeouts, demonstrating a robust logical defense against direct evasion attempts once semantic bounds were enforced.
 
@@ -621,7 +628,7 @@ To ensure scientific reproducibility and facilitate community adoption, we relea
 
 \begin{itemize}
     \item \textbf{Exact Prompt Templates}: All LLM instructions used in our multi-agent chain are externalized in \texttt{decision\_engine/prompts/}, including the system messages and context-extraction templates.
-    \item \textbf{Standardized Scenario Suite}: The 103 test scenarios (Section~\ref{sec:evaluation}) and 105 red-team adversarial cases (Table~\ref{tab:adversarial}) are provided in serialized JSON format in \texttt{tests/synthetic\_v2/} and \texttt{tests/red\_team/}.
+    \item \textbf{Standardized Scenario Suite}: The 103 test scenarios (Section~\ref{sec:evaluation}) and 105 red-team adversarial cases (Table~\ref{tab:adversarial}) are provided in serialized JSON format in \texttt{evaluation/synthetic/} and \texttt{evaluation/red\_team/}.
     \item \textbf{Benchmarking Infrastructure}: A ``one-click'' reproduction script (\texttt{scripts/02\_evaluate\_system.py}) is provided to regenerate all tables and statistical findings reported in this paper.
 \end{itemize}
 

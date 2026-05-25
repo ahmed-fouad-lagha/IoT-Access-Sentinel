@@ -33,6 +33,8 @@ class UserAuthResult:
     reason: str
     matched_user: Optional[str] = None
     matched_devices: Optional[List[str]] = None
+    matched_role: Optional[str] = None
+    token_status: Optional[str] = None
 
 
 class UserAuthValidator:
@@ -106,24 +108,35 @@ class UserAuthValidator:
         if not requires_auth:
             # No user authorization required for this device type
             logger.debug("device_type_does_not_require_auth", device_type=device_type)
+            # Try to find a role in the policy if user_id is provided
+            matched_role = None
+            if user_id:
+                allowed_users = device_policy.get('allowed_users', [])
+                user_match = self._find_user_in_policy(user_id, allowed_users)
+                if user_match:
+                    matched_role = user_match.get('role')
             return UserAuthResult(
                 authorized=True,
-                reason=f"Device type '{device_type}' does not require user authentication"
+                reason=f"Device type '{device_type}' does not require user authentication",
+                token_status="NOT_REQUIRED",
+                matched_role=matched_role or "system"
             )
         
         # Authentication required - validate user
         if not user_id:
             return UserAuthResult(
                 authorized=False,
-                reason="User authentication required but user_id is missing"
+                reason="User authentication required but user_id is missing",
+                token_status="MISSING"
             )
         
         # Validate authentication token
-        token_valid = self._validate_auth_token(auth_token, device_policy, user_id)
-        if not token_valid:
+        token_payload = self._validate_auth_token(auth_token, device_policy, user_id)
+        if not token_payload:
             return UserAuthResult(
                 authorized=False,
-                reason="Invalid or missing authentication token"
+                reason="Invalid or missing authentication token",
+                token_status="INVALID"
             )
         
         # Check user-to-device authorization
@@ -133,8 +146,12 @@ class UserAuthValidator:
         if not user_match:
             return UserAuthResult(
                 authorized=False,
-                reason=f"User '{user_id}' not in allowed_users list for {device_type}"
+                reason=f"User '{user_id}' not in allowed_users list for {device_type}",
+                token_status="VALID"
             )
+        
+        # Determine user role (prefer policy, fallback to token)
+        matched_role = user_match.get('role') or token_payload.get('role')
         
         # Check if user is authorized for this specific device
         user_allowed_devices = user_match.get('allowed_devices', [])
@@ -151,7 +168,9 @@ class UserAuthValidator:
                 authorized=True,
                 reason=f"User '{user_id}' has wildcard access to all {device_type} devices",
                 matched_user=user_id,
-                matched_devices=["*"]
+                matched_devices=["*"],
+                matched_role=matched_role,
+                token_status="VALID"
             )
         
         if device_id not in user_allowed_devices:
@@ -159,7 +178,9 @@ class UserAuthValidator:
                 authorized=False,
                 reason=f"User '{user_id}' not authorized for device '{device_id}'. Allowed devices: {user_allowed_devices}",
                 matched_user=user_id,
-                matched_devices=user_allowed_devices
+                matched_devices=user_allowed_devices,
+                matched_role=matched_role,
+                token_status="VALID"
             )
         
         # All checks passed
@@ -173,7 +194,9 @@ class UserAuthValidator:
             authorized=True,
             reason=f"User '{user_id}' authorized for device '{device_id}'",
             matched_user=user_id,
-            matched_devices=user_allowed_devices
+            matched_devices=user_allowed_devices,
+            matched_role=matched_role,
+            token_status="VALID"
         )
     
     def _get_device_policy(self, device_type: str) -> Optional[Dict[str, Any]]:
@@ -189,37 +212,38 @@ class UserAuthValidator:
         logger.warning(f"No policy found for device_type '{device_type}'")
         return None
     
-    def _validate_auth_token(self, auth_token: Optional[str], device_policy: Dict[str, Any], expected_user_id: Optional[str] = None) -> bool:
+    def _validate_auth_token(self, auth_token: Optional[str], device_policy: Dict[str, Any], expected_user_id: Optional[str] = None) -> Optional[Dict[str, Any]]:
         """
         Validate authentication token.
         
-        Verifies the JWT signature and expiration.
+        Verifies the JWT signature and expiration. Returns the decoded payload if valid.
         """
         if not auth_token:
-            return False
+            return None
             
         try:
             settings = get_settings()
             # Decode and verify the JWT
+            verify_exp = getattr(settings, "verify_jwt_expiration", True)
             decoded = jwt.decode(
                 auth_token, 
                 settings.jwt_secret_key, 
                 algorithms=[settings.jwt_algorithm],
-                options={"verify_signature": True, "verify_exp": True}
+                options={"verify_signature": True, "verify_exp": verify_exp}
             )
             
             # Verify subject matches user_id if expected_user_id is provided
             if expected_user_id and decoded.get("sub") != expected_user_id:
                 logger.warning("jwt_subject_mismatch", sub=decoded.get("sub"), expected=expected_user_id)
-                return False
+                return None
                 
-            return True
+            return decoded
         except jwt.ExpiredSignatureError:
             logger.warning("jwt_token_expired")
-            return False
+            return None
         except jwt.InvalidTokenError as e:
             logger.warning("jwt_token_invalid", error=str(e))
-            return False
+            return None
     
     def _find_user_in_policy(self, user_id: str, allowed_users: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
         """Find user in allowed_users list"""
