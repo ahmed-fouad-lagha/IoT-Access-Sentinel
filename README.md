@@ -17,7 +17,7 @@ The framework specifically addresses the MITRE ATT&CK **Access Management (M0801
 
 ![Hybrid Architecture](./assets/hybrid-architecture.png)
 
-_Figure 1: The high-level architecture of the IoT-Access-Sentinel framework_
+_Figure 1: Architecture of the IoT-Access-Sentinel framework_
 
 ## Workflow
 
