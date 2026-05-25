@@ -380,7 +380,7 @@ To validate the necessity of each architectural component, we conducted an ablat
 
 This performance lift is attributed to several architectural advantages: (1) \textbf{Modular Prompting}: Breaking the task into specialized prompts for Context and Policy reduces ``context dilution'' and ensures that the reasoning logic is not distracted by behavioral metadata. (2) \textbf{Chain-of-Agent Reasoning}: The Policy Agent acts as a ``critic'' for the Context Agent's risk assessment, preventing the common LLM failure where early mistakes propagate through a monolithic reasoning chain. (3) \textbf{Structural Enforcement}: Our two-stage output schema (JSON from Context $\rightarrow$ JSON from Policy) creates explicit semantic checkpoints that are harder to bypass with prompt injection than a single unstructured output. Qualitative analysis of failures in the single-agent pipeline showed a higher frequency of ``logic drift'' in edge cases such as weekend-time boundary violations, which were correctly resolved by the specialized Policy Agent. 
 
-\textbf{Cost-Accuracy Trade-off}: The deterministic pre-check handles 46\% of requests without LLM invocation, providing significant cost optimization. At the current rates for 70 B models (\$0.60 per million tokens), Layer 0 reduces the average operational cost by 46\% while anchoring the system in M0801-compliant deterministic rigors. Only ambiguous or semantically complex scenarios trigger the multi-agent reasoning chain, maximizing the return on ``semantic effort.''
+\textbf{Cost-Accuracy Trade-off}: The deterministic pre-check handles 46\% of requests without LLM invocation, providing significant cost optimization. At the current rates for 8B models (\$0.08 per million tokens), Layer 0 reduces the average operational cost by 46\% while anchoring the system in M0801-compliant deterministic rigors. Only ambiguous or semantically complex scenarios trigger the multi-agent reasoning chain, maximizing the return on ``semantic effort.''
 
 \subsection{Category-Wise Performance Analysis}
 
@@ -391,7 +391,7 @@ Figure~\ref{fig:performance_chart} shows where the LLM provides the greatest adv
     \begin{tikzpicture}
         \begin{axis}[
             ybar=2pt, % Added spacing between grouped bars to prevent overlap
-            bar width=15pt,
+            bar width=20pt,
             width=0.95\textwidth,
             height=6.5cm,
             enlarge x limits=0.15,
@@ -402,19 +402,16 @@ Figure~\ref{fig:performance_chart} shows where the LLM provides the greatest adv
                 column sep=1.5ex % Added horizontal spacing between legend items
             },
             ylabel={Accuracy (\%)},
-            symbolic x coords={User Auth, Attacks, Time/Net, Device Pol., Edge Cases},
+            symbolic x coords={Attacks, Device Pol., Edge cases, Time/Net, User Auth},
             xtick=data,
-            nodes near coords,
-            nodes near coords align={vertical},
             ymin=0, ymax=115, % Reduced ymax from 125 to 115 to reduce wasted top space
             ytick={0,20,40,60,80,100},
-            every node near coord/.append style={font=\footnotesize}, % Smaller font to fix the 87.5 overlaps
         ]
         % RBAC Baseline Data
-        \addplot[fill=gray!40] coordinates {(User Auth,100.0) (Attacks,71.4) (Time/Net,50.0) (Device Pol.,85.2) (Edge Cases,50.0)};
+        \addplot[fill=gray!40] coordinates {(Attacks,71.4) (Device Pol.,85.2) (Edge cases,50.0) (Time/Net,50.0) (User Auth,100.0)};
         
         % Hybrid LLM Data
-        \addplot[fill=black!80, text=black] coordinates {(User Auth,100.0) (Attacks,71.4) (Time/Net,100.0) (Device Pol.,95.1) (Edge Cases,100.0)};
+        \addplot[fill=black!80, text=black] coordinates {(Attacks,71.4) (Device Pol.,95.1) (Edge cases,100.0) (Time/Net,100.0) (User Auth,100.0)};
         
         \legend{RBAC Baseline, Hybrid LLM}
         \end{axis}
@@ -572,7 +569,7 @@ To address the lack of ecological validity in this pilot study, future work shou
 \subsection{Additional Limitations}
 
 \begin{itemize}
-    \item \textbf{Single LLM Model}: Evaluated only Llama 3.3 70B (Groq). The performance may vary with other models.
+    \item \textbf{Single LLM Model}: Evaluated only Llama 3.1 8B (Groq). The performance may vary with other models.
     \item \textbf{API Dependency}: 34 test failures due to rate limiting demonstrate reliance on external LLM API. Mitigation: Local model deployment or caching layer.
     \item \textbf{Policy Scope}: Evaluated on access control policies only. Other IoT security aspects (firmware updates and data encryption) were not addressed.
 \end{itemize}
@@ -585,7 +582,7 @@ Although our hybrid architecture demonstrates the effectiveness of zero-shot gen
 
 \subsubsection{Domain-Specific LLM Fine-Tuning}
 
-The current system leverages pretrained general-purpose models (Llama 3.3 70B), which demonstrate broad generalizability but incur API costs and latency. Fine-tuning smaller domain-specific models (e.g., Llama 3 8B) on IoT-specific threat patterns could yield several benefits.
+The current system leverages pretrained general-purpose models (Llama 3.1 8B), which demonstrate broad generalizability but incur API costs and latency. Fine-tuning smaller domain-specific models (e.g., Llama 3 1B or 3B) on IoT-specific threat patterns could yield several benefits.
 
 \textbf{Latency Reduction}: Smaller fine-tuned models deployed on-premise could achieve sub-50ms inference times compared to the current 150ms cloud API calls, enabling real-time edge deployment scenarios.
 
@@ -636,7 +633,7 @@ This research was supported by the Eötvös Loránd University. We thank the Waz
 \end{acknowledgments}
 
 \section*{Declaration on Generative AI}
-During the preparation of this work, the author(s) used Llama 3.3 and Groq to run access control evaluation scenarios and generate decision metrics as part of the experimental framework. Furthermore, generative AI was used for proofreading and grammatical refinement of the manuscript. After using these tool(s)/service(s), the author(s) reviewed and edited the content as needed and took (s) full responsibility for the publication’s content.
+During the preparation of this work, the author(s) used Llama 3.1 and Groq to run access control evaluation scenarios and generate decision metrics as part of the experimental framework. Furthermore, generative AI was used for proofreading and grammatical refinement of the manuscript. After using these tool(s)/service(s), the author(s) reviewed and edited the content as needed and took (s) full responsibility for the publication’s content.
 
 \bibliography{references}
 

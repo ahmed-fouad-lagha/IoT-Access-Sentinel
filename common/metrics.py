@@ -170,7 +170,7 @@ class SentinelMetrics:
         Record LLM API request.
         
         Args:
-            model: Model identifier (e.g., llama-3.3-70b-versatile)
+            model: Model identifier (e.g., llama-3.1-8b-instant)
             status: success, error, timeout
             latency: Inference time in seconds
             prompt_tokens: Input tokens
