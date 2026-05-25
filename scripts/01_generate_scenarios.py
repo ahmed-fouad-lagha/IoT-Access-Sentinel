@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Synthetic Test Scenario Generator
-Generates comprehensive test scenarios combining basic baseline tests
-and enhanced edge-case tests (LLM-specific).
+Generates comprehensive test scenarios combining 
+basic baseline tests and edge-case tests.
 """
 
 import json
@@ -40,7 +40,7 @@ ALLOWED_SENSOR_NET = "192.168.2.0/24"
 ALLOWED_LOCK_NET = "192.168.3.0/24"
 UNAUTHORIZED_NET = "172.16.0.0/16"
 
-class UnifiedScenarioGenerator:
+class ScenarioGenerator:
     """Generate all synthetic IoT access scenarios for testing"""
     
     def __init__(self, output_dir="evaluation/synthetic"):
@@ -99,7 +99,6 @@ class UnifiedScenarioGenerator:
         dt = dt.replace(hour=hour, minute=minute, second=second)
         return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
     
-    # ================= BASIC SCENARIOS =================
 
     def generate_camera_valid(self, count: int = 20) -> List[Dict]:
         scenarios = []
@@ -262,8 +261,7 @@ class UnifiedScenarioGenerator:
             self.save_scenario(scenario, "attack_scenario", scenarios)
         return scenarios
 
-    # ================= ENHANCED SCENARIOS =================
-    
+
     def gen_valid_user_authorized_device(self, num: int = 10) -> List[Dict]:
         scenarios = []
         for i in range(num):
@@ -466,7 +464,6 @@ class UnifiedScenarioGenerator:
         self.scenarios_data["sensors"] = self.generate_sensor_scenarios(20)
         self.scenarios_data["attacks_basic"] = self.generate_attack_scenarios(20)
 
-        # Enhanced Scenarios
         self.scenarios_data["user_auth_valid"] = self.gen_valid_user_authorized_device(15)
         self.scenarios_data["user_auth_unauth"] = self.gen_valid_user_unauthorized_device(15)
         self.scenarios_data["system_wildcard"] = self.gen_system_account_wildcard(5)
@@ -490,7 +487,6 @@ class UnifiedScenarioGenerator:
                 elif s.get("expected_decision") == "DENY":
                     expected_deny += 1
 
-        # Save summary
         summary = {
             "generated_at": datetime.now().isoformat(),
             "total_scenarios": self.scenario_count,
@@ -505,8 +501,8 @@ class UnifiedScenarioGenerator:
         print(f"\nExpected results:")
         print(f"  - ALLOW: {expected_allow}")
         print(f"  - DENY:  {expected_deny}")
-        print("\n💡 Run tests with: python scripts/02_evaluate_system.py --mode rbac")
+        print("\nRun tests with: python scripts/02_evaluate_system.py --mode rbac")
 
 if __name__ == "__main__":
-    generator = UnifiedScenarioGenerator()
+    generator = ScenarioGenerator()
     generator.generate_all()

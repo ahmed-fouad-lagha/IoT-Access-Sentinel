@@ -42,7 +42,7 @@ bash evaluation/run_tests.sh
 ### Expected Output
 
 ```
-IoT-Access-Sentinel - Manual Test Suite
+IoT-Access-Sentinel - Test Suite
 ==========================================================
 
 Loaded 8 test scenarios from evaluation/scenarios

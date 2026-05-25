@@ -34,7 +34,7 @@ graph TD
 ```
 
 1.  **Deterministic Layer**: Sub-millisecond Python validation for security-critical checks (tokens, user->device IDs).
-2.  **Generative Layer**: Multi-agent LLM reasoning (Llama 3.3 70B via Groq) for complex behavioral analysis.
+2.  **Generative Layer**: Multi-agent LLM reasoning (Llama 3.1 8B instant via Groq) for complex behavioral analysis.
 3.  **Enforcement Layer**: Real-time remote enforcement via Wazuh Active Response API.
 
 
@@ -189,7 +189,6 @@ IoT-Access-Sentinel/
 ├── tests/               # Pytest unit & integration tests
 ├── scripts/             # Sequential evaluation and analysis pipeline
 ├── results/             # Experiment outputs (JSON, .tex tables)
-├── manuscript/          # LaTeX paper sources
 ├── main.py              # FastAPI application entrypoint
 ├── docker-compose.yml   # Full stack deployment (Wazuh + Sentinel)
 └── requirements.txt     # Python dependencies
@@ -217,7 +216,7 @@ Detailed performance metrics from the latest evaluation (103 scenarios × 2 runs
 ### 1. Environment (`.env`)
 ```bash
 ENFORCEMENT_ENABLED=true      # Enable real remote blocking
-LLM_MODEL=llama-3.3-70b-versatile
+LLM_MODEL=llama-3.1-8b-instant
 OPENAI_BASE_URL=https://api.groq.com/openai/v1
 ```
 
@@ -233,7 +232,7 @@ policies:
     allowed_hours: "09:00-17:00"
 ```
 
-This project provides the first quantitative evidence that Hybrid LLM Architectures solve the M0801 gap more effectively than rule-based systems. It demonstrates that combining deterministic security with generative reasoning achieves both trustworthiness and flexibility.
+This project provides the quantitative evidence that Hybrid LLM Architectures solve the M0801 gap more effectively than rule-based systems. It demonstrates that combining deterministic security with generative reasoning achieves both trustworthiness and flexibility.
 
 ## Future Work
 
@@ -241,8 +240,7 @@ This project provides the first quantitative evidence that Hybrid LLM Architectu
 While the current system leverages zero-shot general-purpose LLMs (demonstrating broad generalizability), fine-tuning domain-specific models could yield several benefits:
 
 **Potential Improvements:**
-- **Reduced Latency**: Smaller fine-tuned models (e.g., Llama 3 8B) could achieve sub-50ms inference times vs current ~150ms
-- **Lower Operational Costs**: On-premise deployment eliminates API costs (~$0.01/request → $0.00)
+- **Lower Operational Costs**: On-premise deployment eliminates API costs
 - **Enhanced Privacy**: Eliminates external API dependencies for sensitive IoT environments
 - **Improved Accuracy**: Specialized training on IoT-specific threat patterns (prompt injection, device impersonation, policy evasion)
 
@@ -251,11 +249,6 @@ While the current system leverages zero-shot general-purpose LLMs (demonstrating
 - Representative attack vectors (semantic injection, time-based bypasses)
 - Diverse policy violation examples
 - Real-world edge cases from production deployments
-
-**Research Questions:**
-1. Can a 7B parameter fine-tuned model match the current system's 94.2% accuracy?
-2. What is the optimal training data composition for IoT threat detection?
-3. How does model size affect the accuracy-latency tradeoff in real-time access control?
 
 ## License
 

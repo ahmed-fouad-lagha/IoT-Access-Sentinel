@@ -3,12 +3,12 @@
 
 API_URL="http://localhost:8000"
 SCENARIOS_DIR="evaluation/scenarios"
-RESULTS_FILE="results/manual_test_$(date +%Y%m%d_%H%M%S).txt"
+RESULTS_FILE="results/test_$(date +%Y%m%d_%H%M%S).txt"
 
 mkdir -p results
 
 echo "==========================================================" | tee "$RESULTS_FILE"
-echo "IoT-Access-Sentinel - Manual Test Suite" | tee -a "$RESULTS_FILE"
+echo "IoT-Access-Sentinel - Test Suite" | tee -a "$RESULTS_FILE"
 echo "==========================================================" | tee -a "$RESULTS_FILE"
 echo "" | tee -a "$RESULTS_FILE"
 
