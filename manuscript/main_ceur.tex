@@ -88,21 +88,7 @@ This study makes the following contributions.
     \item \textbf{Defense-in-depth and reproducibility.} We show how deterministic sanitization, prompt delimiters, and fail-secure behavior reduce structural and semantic attacks, and we release the codebase, benchmark scenarios, and analysis scripts for reproducibility.
 \end{itemize}
 
-The remainder of this paper is organized as follows. Section~\ref{sec:related_work} reviews prior work on LLM-based and traditional access control. Section~\ref{sec:adversarial_eval} presents the threat model and adversarial evaluation, Section~\ref{sec:decision_pipeline} describes the system architecture, and the remaining sections report the experimental results, limitations, and future directions.
-
-\section{Related Work}\label{sec:related_work}
-
-\subsection{LLM-based Access Control for IoT}
-
-Recent studies have explored large language models for IoT access control~\cite{llm4iot2024, edgegenai2024}, primarily focusing on policy generation from natural language specifications.
-
-LACE~\cite{lace2025} introduces a Language-based Access Control Engine that translates natural language policy descriptions into structured rules. LACE combines LLM-based policy generation with formal verification using an Open Policy Agent (OPA) and reports 88\% runtime decision accuracy. It illustrates one approach to coupling LLMs with policy enforcement, but its LLM-assisted decision pathway adds runtime latency (2.66s per request) that may limit use in time-sensitive settings.
-
-CollabIoT~\cite{shastri2025llmdrivenautoconfigurationtransient} employs LLM-driven capability-based access control for transient IoT collaboration. The system focuses on policy generation and device auto-configuration, reporting validated access control policies with 100\% correctness and low enforcement overhead. CollabIoT is therefore best viewed as a complementary approach: it emphasizes proactive token generation, whereas our work examines reactive runtime authorization when requests are semantically ambiguous.
-
-Taken together, LACE and CollabIoT show how LLMs can support policy creation and configuration. Our system instead explores real-time access decisions on alerts, using multi-agent LLM reasoning only when deterministic validation cannot resolve the semantic ambiguity. Table~\ref{tab:related_comparison} summarizes these differences.
-
-\begin{table}[h]
+\begin{table}[tbp]
     \centering
     \caption{Comparison with LLM-based IoT Access Control Systems}
     \label{tab:related_comparison}
@@ -116,6 +102,20 @@ Taken together, LACE and CollabIoT show how LLMs can support policy creation and
         \bottomrule
     \end{tabular}
 \end{table}
+
+The remainder of this paper is organized as follows. Section~\ref{sec:related_work} reviews prior work on LLM-based and traditional access control. Section~\ref{sec:adversarial_eval} presents the threat model and adversarial evaluation, Section~\ref{sec:decision_pipeline} describes the system architecture, and the remaining sections report the experimental results, limitations, and future directions.
+
+\section{Related Work}\label{sec:related_work}
+
+\subsection{LLM-based Access Control for IoT}
+
+Recent studies have explored large language models for IoT access control~\cite{llm4iot2024, edgegenai2024}, primarily focusing on policy generation from natural language specifications.
+
+LACE~\cite{lace2025} introduces a Language-based Access Control Engine that translates natural language policy descriptions into structured rules. LACE combines LLM-based policy generation with formal verification using an Open Policy Agent (OPA) and reports 88\% runtime decision accuracy. It illustrates one approach to coupling LLMs with policy enforcement, but its LLM-assisted decision pathway adds runtime latency (2.66s per request) that may limit use in time-sensitive settings.
+
+CollabIoT~\cite{shastri2025llmdrivenautoconfigurationtransient} employs LLM-driven capability-based access control for transient IoT collaboration. The system focuses on policy generation and device auto-configuration, reporting validated access control policies with 100\% correctness and low enforcement overhead. CollabIoT is therefore best viewed as a complementary approach: it emphasizes proactive token generation, whereas our work examines reactive runtime authorization when requests are semantically ambiguous.
+
+Taken together, LACE and CollabIoT show how LLMs can support policy creation and configuration. Our system instead explores real-time access decisions on alerts, using multi-agent LLM reasoning only when deterministic validation cannot resolve the semantic ambiguity. Table~\ref{tab:related_comparison} summarizes these differences.
 
 \subsection{Traditional Access Control for IoT}
 
@@ -146,7 +146,7 @@ The hybrid architecture implements a two-layer defense pipeline. Layer 0 perform
 
 We evaluated the robustness against 105 diverse red-team scenarios spanning 10 distinct attack categories to ensure comprehensive coverage of the adversarial space:
 
-\begin{table}[h]
+\begin{table}[tbp]
     \centering
     \caption{Adversarial Attack Detection Results (105 Scenarios)}
     \label{tab:adversarial}
@@ -170,7 +170,7 @@ We evaluated the robustness against 105 diverse red-team scenarios spanning 10 d
     \end{tabular}
 \end{table}
 
-\textbf{Key Findings}: The deterministic validator detected 66.7\% of adversarial attempts (70/105) in Layer 0 before reaching the LLM agents. The implementation used Unicode NFKC normalization, invisible-character stripping, and regex-based blocklists. These mitigations convert obfuscated payloads (for example, RTLO characters or zero-width smuggling) into canonical forms, allowing Layer 0 to trigger immediate DENY decisions. The remaining 33.3\% of attacks (35/105)—primarily involving contextual contradiction, CoT hijacking attempts, and metadata smuggling—were handled by the Policy Agent's contextual reasoning and fail-secure logic.
+The deterministic validator detected 66.7\% of adversarial attempts (70/105) in Layer 0 before reaching the LLM agents. The implementation used Unicode NFKC normalization, invisible-character stripping, and regex-based blocklists. These mitigations convert obfuscated payloads (for example, RTLO characters or zero-width smuggling) into canonical forms, allowing Layer 0 to trigger immediate DENY decisions. The remaining 33.3\% of attacks (35/105)—primarily involving contextual contradiction, CoT hijacking attempts, and metadata smuggling—were handled by the Policy Agent's contextual reasoning and fail-secure logic.
 
 To address the concern of ``ceding enforcement to the LLM'', we use Layer 0 (Deterministic Validator) as a containment boundary. Every field is processed through a \texttt{normalize\_text} method using \texttt{unicodedata.normalize('NFKC')} to resolve homoglyph attacks, followed by regex stripping of \textbf{directional overrides} (\texttt{\textbackslash u202A-\textbackslash u202E}), \textbf{Bidi Isolates} (\texttt{\textbackslash u2066-\textbackslash u2069}), and zero-width control characters. Unlike LACE's formal OPA check, which occurs \textit{after} policy generation, our sentinel's formal checks occur \textit{before} the LLM sees the data, ensuring that the LLM reasons only on sanitized, canonicalized context. For the 46\% of requests handled by Layer 0, the LLM was bypassed. On the remaining 54\% of ``semantically ambiguous'' cases, our multi-agent chain (Layer 2/3) provides a 6.1 percentage point accuracy lift over the 88\% accuracy benchmark reported by policy-generation-only systems such as LACE.
 
@@ -244,7 +244,7 @@ The system performance was evaluated based on the end-to-end latency (alert rece
 
 Table~\ref{tab:overall} presents the main result: the Hybrid LLM system achieved higher accuracy than the RBAC baseline with proper user authentication.
 
-\begin{table}[h]
+\begin{table}[tbp]
     \centering
     \caption{Overall System Performance (102 Test Scenarios, 204 Runs)}
     \label{tab:overall}
@@ -269,7 +269,7 @@ McNemar's test ($\chi^2$ = 13.6, p $<$ 0.001) confirms that the improvement is s
 
 To characterize the contribution of the main architectural choices, we compare three configurations: a deterministic baseline, a single-agent LLM variant, and the full hybrid system with mitigation. Table~\ref{tab:ablation} summarizes the measured differences.
 
-\begin{table}[h]
+\begin{table}[tbp]
     \centering
     \caption{Component Comparison}
     \label{tab:ablation}
@@ -346,7 +346,7 @@ A component of our decision logic is the confidence-weighted enforcement thresho
 
 Table~\ref{tab:safety_metrics} presents the precision, recall, and safety-critical error rates for both systems.
 
-\begin{table}[h]
+\begin{table}[tbp]
     \centering
     \caption{Safety Metrics: Precision, Recall, and Error Rates}
     \label{tab:safety_metrics}
@@ -384,7 +384,7 @@ Our evaluation suggests that the Semantic Caching Layer (detailed in Section~\re
 
 Table~\ref{tab:performance} summarizes the runtime performance characteristics.
 
-\begin{table}[h]
+\begin{table}[tbp]
     \centering
     \caption{Runtime Performance and Resource Usage}
     \label{tab:performance}
@@ -476,11 +476,11 @@ To reduce the latency and cost overhead of cloud-based APIs, we also examined lo
 
 \subsubsection{Architectural Hybridization: Semantic Leases}
 
-A further direction is to combine runtime reasoning with CollabIoT-style formal token models through \textbf{Semantic Leases}. In this design, the agentic sentinel would generate short-lived machine-enforceable access tokens that encode semantic predicates rather than rigid identities, while a lightweight edge controller would perform the actual enforcement. This approach could preserve semantic oversight while removing the LLM from the high-frequency enforcement path.
+A further direction is to combine runtime reasoning with CollabIoT-style formal token models through Semantic Leases. In this design, the agentic sentinel would generate short-lived machine-enforceable access tokens that encode semantic predicates rather than rigid identities, while a lightweight edge controller would perform the actual enforcement. This approach could preserve semantic oversight while removing the LLM from the high-frequency enforcement path.
 
 \subsubsection{Reproducibility and Open-Source Artifacts}
 
-\textbf{Code and Artifact Availability}: The source code, benchmark scenarios, prompt templates, and reproduction scripts for IoT-Access-Sentinel are available in the project repository.
+The source code, benchmark scenarios, prompt templates, and reproduction scripts for IoT-Access-Sentinel are available in the project repository.
 
 \section{Conclusion}
 
