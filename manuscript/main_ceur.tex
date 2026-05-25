@@ -35,7 +35,7 @@
 %% This command is for the conference information
 \conference{ITAT 2026: Information Technologies -- Applications and Theory, September 25--29, 2026, Hotel Vršatec, Slovakia}
 
-\title{Hybrid Context-Aware Access Control for IoT Devices Using Multi-Agent LLMs: A Security Evaluation}
+\title{Context-Aware Access Control for IoT Devices Using Multi-Agent LLMs: A Security Evaluation}
 
 \author[1]{Ahmed Fouad Lagha}[%
 email=ahmed.lagha@inf.elte.hu,
@@ -59,7 +59,7 @@ orcid=0000-0001-6188-4936,
 \cortext[1]{Corresponding author.}
 
 \begin{abstract}
-    Traditional Role-Based Access Control (RBAC) is too rigid to adapt to dynamic IoT threats. We propose IoT-Access-Sentinel, a hybrid framework that combines deterministic validation with Large Language Model (LLM) reasoning for context-aware access control. On a synthetic benchmark, the LLM layer alone was vulnerable to prompt injection. However, pairing a hardened deterministic pre-filter with strict semantic delimiters substantially improved the robustness of this benchmark. Integrated with the Wazuh SIEM~\cite{wazuh2024}, IoT-Access-Sentinel shows that LLMs can support complex access policies when anchored by strict input sanitization.
+    Traditional Role-Based Access Control (RBAC) is too rigid to adapt to dynamic IoT threats. We propose IoT-Access-Sentinel, a hybrid framework that combines deterministic validation with Large Language Model (LLM) reasoning for context-aware access control. On a synthetic benchmark, the LLM layer alone was vulnerable to prompt injection. However, pairing a deterministic pre-filter with strict semantic delimiters substantially improved the robustness of this benchmark. Integrated with the Wazuh SIEM~\cite{wazuh2024}, IoT-Access-Sentinel shows that LLMs can support complex access policies when anchored by strict input sanitization.
 \end{abstract}
 
 \begin{keywords}
@@ -76,7 +76,7 @@ Recent generative AI work in IoT security has largely focused on offline policy 
 
 We address this gap with \textit{IoT-Access-Sentinel}, a hybrid framework that places deterministic validation and multi-agent LLM reasoning in a single access-control pipeline. The system first applies strict security-critical checks, including token validation and user-device mapping, and then uses specialized LLM agents to resolve ambiguous cases. The resulting design maintains a deterministic enforcement boundary while using the LLM layer, where semantic reasoning is most useful.
 
-We evaluated the framework using a synthetic benchmark for benign and adversarial scenarios. The results show that the LLM layer alone is vulnerable to prompt injection; however, combining it with a hardened deterministic pre-filter and strict prompt delimiting substantially improves robustness in this benchmark. Our findings suggest that LLMs can support runtime access control for IoT systems, provided that they operate within a narrow containment boundary with fail-secure defaults.
+We evaluated the framework using a synthetic benchmark for benign and adversarial scenarios. The results show that the LLM layer alone is vulnerable to prompt injection; however, combining it with a deterministic pre-filter and strict prompt delimiting substantially improves robustness in this benchmark. Our findings suggest that LLMs can support runtime access control for IoT systems, provided that they operate within a narrow containment boundary with fail-secure defaults.
 
 This study makes the following contributions.
 
