@@ -88,7 +88,21 @@ This study makes the following contributions.
     \item \textbf{Defense-in-depth and reproducibility.} We show how deterministic sanitization, prompt delimiters, and fail-secure behavior reduce structural and semantic attacks, and we release the codebase, benchmark scenarios, and analysis scripts for reproducibility.
 \end{itemize}
 
-\begin{table}[tbp]
+The remainder of this paper is organized as follows. Section~\ref{sec:related_work} reviews prior work on LLM-based and traditional access control, including a comparison table that summarizes how our system differs from prior LLM-based access-control approaches. Section~\ref{sec:adversarial_eval} presents the threat model and adversarial evaluation, Section~\ref{sec:decision_pipeline} describes the system architecture, and the remaining sections report the experimental results, limitations, and future directions.
+
+\section{Related Work}\label{sec:related_work}
+
+\subsection{LLM-based Access Control for IoT}
+
+Recent studies have explored large language models for IoT access control~\cite{llm4iot2024, edgegenai2024}, primarily focusing on policy generation from natural language specifications.
+
+LACE~\cite{lace2025} introduces a Language-based Access Control Engine that translates natural language policy descriptions into structured rules. LACE combines LLM-based policy generation with formal verification using an Open Policy Agent (OPA) and reports 88\% runtime decision accuracy. It illustrates one approach to coupling LLMs with policy enforcement, but its LLM-assisted decision pathway adds runtime latency (2.66s per request) that may limit use in time-sensitive settings.
+
+CollabIoT~\cite{shastri2025llmdrivenautoconfigurationtransient} employs LLM-driven capability-based access control for transient IoT collaboration. The system focuses on policy generation and device auto-configuration, reporting validated access control policies with 100\% correctness and low enforcement overhead. CollabIoT is therefore best viewed as a complementary approach: it emphasizes proactive token generation, whereas our work examines reactive runtime authorization when requests are semantically ambiguous.
+
+Taken together, LACE and CollabIoT show how LLMs can support policy creation and configuration. Our system instead explores real-time access decisions on alerts, using multi-agent LLM reasoning only when deterministic validation cannot resolve the semantic ambiguity. Table~\ref{tab:related_comparison} summarizes these differences.
+
+\begin{table}[h]
     \centering
     \caption{Comparison with LLM-based IoT Access Control Systems}
     \label{tab:related_comparison}
@@ -102,20 +116,6 @@ This study makes the following contributions.
         \bottomrule
     \end{tabular}
 \end{table}
-
-The remainder of this paper is organized as follows. Section~\ref{sec:related_work} reviews prior work on LLM-based and traditional access control. Section~\ref{sec:adversarial_eval} presents the threat model and adversarial evaluation, Section~\ref{sec:decision_pipeline} describes the system architecture, and the remaining sections report the experimental results, limitations, and future directions.
-
-\section{Related Work}\label{sec:related_work}
-
-\subsection{LLM-based Access Control for IoT}
-
-Recent studies have explored large language models for IoT access control~\cite{llm4iot2024, edgegenai2024}, primarily focusing on policy generation from natural language specifications.
-
-LACE~\cite{lace2025} introduces a Language-based Access Control Engine that translates natural language policy descriptions into structured rules. LACE combines LLM-based policy generation with formal verification using an Open Policy Agent (OPA) and reports 88\% runtime decision accuracy. It illustrates one approach to coupling LLMs with policy enforcement, but its LLM-assisted decision pathway adds runtime latency (2.66s per request) that may limit use in time-sensitive settings.
-
-CollabIoT~\cite{shastri2025llmdrivenautoconfigurationtransient} employs LLM-driven capability-based access control for transient IoT collaboration. The system focuses on policy generation and device auto-configuration, reporting validated access control policies with 100\% correctness and low enforcement overhead. CollabIoT is therefore best viewed as a complementary approach: it emphasizes proactive token generation, whereas our work examines reactive runtime authorization when requests are semantically ambiguous.
-
-Taken together, LACE and CollabIoT show how LLMs can support policy creation and configuration. Our system instead explores real-time access decisions on alerts, using multi-agent LLM reasoning only when deterministic validation cannot resolve the semantic ambiguity. Table~\ref{tab:related_comparison} summarizes these differences.
 
 \subsection{Traditional Access Control for IoT}
 
@@ -146,7 +146,7 @@ The hybrid architecture implements a two-layer defense pipeline. Layer 0 perform
 
 We evaluated the robustness against 105 diverse red-team scenarios spanning 10 distinct attack categories to ensure comprehensive coverage of the adversarial space:
 
-\begin{table}[tbp]
+\begin{table}[h]
     \centering
     \caption{Adversarial Attack Detection Results (105 Scenarios)}
     \label{tab:adversarial}
@@ -244,7 +244,7 @@ The system performance was evaluated based on the end-to-end latency (alert rece
 
 Table~\ref{tab:overall} presents the main result: the Hybrid LLM system achieved higher accuracy than the RBAC baseline with proper user authentication.
 
-\begin{table}[tbp]
+\begin{table}[h]
     \centering
     \caption{Overall System Performance (102 Test Scenarios, 204 Runs)}
     \label{tab:overall}
@@ -261,7 +261,7 @@ Table~\ref{tab:overall} presents the main result: the Hybrid LLM system achieved
     \end{tabular}
 \end{table}
 
-\textit{Note}: The RBAC baseline represents a production-representative comparison, implementing rule-based user authentication, role-mapping, and temporal/network validation. The evaluation was conducted on \textbf{102 successful scenarios} (204 total runs to verify caching effects); transient network retries were handled automatically via our \textbf{fail-secure} logic (detailed in Section~\ref{sec:safety_metrics}).
+The RBAC baseline implements rule-based user authentication, role-mapping, and temporal/network validation.
 
 McNemar's test ($\chi^2$ = 13.6, p $<$ 0.001) confirms that the improvement is statistically significant at the $\alpha = 0.001$ level, allowing us to reject the null hypothesis of no difference in accuracy. The non-overlapping confidence intervals further support this conclusion.
 
@@ -269,7 +269,7 @@ McNemar's test ($\chi^2$ = 13.6, p $<$ 0.001) confirms that the improvement is s
 
 To characterize the contribution of the main architectural choices, we compare three configurations: a deterministic baseline, a single-agent LLM variant, and the full hybrid system with mitigation. Table~\ref{tab:ablation} summarizes the measured differences.
 
-\begin{table}[tbp]
+\begin{table}[h]
     \centering
     \caption{Component Comparison}
     \label{tab:ablation}
@@ -336,17 +336,15 @@ Figure~\ref{fig:performance_chart} shows where the LLM provides the greatest adv
 
 \textbf{Time/Network and Device Policies}: Both systems performed similarly on deterministic time/network rules (87.5\% parity). The hybrid system performed better on device-specific policies (95.0\% vs. 85.0\%), which suggests that semantic metadata can improve performance when static rules are insufficient.
 
-\subsection{Confidence Derivation and Threshold Calibration}
+\subsection{Confidence Derivation and Post-Hoc Analysis}
 
-A component of our decision logic is the confidence-weighted enforcement threshold. Unlike standard classification models that rely on logit-based probabilities, IoT-Access-Sentinel uses \textbf{Verbalized Semantic Confidence}. During the policy evaluation stage (Layer 2), the LLM agent is prompted to output a numerical confidence score ($c \in [0, 1]$) with its decision and reasoning. This score reflects the agent's semantic certainty with respect to the current policy context. A key limitation is that LLM-generated text-based probabilities are often poorly calibrated, so verbalized confidence may not correlate well with empirical correctness unless formal calibration analysis is performed. We therefore treat the confidence score as an ordinal threshold rather than an absolute probability.
-
-\textbf{Threshold Selection}: We empirically selected a decision threshold of $\tau = 0.75$ for DENY actions. Our calibration analysis of the 102-scenario benchmark focused on the trade-off between the \textit{False Permit Rate} (security risk) and the \textit{False Deny Rate} (availability risk). We found that $\tau = 0.75$ provides a reasonable security-oriented setting, where the system blocks ambiguous requests while keeping the false deny rate acceptable for non-critical alerts. Decisions where $c < 0.75$ trigger a fail-secure DENY status or a request for human-in-the-loop verification.
+Unlike standard classification models that rely on logit-based probabilities, IoT-Access-Sentinel logs Verbalized Semantic Confidence for auditing purposes. During the policy evaluation stage (Layer 2), the LLM agent is prompted to output a numerical confidence score ($c \in [0, 1]$) with its decision and reasoning. This score reflects the agent's semantic certainty with respect to the current policy context. While not used for live decision gating, these scores are recorded for post-hoc analysis and auditing. A key limitation is that LLM-generated text-based probabilities are often poorly calibrated, so verbalized confidence may not correlate well with empirical correctness unless formal calibration analysis is performed. We therefore analyze the confidence score as an ordinal metric rather than a runtime gating rule.
 
 \subsection{Safety-Critical Metrics Analysis}\label{sec:safety_metrics}
 
 Table~\ref{tab:safety_metrics} presents the precision, recall, and safety-critical error rates for both systems.
 
-\begin{table}[tbp]
+\begin{table}[h]
     \centering
     \caption{Safety Metrics: Precision, Recall, and Error Rates}
     \label{tab:safety_metrics}
@@ -374,7 +372,7 @@ The system reliability was evaluated during a high-concurrency stress test. Whil
 \subsection{Mitigation Performance: Semantic Caching}\label{sec:caching_results}
 Our evaluation suggests that the Semantic Caching Layer (detailed in Section~\ref{sec:decision_pipeline}) can mitigate some availability concerns of remote LLMs. For repeated access requests, it bypasses inference and returns sub-millisecond responses, and it can serve cached decisions during cloud API outages.
 
-\textbf{False Deny Rate and Fail-Secure Behavior}: The hybrid system defaults to DENY for API timeouts or low confidence ($c < 0.75$). Although these fail-secure actions (34 instances out of 137 initiated requests) temporarily impact availability, they reduce the risk of unauthorized access during transient system instability. On the \textbf{102 completed scenarios} (204 total runs), all ``should-DENY'' requests were correctly blocked by the hybrid system, compared with 82.5\% for the RBAC baseline. In this setting, reduced availability does not necessarily imply weaker access control.
+\textbf{False Deny Rate and Fail-Secure Behavior}: The hybrid system defaults to DENY for API timeouts or internal pipeline failures. Although these fail-secure actions (34 instances out of 137 initiated requests) temporarily impact availability, they reduce the risk of unauthorized access during transient system instability. On the \textbf{102 completed scenarios} (204 total runs), all ``should-DENY'' requests were correctly blocked by the hybrid system, compared with 82.5\% for the RBAC baseline. In this setting, reduced availability does not necessarily imply weaker access control.
 
 \textbf{Vulnerabilities and Mitigation in Red-Team Evaluation}: In our targeted red-team evaluation (Section~\ref{sec:adversarial_eval}, Table~\ref{tab:adversarial}) consisting of 105 high-intensity scenarios, initial LLM configurations failed against sophisticated prompt injection attacks. After the structural mitigations were added, the hybrid system handled all evaluated evasion attempts, indicating improved resistance once semantic bounds were enforced.
 
@@ -384,7 +382,7 @@ Our evaluation suggests that the Semantic Caching Layer (detailed in Section~\re
 
 Table~\ref{tab:performance} summarizes the runtime performance characteristics.
 
-\begin{table}[tbp]
+\begin{table}[h]
     \centering
     \caption{Runtime Performance and Resource Usage}
     \label{tab:performance}
@@ -417,7 +415,7 @@ To address the trust--authorization gap inherent in probabilistic agentic system
 
 \textbf{Tool-Use Scoping}: Unlike general-purpose autonomous agents, the sentinel does not expose open-ended tool-use privileges. The LLM agents operate within a ``read-only'' reasoning sandbox and can only generate a structured \texttt{EnforcementAction} (DENY, PERMIT, or ESCALATE). The actual action on the security infrastructure (for example, blocking an IP via Wazuh) is performed by a deterministic, non-LLM \textit{Enforcement Controller}. This separation limits the effect of prompt injection to the reasoning layer.
 
-\textbf{Least-Privilege Reasoning}: The sentinel restricts the LLM's influence to the semantic resolution of existing policy conflicts. The agentic layer cannot create new policies or modify Layer 0 blocklists. The threshold-based decision logic ($\tau = 0.75$) acts as a circuit breaker, so reasoning that does not meet the semantic threshold defaults to DENY.
+\textbf{Least-Privilege Reasoning}: The sentinel restricts the LLM's influence to the semantic resolution of existing policy conflicts. The agentic layer cannot create new policies or modify Layer 0 blocklists. Any LLM reasoning failures or internal processing errors default to a fail-secure DENY status.
 
 \subsection{Governance and Systemic Risk Management}
 

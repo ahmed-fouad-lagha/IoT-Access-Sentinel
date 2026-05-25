@@ -5,7 +5,6 @@ Results Analyzer
 - Safety Metrics (Precision, Recall, False Permit Rate)
 - Ablation Study (Component Contribution)
 - Statistical Analysis (McNemar's / Chi-square, Confidence Intervals)
-- Threshold Calibration
 """
 
 import sys
@@ -200,55 +199,10 @@ def run_stats(results_file="results/results_comparison.json"):
     print(f"\nStatistical report saved to: {out_path}")
 
 
-def run_threshold(results_file="results/results_comparison.json"):
-    print("\n" + "=" * 80)
-    print("THRESHOLD CALIBRATION")
-    print("=" * 80)
-    
-    with open(results_file, 'r') as f:
-        data = json.load(f)
-
-    hybrid_decisions = data['hybrid']['decisions']
-    thresholds = [0.5, 0.6, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95]
-    metrics = []
-
-    for t in thresholds:
-        tp = fp = tn = fn = 0
-        for d in hybrid_decisions:
-            expected = d['expected']
-            actual_action = d['actual']
-            confidence = d.get('confidence', 0.5)
-            
-            effective_action = "ALLOW" if actual_action == "DENY" and confidence < t else actual_action
-            if expected == "DENY":
-                if effective_action == "DENY": tp += 1
-                else: fn += 1
-            else:
-                if effective_action == "ALLOW": tn += 1
-                else: fp += 1
-
-        total = tp + tn + fp + fn
-        accuracy = (tp + tn) / total if total > 0 else 0
-        fpr = fn / (fn + tp) if (fn + tp) > 0 else 0
-        fdr = fp / (fp + tn) if (fp + tn) > 0 else 0
-        
-        metrics.append({'threshold': t, 'accuracy': accuracy, 'fpr': fpr, 'fdr': fdr})
-
-    print(f"\n{'Threshold':<10} {'Accuracy':<10} {'FPR (Permit)':<12} {'FDR (Deny)':<12}")
-    print("-" * 50)
-    for m in metrics:
-        print(f"{m['threshold']:<10.2f} {m['accuracy']:<10.2f} {m['fpr']:<12.2f} {m['fdr']:<12.2f}")
-
-    out_path = Path("results/threshold_calibration.json")
-    with open(out_path, 'w') as f:
-        json.dump(metrics, f, indent=2)
-    print(f"\nCalibration results saved to: {out_path}")
-
-
 def main():
     parser = argparse.ArgumentParser(description="IoT Access Sentinel Analysis Suite")
     parser.add_argument("--mode", type=str, required=True, 
-                        choices=['safety', 'ablation', 'stats', 'threshold', 'all'],
+                        choices=['safety', 'ablation', 'stats', 'all'],
                         help="Analysis mode to run")
     parser.add_argument("--file", type=str, default="results/results_comparison.json",
                         help="Input comparison results file")
@@ -261,7 +215,6 @@ def main():
     if args.mode in ['safety', 'all']: run_safety(args.file)
     if args.mode in ['ablation', 'all']: run_ablation(args.file)
     if args.mode in ['stats', 'all']: run_stats(args.file)
-    if args.mode in ['threshold', 'all']: run_threshold(args.file)
 
 if __name__ == "__main__":
     main()

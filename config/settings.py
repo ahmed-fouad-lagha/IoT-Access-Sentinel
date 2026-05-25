@@ -1,5 +1,4 @@
 """
-Configuration - IoT-Access-Sentinel
 Environment-based configuration adapted from AI_SOC pattern
 
 Manages settings for:
@@ -64,9 +63,6 @@ class Settings(BaseSettings):
     wazuh_api_timeout: int = 30
     llm_api_timeout: int = 60
     
-    # Decision Confidence Threshold
-    min_decision_confidence: float = 0.75  # Minimum confidence to enforce DENY
-
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

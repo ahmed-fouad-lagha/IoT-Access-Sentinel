@@ -7,7 +7,7 @@ Workflow:
 1. Receive IoT access alert from Wazuh (webhook or polling)
 2. Validate and sanitize input (prevent injection attacks)
 3. Analyze with Decision Engine (Deterministic + LLM agents)
-4. If DENY decision with high confidence, trigger Enforcer
+4. If DENY decision, trigger Enforcer
 5. Return enriched alert with decision and enforcement results
 """
 
@@ -136,7 +136,7 @@ async def verify_webhook_api_key(
     Workflow:
     1. Validate and sanitize input (security check)
     2. Decision Engine analyzes with Deterministic + LLM agents
-    3. If DENY with high confidence, trigger enforcement
+    3. If DENY, trigger enforcement
     4. Return enriched alert with decision and enforcement results
     """
 )
@@ -223,16 +223,15 @@ async def process_access_alert(alert: IoTAccessAlert):
             reason=decision.reason
         )
         
-        # Step 2: Enforcement (if DENY and high confidence)
+        # Step 2: Enforcement (if DENY)
         enforcement_action = None
         enforcement_executed = False
         
-        if decision.action == "DENY" and decision.confidence >= settings.min_decision_confidence:
+        if decision.action == "DENY":
             logger.info(
                 "triggering_enforcement",
                 alert_id=alert.id,
-                confidence=decision.confidence,
-                threshold=settings.min_decision_confidence
+                confidence=decision.confidence
             )
             
             # Create enforcement action
@@ -373,7 +372,6 @@ async def health_check():
         },
         "configuration": {
             "llm_provider": settings.llm_provider,
-            "min_decision_confidence": settings.min_decision_confidence,
             "enforcement_enabled": settings.enforcement_enabled
         }
     }
