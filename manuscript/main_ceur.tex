@@ -150,22 +150,22 @@ We evaluated the robustness against 105 diverse red-team scenarios spanning 10 d
     \centering
     \caption{Adversarial Attack Detection Results (105 Scenarios)}
     \label{tab:adversarial}
-    \begin{tabular}{lcc}
+    \begin{tabular}{lccc}
         \toprule
-        \textbf{Attack Category} & \textbf{Tested} & \textbf{Detected}   \\
+        \textbf{Attack Category} & \textbf{Tested} & \textbf{Layer 0 Only} & \textbf{Proposed Hybrid} \\
         \midrule
-        Direct Prompt Injection  & 10              & 10 (100\%)          \\
-        Role-Play Hijack         & 10              & 10 (100\%)          \\
-        Unicode RTLO/Evasion     & 10              & 10 (100\%)          \\
-        Hidden Char Evasion      & 10              & 10 (100\%)          \\
-        Payload Splitting        & 10              & 10 (100\%)          \\
-        Semantic Deception       & 5               & 5 (100\%)           \\
-        Chain-of-Thought Hijack  & 10              & 10 (100\%)          \\
-        Contextual Contradiction & 10              & 10 (100\%)          \\
-        Advanced Injection       & 15              & 15 (100\%)          \\
-        Metadata Smuggling       & 15              & 15 (100\%)          \\
+        Direct Prompt Injection  & 10              & 10 (100\%)              & 10 (100\%)              \\
+        Role-Play Hijack         & 10              & 10 (100\%)              & 10 (100\%)              \\
+        Unicode RTLO/Evasion     & 10              & 10 (100\%)              & 10 (100\%)              \\
+        Hidden Char Evasion      & 10              & 10 (100\%)              & 10 (100\%)              \\
+        Payload Splitting        & 10              & 10 (100\%)              & 10 (100\%)              \\
+        Semantic Deception       & 5               & 5 (100\%)               & 5 (100\%)               \\
+        Chain-of-Thought Hijack  & 10              & 0 (0\%)                 & 10 (100\%)              \\
+        Contextual Contradiction & 10              & 0 (0\%)                 & 10 (100\%)              \\
+        Advanced Injection       & 15              & 15 (100\%)              & 15 (100\%)              \\
+        Metadata Smuggling       & 15              & 0 (0\%)                 & 15 (100\%)              \\
         \midrule
-        \textbf{Overall}         & \textbf{105}    & \textbf{105 (100\%)} \\
+        \textbf{Overall}         & \textbf{105}    & \textbf{70 (66.7\%)}    & \textbf{105 (100\%)}    \\
         \bottomrule
     \end{tabular}
 \end{table}
@@ -254,9 +254,6 @@ Table~\ref{tab:overall} presents the main result: the Hybrid LLM system achieved
         \midrule
         RBAC Baseline (with auth)         & 82.4\%                                                   & 168/204                 \\
         Hybrid LLM System (Post-Mitigation) & \textbf{94.1\%}                                          & \textbf{192/204}                 \\
-        \midrule
-        \textbf{Initial Vulnerability}              & \multicolumn{2}{c}{Prompt Injection (66.7\% initial defense)}           \\
-        \textbf{Final Defense Breakdown} & \multicolumn{2}{c}{66.7\% Layer 0 / 33.3\% Layer 1}                          \\
         \bottomrule
     \end{tabular}
 \end{table}
