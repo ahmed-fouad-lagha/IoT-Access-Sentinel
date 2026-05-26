@@ -4,9 +4,15 @@
     "baseline_accuracy": 82.35294117647058,
     "llm_accuracy": 94.11764705882352,
     "improvement": 11.764705882352942,
-    "chi_square": 13.6,
+    "chi_square": 16.53125,
     "p_value": "< 0.001",
     "statistically_significant": true
+  },
+  "contingency_table": {
+    "a": 164,
+    "b": 4,
+    "c": 28,
+    "d": 8
   },
   "confidence_intervals_95": {
     "baseline": {

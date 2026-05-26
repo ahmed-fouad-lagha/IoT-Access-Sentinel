@@ -143,18 +143,26 @@ def calculate_confidence_interval(successes: int, total: int, confidence: float 
     margin = (z * ((p * (1 - p) / total + (z ** 2) / (4 * total ** 2)) ** 0.5)) / denominator
     return {"lower": max(0, center - margin) * 100, "upper": min(1, center + margin) * 100, "center": center * 100}
 
-def chi_square_test(observed: list, expected: list) -> Dict:
-    a, b = observed
-    c, d = expected
-    n = a + b + c + d
-    numerator = n * ((a * d) - (b * c)) ** 2
-    denominator = (a + b) * (c + d) * (a + c) * (b + d)
-    if denominator == 0: return {"chi_square": 0, "significant": False, "p_value": "> 0.05"}
-    chi_square = numerator / denominator
-    if chi_square > 10.828: return {"chi_square": chi_square, "p_value": "< 0.001", "significant": True}
-    elif chi_square > 6.635: return {"chi_square": chi_square, "p_value": "< 0.01", "significant": True}
-    elif chi_square > 3.841: return {"chi_square": chi_square, "p_value": "< 0.05", "significant": True}
-    return {"chi_square": chi_square, "p_value": "> 0.05", "significant": False}
+def mcnemar_test(rbac_decisions: list, hybrid_decisions: list) -> Dict:
+    a = b = c = d = 0
+    for r, h in zip(rbac_decisions, hybrid_decisions):
+        r_corr = r["correct"]
+        h_corr = h["correct"]
+        if r_corr and h_corr: a += 1
+        elif r_corr and not h_corr: b += 1
+        elif not r_corr and h_corr: c += 1
+        else: d += 1
+    
+    # McNemar's test statistic with continuity correction
+    if (b + c) > 0:
+        chi_square = (abs(b - c) - 1)**2 / (b + c)
+    else:
+        chi_square = 0.0
+        
+    if chi_square > 10.828: return {"chi_square": chi_square, "p_value": "< 0.001", "significant": True, "contingency_table": {"a": a, "b": b, "c": c, "d": d}}
+    elif chi_square > 6.635: return {"chi_square": chi_square, "p_value": "< 0.01", "significant": True, "contingency_table": {"a": a, "b": b, "c": c, "d": d}}
+    elif chi_square > 3.841: return {"chi_square": chi_square, "p_value": "< 0.05", "significant": True, "contingency_table": {"a": a, "b": b, "c": c, "d": d}}
+    return {"chi_square": chi_square, "p_value": "> 0.05", "significant": False, "contingency_table": {"a": a, "b": b, "c": c, "d": d}}
 
 def run_stats(results_file="results/results_comparison.json"):
     print("\n" + "=" * 80)
@@ -172,13 +180,14 @@ def run_stats(results_file="results/results_comparison.json"):
     llm_accuracy = (llm_correct / total_tests) * 100
     improvement = llm_accuracy - baseline_accuracy
     
-    chi_result = chi_square_test([llm_correct, total_tests - llm_correct], [baseline_correct, total_tests - baseline_correct])
+    mcnemar_result = mcnemar_test(data['rbac']['decisions'], data['hybrid']['decisions'])
     baseline_ci = calculate_confidence_interval(baseline_correct, total_tests)
     llm_ci = calculate_confidence_interval(llm_correct, total_tests)
     
-    print(f"\nChi-Square Test:")
-    print(f"  - Statistic: {chi_result['chi_square']:.4f} | p-value: {chi_result['p_value']}")
-    print(f"  - Significant Difference: {'YES ✓' if chi_result['significant'] else 'NO ✗'}")
+    print(f"\nMcNemar's Test (with continuity correction):")
+    print(f"  - Contingency Table: a={mcnemar_result['contingency_table']['a']}, b={mcnemar_result['contingency_table']['b']}, c={mcnemar_result['contingency_table']['c']}, d={mcnemar_result['contingency_table']['d']}")
+    print(f"  - Statistic: {mcnemar_result['chi_square']:.4f} | p-value: {mcnemar_result['p_value']}")
+    print(f"  - Significant Difference: {'YES ✓' if mcnemar_result['significant'] else 'NO ✗'}")
     
     print(f"\nConfidence Intervals (95%):")
     print(f"  Baseline: {baseline_accuracy:.1f}% [{baseline_ci['lower']:.1f}%, {baseline_ci['upper']:.1f}%]")
@@ -187,9 +196,10 @@ def run_stats(results_file="results/results_comparison.json"):
     summary = {
         "overall": {
             "total_tests": total_tests, "baseline_accuracy": baseline_accuracy, "llm_accuracy": llm_accuracy,
-            "improvement": improvement, "chi_square": chi_result['chi_square'], "p_value": chi_result['p_value'],
-            "statistically_significant": chi_result['significant']
+            "improvement": improvement, "chi_square": mcnemar_result['chi_square'], "p_value": mcnemar_result['p_value'],
+            "statistically_significant": mcnemar_result['significant']
         },
+        "contingency_table": mcnemar_result['contingency_table'],
         "confidence_intervals_95": {"baseline": baseline_ci, "llm": llm_ci}
     }
     
