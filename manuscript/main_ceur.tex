@@ -78,7 +78,7 @@ We address this gap with \textit{IoT-Access-Sentinel}, a hybrid framework that p
 
 We evaluated the framework using a synthetic benchmark for benign and adversarial scenarios. The results show that the LLM layer alone is vulnerable to prompt injection; however, combining it with a deterministic pre-filter and strict prompt delimiting substantially improves robustness in this benchmark. Our findings suggest that LLMs can support runtime access control for IoT systems, provided that they operate within a narrow containment boundary with fail-secure defaults.
 
-This study makes the following contributions.
+This study makes the following contributions:
 
 \begin{itemize}
     \item \textbf{Hybrid access-control architecture.} We propose a two-stage IoT authorization pipeline that combines deterministic validation with multi-agent LLM reasoning for context-aware decision making.
@@ -330,11 +330,11 @@ Figure~\ref{fig:performance_chart} shows where the LLM provides the greatest adv
     \label{fig:performance_chart}
 \end{figure}
 
-\textbf{User Authorization}: Both the hybrid system and the RBAC baseline achieved 100.0\% accuracy (20/20 correct) on the standardized user authorization test suite. This result is expected because deterministic validation in Layer 0 (user$\rightarrow$device permission matching) is conceptually shared with the RBAC baseline and is applied before the LLM. The LLM semantic layer is not required for this category, but it remains relevant for cases involving wildcard overlaps and ambiguous role-based delegations.
+Both the hybrid system and the RBAC baseline achieved 100.0\% accuracy (20/20 correct) on the standardized user authorization test suite. This result is expected because deterministic validation in Layer 0 (user$\rightarrow$device permission matching) is conceptually shared with the RBAC baseline and is applied before the LLM. The LLM semantic layer is not required for this category, but it remains relevant for cases involving wildcard overlaps and ambiguous role-based delegations.
 
-\textbf{Attack Detection and Vulnerability Mitigation}: Our red-team evaluation initially exposed vulnerabilities in LLM-based access control, where prompt injection bypassed naive semantic checks. With two-stage mitigation, the deterministic Layer 0 blocked 70 structural attacks (e.g., SQL injection and malformed IDs), and the sandboxed LLM layer denied the remaining 35 advanced semantic attacks. The results suggest that LLMs can support access authorization when robust input sanitization is employed.
+Our red-team evaluation initially exposed vulnerabilities in LLM-based access control, where prompt injection bypassed naive semantic checks. With two-stage mitigation, the deterministic Layer 0 blocked 70 structural attacks (e.g., SQL injection and malformed IDs), and the sandboxed LLM layer denied the remaining 35 advanced semantic attacks. The results suggest that LLMs can support access authorization when robust input sanitization is employed.
 
-\textbf{Time/Network and Device Policies}: Both systems performed similarly on deterministic time/network rules (87.5\% parity). The hybrid system performed better on device-specific policies (95.0\% vs. 85.0\%), suggesting that semantic metadata can improve performance when static rules are insufficient.
+Both systems performed similarly on deterministic time/network rules (87.5\% parity). The hybrid system performed better on device-specific policies (95.0\% vs. 85.0\%), suggesting that semantic metadata can improve performance when static rules are insufficient.
 
 \subsection{Confidence Derivation and Post-Hoc Analysis}
 
@@ -372,11 +372,11 @@ The system reliability was evaluated during a high-concurrency stress test. Whil
 \subsection{Mitigation Performance: Semantic Caching}\label{sec:caching_results}
 The Semantic Caching Layer (detailed in Section~\ref{sec:decision_pipeline}) can mitigate some availability concerns of remote LLMs. For repeated access requests, it bypasses inference and returns sub-millisecond responses, and it can serve cached decisions during cloud API outages.
 
-\textbf{False Deny Rate and Fail-Secure Behavior}: The hybrid system defaults to DENY for API timeouts or internal pipeline failures. Although these fail-secure actions (34 instances out of 137 initiated requests) temporarily impact availability, they reduce the risk of unauthorized access during the transient system instability. In the 102 completed scenarios (204 total runs), all ``should-DENY'' requests were correctly blocked by the hybrid system, compared with 82.5% for the RBAC baseline. In this setting, reduced availability does not necessarily imply weaker access control.
+The hybrid system defaults to DENY for API timeouts or internal pipeline failures. Although these fail-secure actions (34 instances out of 137 initiated requests) temporarily impact availability, they reduce the risk of unauthorized access during the transient system instability. In the 102 completed scenarios (204 total runs), all ``should-DENY'' requests were correctly blocked by the hybrid system, compared with 82.5% for the RBAC baseline. In this setting, reduced availability does not necessarily imply weaker access control.
 
-\textbf{Vulnerabilities and Mitigation in Red-Team Evaluation}: In our targeted red-team evaluation (Section~\ref{sec:adversarial_eval}, Table~\ref{tab:adversarial}) consisting of 105 high-intensity scenarios, initial LLM configurations failed against sophisticated prompt injection attacks. After the structural mitigations were added, the hybrid system handled all evaluated evasion attempts, indicating improved resistance when semantic bounds were enforced.
+In our targeted red-team evaluation (Section~\ref{sec:adversarial_eval}, Table~\ref{tab:adversarial}) consisting of 105 high-intensity scenarios, initial LLM configurations failed against sophisticated prompt injection attacks. After the structural mitigations were added, the hybrid system handled all evaluated evasion attempts, indicating improved resistance when semantic bounds were enforced.
 
-\textbf{Accuracy vs. Reliability}: The post-mitigation behavior reflects the system's structural reliance on the deterministic Layer 0 to filter malformed payloads, combined with strict LLM data bounding. This defense-in-depth approach supports the reliability of the system under adversarial conditions.
+The post-mitigation behavior reflects the system's structural reliance on the deterministic Layer 0 to filter malformed payloads, combined with strict LLM data bounding. This defense-in-depth approach supports the reliability of the system under adversarial conditions.
 
 \subsection{System Performance Metrics}
 
