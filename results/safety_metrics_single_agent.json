@@ -13,16 +13,16 @@
     "false_deny_rate": 17.77777777777778
   },
   "hybrid": {
-    "tp": 78,
-    "tn": 114,
-    "fp": 0,
-    "fn": 12,
+    "tp": 72,
+    "tn": 104,
+    "fp": 10,
+    "fn": 18,
     "total": 204,
-    "accuracy": 94.11764705882352,
-    "precision": 100.0,
-    "recall": 86.66666666666667,
-    "f1_score": 92.85714285714286,
-    "false_permit_rate": 0.0,
-    "false_deny_rate": 13.333333333333334
+    "accuracy": 86.27450980392157,
+    "precision": 87.8048780487805,
+    "recall": 80.0,
+    "f1_score": 83.72093023255815,
+    "false_permit_rate": 8.771929824561402,
+    "false_deny_rate": 20.0
   }
 }

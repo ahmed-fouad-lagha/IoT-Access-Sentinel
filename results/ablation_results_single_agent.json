@@ -6,13 +6,13 @@
       "total": 204
     },
     "hybrid": {
-      "accuracy": 94.11764705882352,
-      "correct": 192,
+      "accuracy": 86.27450980392157,
+      "correct": 176,
       "total": 204
     }
   },
-  "synergy": 11.764705882352942,
+  "synergy": 3.921568627450995,
   "deterministic_contribution": 94,
-  "llm_contribution": 28,
+  "llm_contribution": 20,
   "cost_savings": 46.07843137254902
 }

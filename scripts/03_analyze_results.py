@@ -75,9 +75,16 @@ def run_safety(results_file="results/results_comparison.json"):
     print(f"{'  False Deny Rate':<30} {rbac['false_deny_rate']:.1f}%{'':<15} {hybrid['false_deny_rate']:.1f}%")
     print("\n" + "="*80)
     
-    with open(Path('results') / 'safety_metrics.json', 'w') as f:
+    input_path = Path(results_file)
+    if input_path.name == "results_comparison.json":
+        out_path = Path('results') / 'safety_metrics.json'
+    else:
+        suffix = input_path.stem[len("results_comparison"):] if input_path.stem.startswith("results_comparison") else f"_{input_path.stem}"
+        out_path = Path('results') / f'safety_metrics{suffix}.json'
+
+    with open(out_path, 'w') as f:
         json.dump(metrics, f, indent=2)
-    print("\nMetrics saved to: results/safety_metrics.json")
+    print(f"\nMetrics saved to: {out_path}")
 
 
 def run_ablation(results_file="results/results_comparison.json"):
@@ -128,7 +135,13 @@ def run_ablation(results_file="results/results_comparison.json"):
         "synergy": synergy, "deterministic_contribution": deterministic_denies, "llm_contribution": llm_adds_value, "cost_savings": cost_savings
     }
     
-    out_path = Path("results/ablation_results.json")
+    input_path = Path(results_file)
+    if input_path.name == "results_comparison.json":
+        out_path = Path("results/ablation_results.json")
+    else:
+        suffix = input_path.stem[len("results_comparison"):] if input_path.stem.startswith("results_comparison") else f"_{input_path.stem}"
+        out_path = Path('results') / f'ablation_results{suffix}.json'
+
     with open(out_path, 'w') as f:
         json.dump(ablation_results, f, indent=2)
     print(f"\nAblation results saved to: {out_path}")
@@ -203,7 +216,13 @@ def run_stats(results_file="results/results_comparison.json"):
         "confidence_intervals_95": {"baseline": baseline_ci, "llm": llm_ci}
     }
     
-    out_path = Path("results/statistical_analysis_report.json")
+    input_path = Path(results_file)
+    if input_path.name == "results_comparison.json":
+        out_path = Path("results/statistical_analysis_report.json")
+    else:
+        suffix = input_path.stem[len("results_comparison"):] if input_path.stem.startswith("results_comparison") else f"_{input_path.stem}"
+        out_path = Path('results') / f'statistical_analysis_report{suffix}.json'
+
     with open(out_path, 'w') as f:
         json.dump(summary, f, indent=2)
     print(f"\nStatistical report saved to: {out_path}")

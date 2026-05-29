@@ -2,17 +2,17 @@
   "overall": {
     "total_tests": 204,
     "baseline_accuracy": 82.35294117647058,
-    "llm_accuracy": 86.27450980392157,
-    "improvement": 3.921568627450995,
-    "chi_square": 1.53125,
-    "p_value": "> 0.05",
-    "statistically_significant": false
+    "llm_accuracy": 94.11764705882352,
+    "improvement": 11.764705882352942,
+    "chi_square": 16.53125,
+    "p_value": "< 0.001",
+    "statistically_significant": true
   },
   "contingency_table": {
-    "a": 156,
-    "b": 12,
-    "c": 20,
-    "d": 16
+    "a": 164,
+    "b": 4,
+    "c": 28,
+    "d": 8
   },
   "confidence_intervals_95": {
     "baseline": {
@@ -21,9 +21,9 @@
       "center": 81.75495184794573
     },
     "llm": {
-      "lower": 80.87786246353909,
-      "upper": 90.33021137730896,
-      "center": 85.60403692042402
+      "lower": 90.00100806355688,
+      "upper": 96.60340606720423,
+      "center": 93.30220706538056
     }
   }
 }

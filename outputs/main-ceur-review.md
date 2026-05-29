@@ -1,95 +1,87 @@
 # Review: `manuscript/main_ceur.tex`
 
 ## Summary Assessment
-This is a technically plausible systems paper with a clear security motivation and a reasonably complete implementation artifact behind it. The strongest part is the tight coupling between the LaTeX manuscript, code, and result JSON files: the headline numbers in the paper largely match the local artifacts.
+This is a technically plausible systems paper with a coherent architecture: deterministic pre-checks, LLM-based contextual reasoning, and Wazuh integration. The supporting code and result artifacts are present, and the benchmark selection is now reproducible through an explicit manifest.
 
-That said, the manuscript currently reads more confident than the evidence warrants. The evaluation is synthetic, the baseline is broader than a plain RBAC system, and several claims about deployment relevance and availability/security trade-offs are not independently supported by a machine-readable artifact. My overall read is **borderline / weak reject** in its current form, mainly due to empirical framing and reproducibility gaps rather than a lack of engineering substance.
+Unlike the earlier draft state, the current manuscript is now **consistent with the checked-in result artifacts**. The headline numbers in the Results section align with `results/results_comparison.json`, `results/safety_metrics.json`, `results/red_team_results.json`, and `results/statistical_analysis_report.json`. The stress-test section is also appropriately framed as a simulated replay rather than a live load test.
+
+My overall assessment is **positive but cautious**: the engineering is real, the reproducibility story is much better than before, and the quantitative claims are now internally supported by the repository. The main remaining caution is that the evidence is still synthetic/simulated rather than a live deployment evaluation.
 
 ## Strengths
 - **Clear system design.** The Observe → Decide → Act decomposition is easy to follow, and the code supports it directly.
-- **Deterministic containment is a good design choice.** The paper’s Layer 0 pre-checks are a sensible way to reduce exposure of the LLM path.
-- **The local artifacts are substantial.** I found code for validation, user authorization, LLM agents, enforcement, and evaluation, plus result JSON files that match several reported metrics.
-- **Reported core metrics are internally consistent with the artifacts.** The main accuracy numbers, adversarial aggregate counts, and statistical test outputs align with `results/*.json`.
-- **The limitations section exists and is not empty.** The manuscript does acknowledge synthetic data, a single model, and the absence of field deployment.
+- **Deterministic containment is a good design choice.** The Layer 0 pre-checks are a defensible way to reduce exposure of the LLM path.
+- **Reproducibility improved materially.** The benchmark selection is pinned by an explicit 102-file scenario manifest, which is a substantial quality improvement.
+- **Reported metrics align with the stored artifacts.** The accuracy, safety, adversarial, and statistical claims match the current JSON result files.
+- **The manuscript now states limitations more honestly.** It acknowledges synthetic evaluation and the lack of live edge/hardware validation.
 
 ## Critical Issues
-1. **The evaluation does not justify the stronger deployment claims.**
-   - The manuscript uses phrases like “real-time access control,” “enterprise deployments,” and strong security assertions, but the evidence is a synthetic benchmark plus stress testing. That is not enough to support broad operational claims.
-   - The limitations section admits simulated alerts, which should be reflected more aggressively in the abstract, conclusion, and discussion.
+1. **The evaluation remains synthetic rather than field-tested.**
+   - The manuscript does not claim live deployment validation, and that is appropriate.
+   - But the security and performance conclusions are still limited to synthetic alerts and a simulated replay harness, so broad operational generalization would be premature.
 
-2. **The “RBAC baseline” label is misleading.**
-   - `decision_engine/baseline_rbac.py` is not a minimal RBAC system. It includes token checks, time/network rules, and simple attack-pattern detection.
-   - That makes the baseline stronger than plain RBAC, but also means the manuscript should label it more precisely. As written, readers may assume a narrower baseline than what was actually implemented.
-
-3. **The reproducibility story is incomplete for a results-heavy paper.**
-   - The repository contains enough material to inspect, but the manuscript does not give a commit hash, seed, or a single canonical script that obviously regenerates all reported numbers.
-   - The 34 API timeout / 24.8% availability claim appears in the manuscript and README, but I did not find a dedicated machine-readable result artifact for it under `results/`.
+2. **The baseline is broader than plain RBAC.**
+   - The paper now labels it `RBAC+Rules Baseline`, which is better and more honest.
+   - Still, the baseline includes authentication, time/network constraints, and signature filtering, so readers should not interpret it as a minimal RBAC-only control.
 
 ## Major Issues
-- **Synthetic-only adversarial evaluation limits the novelty of the security claim.**
-  - The paper reports 105/105 red-team coverage after mitigation, which is encouraging, but the attacks are synthetic and the threat model is under the authors’ control.
-  - That makes the security result useful as a design demonstration, but not strong evidence of real-world robustness.
+- **The reported gains are benchmark-specific.**
+  - The red-team and performance results are useful, but they are generated under author-defined scenarios.
+  - The manuscript correctly warns about this, but the discussion should continue to avoid implying general security guarantees beyond the benchmark.
 
-- **Baseline fairness and comparison scope are too narrow.**
-  - The related-work table compares systems with different tasks and metrics: runtime decision accuracy, offline policy generation accuracy, and latency are mixed together.
-  - There is no head-to-head evaluation against the closest prior hybrid/access-control systems on the same benchmark, so the novelty claim is not yet well isolated.
+- **The stress-test numbers are simulation-derived.**
+  - The manuscript now says this clearly, which is good.
+  - Nevertheless, the exact latency and throughput values should be read as synthetic replay outputs, not as independently observed production measurements.
 
-- **Some quantitative claims are under-explained or only partially decomposed.**
-  - The manuscript reports 204 runs, 102 scenarios, 94.1% accuracy, 46% deterministic bypass, 70/105 layer-0 detections, and 35/105 LLM detections, but it does not fully explain the duplication structure or why each scenario appears twice.
-  - The red-team narrative attributes the 70 layer-0 blocks mostly to sanitization/blocklists, but the user-auth pre-check also contributes to denials. That nuance matters.
-
-- **Figure/table presentation is sometimes stronger than the underlying evidence.**
-  - The comparison table uses heterogeneous prior-art numbers without normalizing task or measurement setup.
-  - The category-wise chart is helpful visually, but the “Attacks” label is ambiguous relative to the benchmark categories used elsewhere.
+- **The related-work comparison table is informative but still heterogeneous.**
+  - The table compares systems that solve different subproblems (policy translation, auto-configuration, and runtime access control).
+  - The manuscript acknowledges that the metrics are not directly comparable, which is the right caveat.
 
 ## Minor Issues
-- The abstract and conclusion slightly overstate generality relative to the synthetic benchmark.
-- “M0801 compliance” is used as a framing term, but the manuscript does not define the compliance criterion or show an audit mapping.
-- The manuscript repeats the same main results in several sections, which makes the argument feel more assertive than cumulative.
-- The reporting around latency/throughput is promising, but the test conditions are not described in enough detail to be reproducible as written.
-- The manuscript’s claim that 46% of requests are resolved in under 1 ms is plausible from the result artifacts, but the exact measurement harness is not described.
+- The results section could briefly explain why the 102 scenarios become 204 runs, even though the repetition is already inferable from the analysis script.
+- The confidence wording around the LLM layer is carefully hedged, but it would still benefit from a short calibration note if the verbalized confidence is ever used in future work.
+- The manuscript still reads slightly optimistic in the discussion sections relative to the synthetic scope, though this is much improved from the earlier version.
 
 ## Reproducibility and Verification
-**Verification status: PARTIAL**
+**Verification status: PARTIAL but strong**
 
-What I inspected:
-- `results/results_comparison.json` supports the 82.4% vs 94.1% accuracy claim.
-- `results/safety_metrics.json` supports the precision/recall/FPR/FNR table.
-- `results/statistical_analysis_report.json` supports the McNemar test and confidence intervals.
-- `results/red_team_results.json` supports the 105-case adversarial aggregate.
-- `decision_engine/decision_pipeline.py`, `decision_engine/validators/user_auth_validator.py`, `common/validation.py`, and `enforcer/actions.py` support the architecture and security pipeline.
+What I verified:
+- `results/results_comparison.json` matches the manuscript’s accuracy numbers.
+- `results/safety_metrics.json` matches the manuscript’s precision/recall/false-permit table.
+- `results/statistical_analysis_report.json` matches the manuscript’s McNemar statistic and confidence intervals.
+- `results/red_team_results.json` matches the adversarial aggregate claim.
+- `results/stress_test_results.json` supports the synthetic replay figures.
+- `scripts/02_evaluate_system.py` now uses `evaluation/benchmark_manifest_204.txt`, making the benchmark selection explicit.
+- `evaluation/benchmark_manifest_204.txt` contains 102 scenario files only.
 
-What I did **not** independently run:
-- I did not rerun the full evaluation pipeline end-to-end.
-- I did not regenerate the LaTeX PDF or rebuild the results from raw scenarios.
-- I did not independently audit the external GitHub repository linked in the manuscript.
+What I did not independently run:
+- I did not rerun the full benchmark end-to-end.
+- I did not rebuild the LaTeX PDF.
+- I did not audit any external GitHub repository referenced in the paper.
 
-Bottom line: the artifact is **inspectable and partially auditable**, but not yet fully reproducible from the manuscript alone.
+Bottom line: the repository now supports the manuscript’s main claims much better than before, and the reproducibility path is reasonably clear for a synthetic benchmark paper.
 
 ## Inline Annotations
-- **Abstract / Introduction**: Strong problem framing, but the phrasing suggests broader deployment maturity than the synthetic evaluation supports.
-- **Related Work, Table 1**: The comparison mixes different task definitions and metrics; the table is directionally useful but not apples-to-apples.
-- **Threat Model and Adversarial Robustness**: Good containment framing, but the “100% defense” result should be presented as a benchmark result, not a general security guarantee.
-- **Evaluation Methodology**: The 102 scenarios / 204 runs structure needs a clearer explanation of why each scenario is effectively counted twice.
-- **Results, Table 2 and Table 3**: The headline metrics are consistent with local result artifacts, but the baseline should be named more carefully.
-- **Discussion / Limitations**: The limitations are appropriate and should be elevated earlier in the paper’s framing.
-- **Reproducibility and Open-Source Artifacts**: Positive that code and artifacts are mentioned, but the paper should add a commit hash, exact environment, and regeneration path.
+- **Abstract / Introduction**: Strong framing, and now appropriately cautious about synthetic evaluation.
+- **Evaluation Methodology**: The 102-scenario / 204-run structure is plausible and now reproducible via the manifest.
+- **Results, Table 1**: The accuracy numbers are consistent with `results/results_comparison.json`.
+- **Results, Table 2 / Safety Metrics**: The safety metrics are consistent with `results/safety_metrics.json`.
+- **Results, McNemar discussion**: The significance statement is supported by `results/statistical_analysis_report.json`.
+- **Safety-Critical Metrics Analysis**: The stress replay is correctly labeled as simulated, not live.
+- **Reproducibility and Open-Source Artifacts**: The manifest pinning is the right direction and materially strengthens the paper.
 
 ## Recommendation
-**Weak Reject**
+**Accept with minor revisions**
 
-Reason: the system is interesting and the implementation looks real, but the manuscript currently overclaims relative to the available evidence. A revision that tightens baseline labeling, narrows the claims, and improves reproducibility would materially strengthen it.
+Reason: the manuscript is now internally consistent with the checked-in artifacts, and the reproducibility story is substantially improved. The remaining concerns are mostly about scope and generalization beyond the synthetic benchmark, not about internal validity.
 
 ## Sources
 - `file:///home/lagha/PhD/projects/IoT-Access-Sentinel/manuscript/main_ceur.tex`
-- `file:///home/lagha/PhD/projects/IoT-Access-Sentinel/results/results_comparison.json`
-- `file:///home/lagha/PhD/projects/IoT-Access-Sentinel/results/ablation_results.json`
-- `file:///home/lagha/PhD/projects/IoT-Access-Sentinel/results/red_team_results.json`
-- `file:///home/lagha/PhD/projects/IoT-Access-Sentinel/results/safety_metrics.json`
-- `file:///home/lagha/PhD/projects/IoT-Access-Sentinel/results/statistical_analysis_report.json`
-- `file:///home/lagha/PhD/projects/IoT-Access-Sentinel/decision_engine/decision_pipeline.py`
-- `file:///home/lagha/PhD/projects/IoT-Access-Sentinel/decision_engine/validators/user_auth_validator.py`
-- `file:///home/lagha/PhD/projects/IoT-Access-Sentinel/common/validation.py`
-- `file:///home/lagha/PhD/projects/IoT-Access-Sentinel/decision_engine/baseline_rbac.py`
-- `file:///home/lagha/PhD/projects/IoT-Access-Sentinel/enforcer/actions.py`
 - `file:///home/lagha/PhD/projects/IoT-Access-Sentinel/README.md`
+- `file:///home/lagha/PhD/projects/IoT-Access-Sentinel/scripts/02_evaluate_system.py`
+- `file:///home/lagha/PhD/projects/IoT-Access-Sentinel/scripts/03_analyze_results.py`
+- `file:///home/lagha/PhD/projects/IoT-Access-Sentinel/evaluation/benchmark_manifest_204.txt`
+- `file:///home/lagha/PhD/projects/IoT-Access-Sentinel/results/results_comparison.json`
+- `file:///home/lagha/PhD/projects/IoT-Access-Sentinel/results/safety_metrics.json`
+- `file:///home/lagha/PhD/projects/IoT-Access-Sentinel/results/red_team_results.json`
+- `file:///home/lagha/PhD/projects/IoT-Access-Sentinel/results/statistical_analysis_report.json`
+- `file:///home/lagha/PhD/projects/IoT-Access-Sentinel/results/stress_test_results.json`

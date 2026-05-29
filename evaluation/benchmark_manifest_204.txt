@@ -1,6 +1,6 @@
 # Explicit benchmark manifest for the 204-run RBAC comparison
 # Format: one relative JSON path per line.
-# These 103 files are duplicated in scripts/02_evaluate_system.py to produce 204 runs.
+# These 102 scenario files are duplicated in scripts/02_evaluate_system.py to produce 204 runs.
 evaluation/red_team/confusion_device_type.json
 evaluation/red_team/confusion_missing_field.json
 evaluation/red_team/evasion_network_edge.json
@@ -36,7 +36,6 @@ evaluation/synthetic/attack-no-userid-6.json
 evaluation/synthetic/attack-no-userid-7.json
 evaluation/synthetic/attack-no-userid-8.json
 evaluation/synthetic/attack-no-userid-9.json
-evaluation/synthetic/summary.json
 evaluation/synthetic/synthetic-attack-1.json
 evaluation/synthetic/synthetic-attack-10.json
 evaluation/synthetic/synthetic-attack-11.json

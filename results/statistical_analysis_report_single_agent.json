@@ -1,0 +1,29 @@
+{
+  "overall": {
+    "total_tests": 204,
+    "baseline_accuracy": 82.35294117647058,
+    "llm_accuracy": 86.27450980392157,
+    "improvement": 3.921568627450995,
+    "chi_square": 1.53125,
+    "p_value": "> 0.05",
+    "statistically_significant": false
+  },
+  "contingency_table": {
+    "a": 156,
+    "b": 12,
+    "c": 20,
+    "d": 16
+  },
+  "confidence_intervals_95": {
+    "baseline": {
+      "lower": 76.53775490301355,
+      "upper": 86.97214879287792,
+      "center": 81.75495184794573
+    },
+    "llm": {
+      "lower": 80.87786246353909,
+      "upper": 90.33021137730896,
+      "center": 85.60403692042402
+    }
+  }
+}
