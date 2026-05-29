@@ -81,11 +81,11 @@ We evaluated the framework using a synthetic benchmark for benign and adversaria
 This study makes the following contributions:
 
 \begin{itemize}
-    \item \textbf{Hybrid access-control architecture.} We propose a two-stage IoT authorization pipeline that combines deterministic validation with multi-agent LLM reasoning for context-aware decision making.
+    \item We propose a two-stage IoT authorization pipeline that combines deterministic validation with multi-agent LLM reasoning for context-aware decision making.
 
-    \item \textbf{Security-focused evaluation.} We assessed the approach on a synthetic benchmark with benign and adversarial scenarios, showing both the benefits and attack surface of LLM-assisted authorization.
+    \item We assessed the approach on a synthetic benchmark with benign and adversarial scenarios, showing both the benefits and attack surface of LLM-assisted authorization.
 
-    \item \textbf{Defense-in-depth and reproducibility.} We demonstrate how deterministic sanitization, prompt delimiters, and fail-secure behavior reduce structural and semantic attacks. We also released the codebase, benchmark scenarios, and analysis scripts for reproducibility.
+    \item We demonstrate how deterministic sanitization, prompt delimiters, and fail-secure behavior reduce structural and semantic attacks. We also released the codebase, benchmark scenarios, and analysis scripts for reproducibility.
 \end{itemize}
 
 The remainder of this paper is organized as follows. Section~\ref{sec:related_work} reviews prior work on LLM-based and traditional access control, including a comparison table summarizing how our system differs from prior LLM-based access-control approaches. Section~\ref{sec:adversarial_eval} presents the threat model and adversarial evaluation, Section~\ref{sec:decision_pipeline} describes the system architecture, and the remaining sections report the experimental results, limitations of the study, and future directions.
@@ -172,7 +172,7 @@ We evaluated the robustness against 105 diverse red-team scenarios spanning 10 d
 
 The deterministic validator detected 66.7\% of adversarial attempts (70/105) in Layer 0 before they reached the LLM agents. The implementation used Unicode NFKC normalization, invisible character stripping, and regex-based blocklists. These mitigations convert obfuscated payloads (e.g., RTLO characters or zero-width smuggling) into canonical forms, allowing Layer 0 to trigger immediate DENY decisions. The remaining 33.3\% of attacks (35/105)—primarily involving contextual contradiction, CoT hijacking attempts, and metadata smuggling—were handled by the contextual reasoning and fail-secure logic of the Policy Agent.
 
-To address the concern of ``ceding enforcement to the LLM,” we use Layer 0 (Deterministic Validator) as a containment boundary. Every field is processed through a \texttt{normalize\_text} method using \texttt{unicodedata.normalize('NFKC')} to resolve homoglyph attacks, followed by regex stripping of \textbf{directional overrides} (\texttt{\textbackslash u202A-\textbackslash u202E}), \textbf{Bidi Isolates} (\texttt{\textbackslash u2066-\textbackslash u2069}), and zero-width control characters. Unlike LACE's formal OPA check, which occurs \textit{after} policy generation, our sentinel's formal checks occur \textit{before} the LLM sees the data, ensuring that the LLM reasons only on sanitized, canonicalized context. For the 46\% of requests handled by Layer 0, the LLM was bypassed. On the remaining 54\% of ``semantically ambiguous'' cases, our multi-agent chain (Layer 2/3) provides a 6.1 percentage point accuracy lift over the 88\% accuracy benchmark reported by policy-generation-only systems such as LACE.
+To address the concern of ``ceding enforcement to the LLM,” we use Layer 0 (Deterministic Validator) as a containment boundary. Every field is processed through a \texttt{normalize\_text} method using \texttt{unicodedata.normalize('NFKC')} to resolve homoglyph attacks, followed by regex stripping of directional overrides (\texttt{\textbackslash u202A-\textbackslash u202E}), Bidi Isolates (\texttt{\textbackslash u2066-\textbackslash u2069}), and zero-width control characters. Unlike LACE's formal OPA check, which occurs \textit{after} policy generation, our sentinel's formal checks occur \textit{before} the LLM sees the data, ensuring that the LLM reasons only on sanitized, canonicalized context. For the 46\% of requests handled by Layer 0, the LLM was bypassed. On the remaining 54\% of ``semantically ambiguous'' cases, our multi-agent chain (Layer 2/3) provides a 6.1 percentage point accuracy lift over the 88\% accuracy benchmark reported by policy-generation-only systems such as LACE.
 
 
 \section{System Architecture}

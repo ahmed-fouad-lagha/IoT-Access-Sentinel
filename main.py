@@ -391,7 +391,7 @@ async def root():
         "service": settings.service_name,
         "version": settings.service_version,
         "description": "Autonomous Context-Aware Access Control for IoT via Multi-Agent Generative AI",
-        "research_gap": "Access Management (M0801) - Active authorization enforcement using LLMs",
+        "research": "Access Management (M0801) - Active authorization enforcement using LLMs",
         "endpoints": {
             "access_control": "/access-control (POST) - Process IoT access alert",
             "alerts": "/alerts (GET) - Fetch and analyze recent alerts",
