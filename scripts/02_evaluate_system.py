@@ -30,6 +30,28 @@ from observer.models import IoTAccessAlert
 from common.validation import validate_alert
 
 
+BENCHMARK_MANIFEST = Path("evaluation/benchmark_manifest_204.txt")
+
+
+def load_benchmark_manifest(manifest_path: Path = BENCHMARK_MANIFEST) -> List[Path]:
+    """Load the explicit benchmark manifest used for the 204-run comparison."""
+    if not manifest_path.exists():
+        raise FileNotFoundError(f"Benchmark manifest not found: {manifest_path}")
+
+    files: List[Path] = []
+    with open(manifest_path, "r") as f:
+        for raw_line in f:
+            line = raw_line.strip()
+            if not line or line.startswith("#"):
+                continue
+            files.append(Path(line))
+
+    if not files:
+        raise ValueError(f"Benchmark manifest is empty: {manifest_path}")
+
+    return files
+
+
 class BaselineComparison:
     """Compares LLM system vs a specified baseline (RBAC or Static)"""
     
@@ -68,16 +90,21 @@ class BaselineComparison:
             test_files = []
             for d in test_dirs:
                 if Path(d).exists():
-                    test_files.extend(list(Path(d).glob("*.json")))
+                    test_files.extend(sorted(Path(d).glob("*.json"), key=lambda p: str(p)))
         else:
-            # RBAC uses all evaluation files
-            test_files = list(test_dir.rglob("*.json"))
+            # RBAC uses the explicit benchmark manifest to pin scenario selection.
+            test_files = load_benchmark_manifest()
+            missing_files = [f for f in test_files if not Path(f).exists()]
+            if missing_files:
+                missing_list = ", ".join(str(f) for f in missing_files)
+                raise FileNotFoundError(f"Benchmark manifest references missing files: {missing_list}")
+            test_files = [Path(f) for f in test_files]
             
         print(f"Found {len(test_files)} test scenarios\n")
         
         # Simulate repeated traffic (retries)
         evaluation_files = []
-        for f in test_files[:103]:
+        for f in test_files:
             evaluation_files.append(f)
             evaluation_files.append(f)
             
@@ -178,7 +205,10 @@ class BaselineComparison:
     def save_results(self):
         output_dir = Path("results")
         output_dir.mkdir(exist_ok=True)
-        output_file = output_dir / "results_comparison.json"
+        if hasattr(self.llm_pipeline, 'use_single_agent') and self.llm_pipeline.use_single_agent:
+            output_file = output_dir / "results_comparison_single_agent.json"
+        else:
+            output_file = output_dir / "results_comparison.json"
         with open(output_file, 'w') as f:
             json.dump(self.results, f, indent=2, default=str)
         print(f"\nDetailed results saved to: {output_file}")
@@ -326,13 +356,19 @@ def run_single_test(test_file: str):
 def main():
     parser = argparse.ArgumentParser(description="IoT Access Sentinel Evaluator")
     parser.add_argument("--mode", type=str, required=True, 
-                        choices=['rbac', 'static', 'performance', 'red-team', 'single'],
+                        choices=['rbac', 'static', 'performance', 'red-team', 'single', 'single-agent'],
                         help="Evaluation mode to run")
     parser.add_argument("--test-file", type=str, help="Test file for 'single' mode")
     args = parser.parse_args()
     
     if args.mode in ['rbac', 'static']:
         evaluator = BaselineComparison(baseline_type=args.mode)
+        asyncio.run(evaluator.run_comparison())
+    elif args.mode == 'single-agent':
+        settings = get_settings()
+        settings.use_single_agent = True
+        evaluator = BaselineComparison(baseline_type='rbac')
+        evaluator.llm_pipeline.use_single_agent = True
         asyncio.run(evaluator.run_comparison())
     elif args.mode == 'performance':
         asyncio.run(run_performance_benchmark())

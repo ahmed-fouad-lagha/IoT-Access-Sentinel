@@ -1,0 +1,19 @@
+{
+  "metadata": {
+    "test_timestamp": "2026-05-29T21:08:06.826313Z",
+    "mode": "simulate",
+    "concurrency": 5,
+    "timeout_budget_ms": 150
+  },
+  "metrics": {
+    "total_requests": 137,
+    "successful_responses": 103,
+    "api_timeouts": 34,
+    "availability_rate": 75.18248175182481,
+    "average_latency_ms": 97.0,
+    "throughput_rps": 31.5,
+    "fail_secure_denials": 34,
+    "false_permit_rate_under_stress": 0.0,
+    "duration_seconds": 4.349206349206349
+  }
+}

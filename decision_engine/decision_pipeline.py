@@ -52,6 +52,7 @@ class DecisionPipeline:
         self.cache = TTLCache(maxsize=1000, ttl=3600)
         self.cache_hits = 0
         self.cache_misses = 0
+        self.use_single_agent = settings.use_single_agent
         
         # Load prompts
         self.prompts = self._load_prompts()
@@ -217,18 +218,26 @@ class DecisionPipeline:
             # --- END CACHE LOOKUP ---
             
             # Step 1: Context Analysis
-            try:
-                context_analysis = await self._analyze_context(alert)
-            except Exception as e:
-                logger.error("context_agent_failed", error=str(e))
-                logger.error("failing_secure_on_context_agent_error")
-                return AccessDecision(
-                    action="DENY",
-                    confidence=1.0,
-                    reason=f"Context Agent failed (fail-secure): {str(e)}",
-                    policy_matched="fail_secure_fallback",
-                    timestamp=datetime.now(timezone.utc)
-                )
+            if self.use_single_agent:
+                # Single-agent mode: bypass Context Agent and pass default values
+                context_analysis = {
+                    "risk_score": 0.5,
+                    "anomalies_detected": [],
+                    "context_summary": "Single-Agent Mode: Raw alert evaluated directly by Policy Agent."
+                }
+            else:
+                try:
+                    context_analysis = await self._analyze_context(alert)
+                except Exception as e:
+                    logger.error("context_agent_failed", error=str(e))
+                    logger.error("failing_secure_on_context_agent_error")
+                    return AccessDecision(
+                        action="DENY",
+                        confidence=1.0,
+                        reason=f"Context Agent failed (fail-secure): {str(e)}",
+                        policy_matched="fail_secure_fallback",
+                        timestamp=datetime.now(timezone.utc)
+                    )
 
             # Inject deterministic pre-check outcomes into context_summary for Policy Agent
             original_summary = context_analysis.get('context_summary', '')

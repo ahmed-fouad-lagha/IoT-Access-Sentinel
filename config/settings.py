@@ -43,6 +43,8 @@ class Settings(BaseSettings):
     
     # Access Policy Configuration
     policy_file_path: str = "config/access_policies.yaml"
+    use_single_agent: bool = False  # Bypasses Context Agent for ablation studies
+
     
     # Enforcement Configuration
     enforcement_enabled: bool = True  # Set False for dry-run mode

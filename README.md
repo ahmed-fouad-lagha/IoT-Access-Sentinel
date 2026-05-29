@@ -165,7 +165,7 @@ Once deployed, the services are available on the following ports:
 The framework was evaluated on a comprehensive test-suite (102 functional scenarios and 105 red-team adversarial attacks).
 
 ### Key Performance Findings
-* **Functional Accuracy**: Hybrid LLM achieved **94.1% accuracy** (192/204 correct decisions) compared to **82.4%** (168/204 correct) of the RBAC baseline. McNemar's test ($\chi^2 = 16.53, p < 0.001$) shows the improvement is statistically significant.
+* **Functional Accuracy**: Hybrid LLM achieved **94.1% accuracy** (192/204 correct decisions) compared to **82.4%** (168/204 correct) of the RBAC+Rules Baseline. McNemar's test ($\chi^2 = 16.53, p < 0.001$) shows the improvement is statistically significant.
 * **Adversarial Resilience**: The system recorded a **100% defense rate** against 105 red-team attacks:
   * **66.7% (70/105)** were blocked deterministically by **Layer 0** (using Unicode normalizations, RTLO/Bidi strip, and token validations).
   * **33.3% (35/105)** (complex semantic/context attacks) were blocked by **Layer 1**'s zero-trust prompts.
@@ -201,6 +201,14 @@ Execute the automated test script to run the benign scenario suite and output ac
 ```bash
 bash evaluation/run_tests.sh
 ```
+
+### Running the Concurrency Stress Test
+Run the simulated stress-testing and availability replay harness to evaluate fail-secure default actions:
+```bash
+# Run the stress-test simulation replay (outputs to results/stress_test_results.json)
+python3 scripts/05_run_stress_test.py --mode simulate
+```
+
 
 ## Security Configuration Example
 
