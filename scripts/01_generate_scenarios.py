@@ -504,5 +504,6 @@ class ScenarioGenerator:
         print("\nRun tests with: python scripts/02_evaluate_system.py --mode rbac")
 
 if __name__ == "__main__":
+    random.seed(42)
     generator = ScenarioGenerator()
     generator.generate_all()

@@ -124,8 +124,8 @@ def run_ablation(results_file="results/results_comparison.json"):
             hybrid_cat = (stats['hybrid'] / stats['total']) * 100
             print(f"  {category.replace('_', ' ').title():<20}: Baseline {rbac_cat:>5.1f}% | Hybrid {hybrid_cat:>5.1f}% | Δ {hybrid_cat-rbac_cat:>+6.1f}%")
 
-    cost_savings = (deterministic_denies / len(rbac_decisions) * 100) if rbac_decisions else 0
-    print(f"\nCost Efficiency:\n   - Deterministic pre-check handles {cost_savings:.0f}% of requests without LLM invocation")
+    cost_savings = (sum(1 for d in hybrid_decisions if d.get('policy_matched') == 'user_authorization_check') / len(hybrid_decisions) * 100) if hybrid_decisions else 0
+    print(f"\nCost Efficiency:\n   - Deterministic pre-check handles {cost_savings:.1f}% of requests without LLM invocation")
     
     ablation_results = {
         "configurations": {

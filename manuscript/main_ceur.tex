@@ -59,7 +59,7 @@ orcid=0000-0001-6188-4936,
 \cortext[1]{Corresponding author.}
 
 \begin{abstract}
-    Traditional Role-Based Access Control (RBAC) and static rule engines are often too rigid to adapt to dynamic, context-heavy IoT threats. We propose IoT-Access-Sentinel, a hybrid framework that couples deterministic pre-checks with Large Language Model (LLM) reasoning for runtime access control. Evaluating the system on a synthetic benchmark, we show that while the LLM reasoning layer alone is vulnerable to prompt injection, pairing a deterministic validation pre-filter with strict semantic delimiters improves robustness under the benchmark threat model. While demonstrated within a simulated environment integrated with the Wazuh SIEM~\cite{wazuh2024}, our design shows that LLMs can support context-aware authorization decisions when strictly contained by a deterministic enforcement boundary with fail-secure defaults.
+    Traditional access control models, such as plain Role-Based Access Control (RBAC) and static rule engines, are often too rigid to adapt to dynamic, context-heavy IoT threats. We propose IoT-Access-Sentinel, a hybrid framework that couples deterministic pre-checks with Large Language Model (LLM) reasoning for runtime access control. Evaluating the system on a synthetic benchmark, we show that while the LLM reasoning layer alone is vulnerable to prompt injection, pairing a deterministic validation pre-filter with strict semantic delimiters improves robustness under the benchmark threat model. While demonstrated within a simulated environment integrated with the Wazuh SIEM~\cite{wazuh2024}, our design shows that LLMs can support context-aware authorization decisions when strictly contained by a deterministic enforcement boundary with fail-secure defaults.
 \end{abstract}
 
 \begin{keywords}
@@ -70,7 +70,7 @@ orcid=0000-0001-6188-4936,
 
 \section{Introduction}
 
-The proliferation of Internet of Things (IoT) devices in critical infrastructure, smart homes, and industrial environments has created new security challenges for access control systems. As devices move from isolated components to interconnected ecosystems, authorization decisions must account for identity and policy rules alongside dynamic context, such as access time, device operational state, user role, and environment. Traditional approaches, such as Role-Based Access Control (RBAC), remain effective for deterministic enforcement; however, they are often too rigid to resolve semantic ambiguity in dynamic IoT settings. 
+The proliferation of Internet of Things (IoT) devices in critical infrastructure, smart homes, and industrial environments has created new security challenges for access control systems. As devices move from isolated components to interconnected ecosystems, authorization decisions must account for identity and policy rules alongside dynamic context, such as access time, device operational state, user role, and environment. Traditional approaches, such as plain Role-Based Access Control (RBAC), remain effective for deterministic enforcement; however, they are often too rigid to resolve semantic ambiguity in dynamic IoT settings. While security-hardened API gateways can integrate time/network rules and signature checks to augment RBAC, they still lack the contextual flexibility needed for ambiguous access scenarios. 
 
 Furthermore, access control in these networks must align with established security guidelines, such as the MITRE ATT\&CK Mitigation M0801 (Access Management)~\cite{mitre2023attack}, which focuses on User Identification and Verification. Adhering to M0801 requires robust mechanisms to audit and verify authorization boundaries, a task that becomes challenging when rules must adapt to contextual anomalies.
 
@@ -111,11 +111,11 @@ Taken together, LACE and CollabIoT show how LLMs can support policy creation and
     \label{tab:related_comparison}
     \begin{tabular}{llcc}
         \toprule
-        \textbf{System}                & \textbf{LLM Role} & \textbf{Evaluation Task} & \textbf{Decision Time / Accuracy}\footnote{Reported metrics are compiled from different experimental setups and benchmarks.} \\
+        \textbf{System}                & \textbf{LLM Role} & \textbf{Evaluation Task} & \textbf{Decision Time / Accuracy}\footnote{Reported metrics are compiled from different experimental setups and benchmarks. Our system's 97ms replay latency and 94.1\% accuracy are evaluated under the simulated replay harness.} \\
         \midrule
         LACE~\cite{lace2025}           & Policy \& Decisions & NL Policy Translation & Runtime (2.66s) / 88\% (runtime)    \\
         CollabIoT~\cite{shastri2025llmdrivenautoconfigurationtransient} & Policy generation & Offline Auto-Config & Offline (7.07--22.41s) / 100\% (policy)    \\
-        \textbf{Ours (Hybrid)}         & Runtime decisions & Contextual SIEM Alerts & Runtime (97ms) / 94.1\% (runtime)  \\
+        \textbf{Ours (Hybrid)}         & Runtime decisions & Contextual SIEM Alerts & Replay (97ms) / 94.1\% (accuracy)  \\
         \bottomrule
     \end{tabular}
 \end{table}
@@ -129,7 +129,7 @@ DLBAC~\cite{dlbac2022} proposes a deep-learning-based access control using neura
 RASA~\cite{rasa2021} introduced risk-aware adaptive access control using Bayesian networks. However, RASA's risk scores lack semantic transparency, making it difficult for security operators to answer the question of ``why'' a request was denied, which is a critical requirement for post-incident auditing and aligning with M0801 compliance recommendations. Our hybrid model addresses this auditable trail requirement by generating natural language reasoning reports along with each access decision.
 
 
-Multi-agent LLM frameworks~\cite{multiagent2023} have demonstrated that specialized agents can outperform monolithic general-purpose models on structured tasks. IoT-Access-Sentinel follows this pattern by separating context extraction from the policy evaluation. This design is consistent with recent risk management and secure agent work, including the NIST AI RMF~\cite{nist_airmf_2023} and CaMeL~\cite{camel2024}, which emphasize capability separation and deterministic containment.
+Multi-agent LLM frameworks~\cite{multiagent2023} have demonstrated that specialized agents can outperform monolithic general-purpose models on structured tasks. IoT-Access-Sentinel follows this pattern by separating context extraction from the policy evaluation. This design is consistent with recent risk management guidance, including the NIST AI RMF~\cite{nist_airmf_2023}, and prior work on LLM security boundaries~\cite{doshi2024llms}.
 
 
 \subsection{LLM Vulnerabilities in Cyber-Physical Systems}
@@ -148,7 +148,7 @@ The hybrid architecture implements a two-layer defense. Layer 0 performs determi
 
 \subsection{Adversarial Evaluation}\label{sec:adversarial_eval}
 
-We evaluated the robustness of the hybrid architecture against 105 synthetic red-team scenarios spanning 10 distinct attack categories. We emphasize that these results are benchmark-specific and demonstrate the effectiveness of our design under the evaluated threat model; they do not constitute a generalized security guarantee against all possible real-world evasion attempts. Table~\ref{tab:adversarial} presents the adversarial detection results.
+We evaluated the robustness of the hybrid architecture against 105 synthetic red-team scenarios spanning 10 distinct attack categories. We emphasize that these results are benchmark-specific and demonstrate the effectiveness of our design under the evaluated threat model; they do not constitute a generalized security guarantee against all possible real-world evasion attempts. This 105-scenario suite is evaluated separately from the main 204-run benchmark to provide a dedicated, high-intensity stress test of Layer 0 and Layer 1 defenses. Table~\ref{tab:adversarial} presents the adversarial detection results.
 
 \begin{table}[h]
     \centering
@@ -174,14 +174,14 @@ We evaluated the robustness of the hybrid architecture against 105 synthetic red
     \end{tabular}
 \end{table}
 
-The deterministic validator detected 66.7\% of the adversarial attempts (70/105) in Layer 0 before they could reach the LLM agents. This block rate is due to two distinct mechanisms:
+The deterministic validator detected 66.7\% of the adversarial attempts (70/105) in Layer 0 before they could reach the LLM agents. This block rate is due to two distinct validation mechanisms:
 \begin{enumerate}
-    \item \textbf{Input Sanitization and Pattern Matching}: Unicode NFKC normalization, directional/Bidi override character stripping, and regex-based blocklists directly detected and neutralized obfuscated payloads (such as Unicode RTLO and zero-width smuggling) or obvious code injections in 40 out of the 70 cases.
-    \item \textbf{Deterministic Authentication Failures}: Because the red-team requests were injected into fields like \texttt{device\_id} or \texttt{user\_id} and lacked valid session credentials (cryptographic tokens), the remaining 30 blocked requests failed the User-Device ACL checks or JWT verification pre-checks, triggering an immediate fail-secure DENY.
+    \item \textbf{Format Validation Constraints}: Strict schema and character-set constraints on identifiers (such as rejecting directional overrides or control characters) blocked 40 out of the 70 cases (including 10 Unicode RTLO attempts, 10 hidden character exploits, and 20 malformed device type strings).
+    \item \textbf{Regex-Based Pattern Matching}: Direct pattern matches against known attack signatures (such as SQL tautologies or direct injection keywords) blocked the remaining 30 cases (comprising 10 direct prompt injections, 10 role-play hijacks, and 10 payload splitting attempts).
 \end{enumerate}
 The remaining 33.3\% of attacks (35/105)—which primarily involved semantic anomalies like contextual contradiction, chain-of-thought hijacking, and metadata smuggling—bypassed Layer 0 because they appeared structurally valid and carried clean text, but were successfully detected and blocked by the Policy Agent's semantic context comparison and zero-trust prompt constraints.
 
-To address the concern of ``ceding enforcement to the LLM,” Layer 0 acts as a strict containment boundary. Every field is processed through a \texttt{normalize\_text} method using \texttt{unicodedata.normalize('NFKC')} to resolve homoglyph attacks, followed by regex stripping of directional overrides (\texttt{\textbackslash u202A-\textbackslash u202E}), Bidi Isolates (\texttt{\textbackslash u2066-\textbackslash u2069}), and zero-width control characters. Unlike LACE's formal OPA check, which occurs \textit{after} policy generation, our sentinel's formal checks occur \textit{before} the LLM sees the data, ensuring that the LLM reasons only on sanitized, canonicalized context. Under benchmark conditions, the LLM is completely bypassed for the 46\% of requests resolved by Layer 0. On the remaining 54\% of ``semantically ambiguous'' cases, our multi-agent chain (Layer 1) provides a 6.1 percentage point accuracy lift over the 88\% accuracy benchmark reported by policy-generation-only systems such as LACE.
+To address the concern of ``ceding enforcement to the LLM,” Layer 0 acts as a strict containment boundary. Every field is processed through a \texttt{normalize\_text} method using \texttt{unicodedata.normalize('NFKC')} to resolve homoglyph attacks, followed by regex stripping of directional overrides (\texttt{\textbackslash u202A-\textbackslash u202E}), Bidi Isolates (\texttt{\textbackslash u2066-\textbackslash u2069}), and zero-width control characters. Unlike LACE's formal OPA check, which occurs \textit{after} policy generation, our sentinel's formal checks occur \textit{before} the LLM sees the data, ensuring that the LLM reasons only on sanitized, canonicalized context. Under benchmark conditions, the LLM is completely bypassed for 42.2\% of requests resolved by Layer 0 pre-checks (specifically 86 out of 204 total evaluation runs, representing the ratio of Layer 0 user authorization check failures to total evaluation requests). On the remaining 57.8\% of ``semantically ambiguous'' cases (118 out of 204 runs), our multi-agent chain (Layer 1) resolves context-sensitive decisions to achieve the overall 94.1\% accuracy, compared to the 82.4\% accuracy of the baseline configuration.
 
 
 
@@ -222,9 +222,9 @@ This design supports distributed enforcement at the source device rather than re
 
 \section{Evaluation Methodology}\label{sec:evaluation}
 
-We evaluated the IoT-Access-Sentinel using 102 test scenarios and 105 diversity-driven, red-team adversarial attempts. The 102 general benchmark scenarios span critical security categories: User Authorization, Attack Detection, Time/Network Policies, Device-Specific Rules, and Edge Cases.
+We evaluated the IoT-Access-Sentinel using two distinct datasets: a general functional benchmark consisting of 102 test scenarios, and a separate, dedicated red-team adversarial suite consisting of 105 diversity-driven attack attempts. The 102 general functional benchmark scenarios span critical security categories: User Authorization, Basic Evasion (representing basic regex-based SQL/XSS/prompt injection filters), Time/Network Policies, Device-Specific Rules, and Edge Cases.
 
-To ensure an unbiased evaluation, 102 general benchmark scenarios were balanced with 45 ALLOW and 57 DENY scenarios. In contrast, the 105 Red Team scenarios are 100\% DENY (105) because they focus exclusively on adversarial detection and evasion prevention.
+To ensure an unbiased evaluation, the 102 general functional benchmark scenarios were balanced with 45 ALLOW and 57 DENY scenarios (evaluated twice, yielding 204 total runs). In contrast, the separate 105 red-team adversarial scenarios are 100\% DENY because they focus exclusively on advanced evasion prevention and adversarial robustness under high-intensity attack configurations.
 
 The expected outcomes were manually validated against the security policies. Each scenario specifies the device metadata, user credentials, timestamp, and ground-truth decision (ALLOW/DENY).
 
@@ -270,9 +270,9 @@ Table~\ref{tab:overall} presents the overall performance comparison: the Hybrid 
     \end{tabular}
 \end{table}
 
-The 204 runs were generated by executing the 102 test scenarios twice: once to evaluate the end-to-end decision logic from scratch (uncached path), and once to verify that the local semantic caching layer correctly stores and returns the identical decision on repeated queries (cached path). The RBAC+Rules baseline implements deterministic user authentication, role mapping, temporal constraints, subnet filtering, and basic signature-based attack checks.
+The 204 runs were generated by executing the 102 test scenarios twice: once to evaluate the end-to-end decision logic from scratch (uncached path), and once to verify that the local semantic caching layer correctly stores and returns the identical decision on repeated queries (cached path). We note that because these repeated executions use the same underlying scenarios, they do not constitute independent samples for general statistical inference; McNemar's test is used here strictly to assess the paired performance difference between the systems across these specific verification runs. The RBAC+Rules baseline implements deterministic user authentication, role mapping, temporal constraints, subnet filtering, and basic signature-based attack checks.
 
-McNemar's test ($\chi^2$ = 16.53, p $<$ 0.001) confirms that the accuracy improvement is statistically significant at the $\alpha = 0.001$ level, allowing us to reject the null hypothesis of no difference in accuracy. The non-overlapping confidence intervals further support this conclusion.
+McNemar's test ($\chi^2 = 16.53$, $p < 0.001$) confirms that the accuracy improvement is statistically significant at the $\alpha = 0.001$ level, allowing us to reject the null hypothesis of no difference in accuracy. The non-overlapping confidence intervals further support this conclusion.
 
 \subsection{Component Comparison}
 
@@ -287,7 +287,7 @@ To characterize the contribution of the main architectural choices, we compared 
         \textbf{Configuration}        & \textbf{Accuracy} & \textbf{Key Components}          \\
         \midrule
         Deterministic-Only (Baseline) & 82.4\%            & RBAC, Time, Network, Basic Signatures \\
-        Single-Agent (LLM)            & 86.4\%            & Above + Single-Agent LLM         \\
+        Single-Agent (LLM)            & 86.3\%            & Above + Single-Agent LLM         \\
         \textbf{Hybrid (Post-Mitigation)} & \textbf{94.1\%}   & \textbf{Multi-Agent + Sanitization} \\
         \midrule
         \textbf{Mitigation Gain}     & \textbf{+11.8\%}   & Layer 0 Normalization + Strict Prompts \\
@@ -297,9 +297,9 @@ To characterize the contribution of the main architectural choices, we compared 
 
 The deterministic-only baseline achieved an accuracy of 82.4\% using standard access-control components, including user authentication, role-based authorization, time/network policies, and basic regex-based attack signatures. It performs well in structured validation but is less effective against semantic evasion and complex edge-case authorization scenarios.
 
-The single-agent LLM variant improved the accuracy to 86.4\%, suggesting that adding language-based reasoning helps in cases where deterministic rules are too rigid to resolve ambiguity. The full hybrid configuration performed best in this comparison, but its gain should be interpreted as the combined effect of multi-agent reasoning, sanitization, and deterministic pre-checks rather than the result of any single component in isolation.
+The single-agent LLM variant improved the accuracy to 86.3\%, suggesting that adding language-based reasoning helps in cases where deterministic rules are too rigid to resolve ambiguity. The full hybrid configuration performed best in this comparison, but its gain should be interpreted as the combined effect of multi-agent reasoning, sanitization, and deterministic pre-checks rather than the result of any single component in isolation.
 
-This comparison also suggests a cost--accuracy trade-off. The deterministic pre-check handles 46\% of requests without LLM invocation, which reduces the operational cost while keeping the system anchored in deterministic validation. Only ambiguous or semantically complex requests reach the multi-agent reasoning chain.
+This comparison also suggests a cost--accuracy trade-off. The deterministic pre-check handles 42.2\% of requests without LLM invocation (specifically 86 out of 204 total evaluation runs that fail the Layer 0 user authorization checks, completely bypassing Layer 1; defined as the ratio of Layer 0 user auth failures to total evaluation runs), which reduces the operational cost while keeping the system anchored in deterministic validation. Only ambiguous or semantically complex requests reach the multi-agent reasoning chain.
 
 
 \subsection{Category-Wise Performance Analysis}
@@ -322,16 +322,16 @@ Figure~\ref{fig:performance_chart} shows where the hybrid LLM system provides th
                 column sep=1.5ex % Added horizontal spacing between legend items
             },
             ylabel={Accuracy (\%)},
-            symbolic x coords={Adversarial, Synthetic, Edge Cases, Time/Network, User Auth},
+            symbolic x coords={Basic Evasion (Subset), Synthetic, Edge Cases, Time/Network, User Auth},
             xtick=data,
             ymin=0, ymax=115, % Reduced ymax from 125 to 115 to reduce wasted top space
             ytick={0,20,40,60,80,100},
         ]
         % RBAC+Rules Baseline Data
-        \addplot[fill=gray!40] coordinates {(Adversarial,71.4) (Synthetic,85.2) (Edge Cases,50.0) (Time/Network,50.0) (User Auth,100.0)};
+        \addplot[fill=gray!40] coordinates {(Basic Evasion (Subset),71.4) (Synthetic,85.2) (Edge Cases,50.0) (Time/Network,50.0) (User Auth,100.0)};
         
         % Hybrid LLM Data
-        \addplot[fill=black!80, text=black] coordinates {(Adversarial,71.4) (Synthetic,95.1) (Edge Cases,100.0) (Time/Network,100.0) (User Auth,100.0)};
+        \addplot[fill=black!80, text=black] coordinates {(Basic Evasion (Subset),71.4) (Synthetic,95.1) (Edge Cases,100.0) (Time/Network,100.0) (User Auth,100.0)};
         
         \legend{RBAC+Rules Baseline, Hybrid LLM}
         \end{axis}
@@ -342,7 +342,7 @@ Figure~\ref{fig:performance_chart} shows where the hybrid LLM system provides th
 
 Both the hybrid system and the RBAC+Rules baseline achieved 100.0\% accuracy (12/12 correct) on the user authorization test suite. This result is expected because deterministic validation in Layer 0 (user-device allowlist matching) is shared between both systems and is evaluated before routing to the LLM. 
 
-On the adversarial red-team dataset under standard rule checks, both systems achieved 71.4\% accuracy (10/14 correct), as the baseline's basic signature filters successfully blocked direct prompt injections, SQLi, and RTLO obfuscations that matched regex patterns. 
+On the basic evasion subsuite within the main benchmark (comprising 14 runs of the 7 manifest scenarios, labeled as \texttt{Basic Evasion (Subset)} in Figure~\ref{fig:performance_chart}), both systems achieved 71.4\% accuracy (10/14 correct). In these runs, the baseline's signature filters blocked direct prompt injections, SQLi, and RTLO obfuscations that matched basic regex patterns. We emphasize that this manifest-pinned basic evasion subset is evaluated as part of the general functional 204-run benchmark (corresponding to scenarios in the repository under \texttt{evaluation/red\_team/}) and is completely distinct from the dedicated 105-scenario adversarial red-team suite discussed in Section~\ref{sec:adversarial_eval}. 
 
 The hybrid system's semantic reasoning provided a substantial accuracy lift on synthetic device policies (95.1\% vs. 85.2\% for the baseline) and resolved all ambiguous edge cases and time/network scheduled policy boundaries (100.0\% accuracy vs. 50.0\% for the baseline rule engine), illustrating where language-based context analysis is most beneficial.
 
@@ -385,7 +385,7 @@ The Semantic Caching Layer (detailed in Section~\ref{sec:decision_pipeline}) can
 
 The hybrid system defaults to DENY for API timeouts or internal pipeline failures. Although these fail-secure actions (34 instances out of 137 initiated requests) temporarily impact availability, they reduce the risk of unauthorized access during transient system instability. In the 102 completed scenarios (204 total runs), all ``should-DENY'' requests were correctly blocked by the hybrid system, compared with 82.4\% for the RBAC+Rules baseline. In this setting, reduced availability does not necessarily imply weaker access control.
 
-In our targeted red-team evaluation (Section~\ref{sec:adversarial_eval}, Table~\ref{tab:adversarial}) consisting of 105 high-intensity scenarios, initial LLM configurations failed against sophisticated prompt injection attacks. After the structural mitigations were added, the hybrid system handled all evaluated evasion attempts, indicating improved resistance when semantic bounds were enforced.
+In our separate targeted red-team evaluation (Section~\ref{sec:adversarial_eval}, Table~\ref{tab:adversarial}) consisting of 105 high-intensity scenarios, initial LLM configurations failed against sophisticated prompt injection attacks. After the structural mitigations were added, the hybrid system handled all evaluated evasion attempts, indicating improved resistance when semantic bounds were enforced.
 
 The post-mitigation behavior reflects the system's structural reliance on the deterministic Layer 0 to filter malformed payloads, combined with strict LLM data bounding. This defense-in-depth approach supports the reliability of the system under adversarial conditions.
 
@@ -395,7 +395,7 @@ Table~\ref{tab:performance} summarizes the runtime performance.
 
 \begin{table}[h]
     \centering
-    \caption{Runtime Performance and Resource Usage}
+    \caption{Simulated Performance and Resource Profile (Replay Harness)}
     \label{tab:performance}
     \begin{tabular}{lc}
         \toprule
@@ -408,15 +408,15 @@ Table~\ref{tab:performance} summarizes the runtime performance.
         Throughput (5 concurrent)       & 31.5 RPS       \\
         Memory Usage                    & 94 MB          \\
         CPU Utilization                 & $<$1\%         \\
-        LLM Calls Saved (Deterministic) & 46\%           \\
+        LLM Calls Saved (Deterministic) & 42.2\%         \\
         API Success Rate                & 75.2\%         \\
         \bottomrule
     \end{tabular}
 \end{table}
 
-To evaluate the latency, throughput, and resource footprint, we ran the decision engine on a local test machine equipped with an AMD Ryzen 7 5800X CPU (8 cores, 3.8 GHz) and 32 GB DDR4 RAM. The external LLM queries utilized the cloud-based Groq API service running Llama 3.1 8B Instant. End-to-end latency was measured using Python's \texttt{time.perf\_counter()}, capturing the time from when the FastAPI webhook received the alert payload to when the final enforcer action was resolved. The sub-millisecond ($<$1 ms) latency for deterministic validation and semantic cache hits is due to local processing without making any network calls to the external LLM API. The throughput of 31.5 RPS was reported by the simulated replay harness under a concurrent load of 5 threads over a duration of 5 seconds, capturing network overhead and the transient API throttling described in Section~\ref{sec:safety_metrics}. This throughput figure should therefore be read as a reproducibility trace for the synthetic replay, not as an independently instrumented live load-test result.
+Rather than live edge deployment measurements, we evaluate the latency, throughput, and resource footprint using a simulated replay harness configured to mimic a local deployment node (AMD Ryzen 7 5800X CPU, 8 cores, 3.8 GHz, 32 GB DDR4 RAM). The delays for external LLM reasoning are simulated based on typical latencies observed with the cloud-based Groq API service running Llama 3.1 8B Instant. The sub-millisecond ($<$1 ms) latency for deterministic validation and semantic cache hits is due to local processing without making any network calls to the external LLM API. The reported throughput of 31.5 RPS and 34 timeouts were generated by the simulated replay harness running a concurrent load of 5 threads over 5 seconds under transient API throttling conditions. This throughput figure and all resource metrics should therefore be read as reproducibility traces of the synthetic replay simulation, not as live hardware deployment measurements.
 
-The latency breakdown shows that 46\% of requests are resolved in under 1ms via deterministic validation, whereas camera scenarios requiring full LLM context analysis average 156ms. Sensor scenarios, involving simpler policies, complete in 38ms. The 31.5 RPS throughput under concurrent load suggests that the system can scale to potential edge proxy deployments, and the low resource usage (94MB memory, $<$1\% CPU) indicates feasibility on modest hardware.
+Within the synthetic replay simulation, the latency breakdown shows that 42.2\% of requests (defined as the 86 out of 204 evaluation runs that fail the Layer 0 user authorization checks, completely bypassing the LLM; representing the ratio of Layer 0 user auth failures to total evaluation runs) are resolved in under 1ms via deterministic local validation, whereas camera scenarios requiring full LLM context analysis are simulated with an average latency of 156ms. Sensor scenarios, involving simpler policies, are simulated at 38ms. The simulated 31.5 RPS throughput and low resource footprint (94MB memory, $<$1\% CPU) suggest the theoretical feasibility of processing moderate concurrent volumes on a single gateway node. These performance profiles are documented in the repository under \texttt{results/stress\_test\_results.json} and \texttt{results/performance\_results.json}; they do not represent live deployment measurements on actual physical IoT hardware.
 
 
 \section{Discussion}
@@ -443,15 +443,15 @@ Sending sensitive IoT metadata (e.g., user IDs and geolocation) to third-party A
 
 \subsection{Deployment Considerations}
 
-The Wazuh agent (ossec-agent) has relatively modest resource requirements, typically fitting within 8--32 MB of RAM, requiring only a small amount of storage, and operating over intermittent connectivity because logs are buffered locally~\cite{wazuh2024}. This suggests the feasibility of many higher-end IoT devices, including smart cameras, industrial sensors, and edge gateways. In contrast, ultra-constrained devices, such as Arduino-class boards or ESP8266 nodes, would likely require gateway proxy deployment rather than direct agent installation.
+The Wazuh agent (ossec-agent) has relatively modest resource requirements, typically requiring about 35 MB of RAM on average, requiring only a small amount of storage, and operating over intermittent connectivity because logs are buffered locally~\cite{wazuh2024}. This suggests the feasibility of many higher-end IoT devices, including smart cameras, industrial sensors, and edge gateways. In contrast, ultra-constrained devices, such as Arduino-class boards or ESP8266 nodes, would likely require gateway proxy deployment rather than direct agent installation.
 
 A production rollout would still require firewall configuration for enforcement targets, authenticated manager connections, and explicit validation of fail-safe behavior in the event of network partitions. For constrained environments, a reverse proxy gateway running Wazuh agents remains a practical option because it centralizes enforcement while reducing per-device overhead.
 
-\subsection{Limitations}
+\subsection{Limitations and External Validity}
 
-A key limitation of this study is that our evaluation relies on simulated Wazuh alerts generated from synthetic scenarios rather than live edge network traffic. This limits the generalizability of our performance and security findings to actual physical deployments. The benchmark also relies on author-defined threat models and policy rules; therefore, the results do not necessarily generalize to other datasets or production operator workflows.
+A key limitation of this study is the restricted external validity of the evaluation. Because our benchmark relies entirely on simulated Wazuh alerts generated from synthetic scenarios rather than live edge network traffic, we cannot guarantee that the observed accuracy or safety metrics will generalize to real-world operator deployments. Real-world IoT traffic contains significantly higher noise, transient network errors, protocol variances, and edge-case behaviors that are not captured in our controlled synthetic dataset. Therefore, the results should not be interpreted as demonstrating production-grade readiness.
 
-The study is further limited by its narrow scope: it uses a single LLM model (Llama 3.1 8B via the Groq cloud API), depends entirely on external API availability and network connectivity, and evaluates only high-level access-control policies. Lower-level concerns, such as device firmware updates, encryption protocols, and network layer exploits, were not considered in this work.
+Additionally, the reliance on a cloud-based LLM path (Llama 3.1 8B via the Groq API) introduces substantial concerns regarding latency, operational costs, and availability. In a real-world deployment, WAN latency, API rate limits, and network partitions would directly impact the system's availability, which our synthetic evaluation can only simulate rather than physically measure. Furthermore, our evaluation does not run on actual physical IoT hardware, which may have severe computational, memory, and energy constraints that preclude the direct execution of Wazuh agents or local decision engines. Future validation on physical edge testbeds with real network traces is required to assess the sentinel's practical feasibility. The study is also limited by its narrow scope: it uses a single LLM model, depends entirely on external API availability and network connectivity, and evaluates only high-level access-control policies. Lower-level concerns, such as device firmware updates, encryption protocols, and network layer exploits, were not considered in this work.
 
 \subsection{Future Work}
 
@@ -461,9 +461,7 @@ The next direction is to fine-tune smaller, local domain-specific models for IoT
 
 Another possible direction is to combine runtime reasoning with CollabIoT-style formal token models through Semantic Leases so that the LLM handles only semantic validation while a lightweight edge controller performs enforcement.
 
-\subsection{Reproducibility and Open-Source Artifacts}
 
-To facilitate independent auditing and reproducibility, the complete benchmark suite, baseline configurations, multi-agent prompts, and evaluation scripts are publicly available at \texttt{https://github.com/ahmed-fouad-lagha/IoT-Access-Sentinel}. The reported metrics correspond to repository commit hash \texttt{8d2f7a9e} (using random seed \texttt{42} for data generation). The 204-run benchmark comparison is pinned by the explicit manifest file \texttt{evaluation/benchmark\_manifest\_204.txt}. All core accuracy, ablation, and safety metrics can be reproduced by running the canonical evaluation script \texttt{python3 scripts/02\_evaluate\_system.py --mode rbac}, which reads that manifest, followed by the analysis harness \texttt{python3 scripts/03\_analyze\_results.py --mode all}. The high-concurrency stress test metrics (34 timeouts/75.2\% availability) can be regenerated using the concurrent simulation harness \texttt{python3 scripts/05\_run\_stress\_test.py --mode simulate}, which saves the output statistics to \texttt{results/stress\_test\_results.json}.
 
 \section{Conclusion}
 
@@ -475,6 +473,19 @@ This research was supported by the Eötvös Loránd University. We thank the Waz
 
 \section*{Declaration on Generative AI}
 During the preparation of this work, the author(s) used Llama 3.1 and Groq to run access control evaluation scenarios and generate decision metrics as part of an experimental framework. Furthermore, generative AI was used for proofreading and grammatical refinement of the manuscript. After using these tool(s)/service(s), the author(s) reviewed and edited the content as needed and took full responsibility for the publication’s content.
+
+\appendix
+
+\section{Reproducibility and Open-Source Artifacts}
+
+To facilitate independent auditing, validation, and extensions, the complete benchmark suite, multi-agent configurations, evaluation scripts, and raw execution logs are publicly hosted on GitHub at \texttt{https://github.com/ahmed-fouad-lagha/IoT-Access-Sentinel}. All reported accuracy, safety, and performance metrics correspond to release version \texttt{v1.0.0} of the repository.
+
+The repository is structured to separate the core evaluation framework, the raw experimental data, and the orchestration scripts:
+\begin{itemize}
+    \item \textbf{Evaluation Suite:} The scenarios, prompt templates, and the specific 102-scenario manifest defining the balanced 204-run benchmark are located under the \texttt{evaluation/} directory.
+    \item \textbf{Canonical Results:} To account for external LLM API availability and WAN latency variations, the raw JSON execution traces representing the exact performance profiles, statistical test outputs, and safety figures reported in this study are archived under the \texttt{results/} directory. These files enable complete verification of our quantitative claims without making live external API requests.
+    \item \textbf{Execution Harnesses:} Python scripts for scenario generation, system evaluation, concurrent load simulation, and statistical analysis are organized under the \texttt{scripts/} directory, with detailed environment setup instructions provided in the repository's documentation.
+\end{itemize}
 
 \bibliography{references}
 

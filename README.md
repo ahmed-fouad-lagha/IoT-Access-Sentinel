@@ -170,7 +170,7 @@ The framework was evaluated on a comprehensive test-suite (102 functional scenar
   * **66.7% (70/105)** were blocked deterministically by **Layer 0** (using Unicode normalizations, RTLO/Bidi strip, and token validations).
   * **33.3% (35/105)** (complex semantic/context attacks) were blocked by **Layer 1**'s zero-trust prompts.
 * **Latency Profile**:
-  * **Deterministic Fast-Path**: `< 1 ms` (No LLM called; handles **46%** of incoming traffic).
+  * **Deterministic Fast-Path**: `< 1 ms` (No LLM called; handles **42.2%** of incoming traffic; specifically 86 out of 204 runs that fail Layer 0 user authorization pre-checks).
   * **Semantic Cache Hit**: `< 1 ms` (Bypasses LLM reasoning).
   * **Generative Slow-Path**: Average of **97 ms** (Camera: 156ms; Sensor: 38ms).
 * **Availability & Reliability**: Under high stress concurrent loads, Sentinel's fail-secure policy triggered **34 API timeouts**, defaulting to DENY. This demonstrates a robust safety-first security stance (0% False Permit Rate).

@@ -1,54 +1,69 @@
 ## Summary
-The manuscript presents IoT-Access-Sentinel, a two-stage IoT access-control pipeline that combines deterministic Layer 0 checks (authentication, normalization, allowlists, network/time rules) with Layer 1 multi-agent LLM reasoning for semantically ambiguous requests. The evaluation is based on a synthetic Wazuh-driven benchmark, including a red-team suite, and reports improved accuracy and prompt-injection resilience relative to a rule-based baseline.
+The manuscript presents IoT-Access-Sentinel, a two-stage IoT access-control pipeline that combines deterministic validation (token/ACL/time/network/sanitization checks) with multi-agent LLM reasoning for semantically ambiguous alerts. The repository does contain supporting artifacts for the main quantitative claims: `results/results_comparison.json`, `results/statistical_analysis_report.json`, `results/safety_metrics.json`, `results/red_team_results.json`, `results/stress_test_results.json`, and the evaluation scripts under `scripts/`.
 
-The revised draft is noticeably better scoped than a generic “LLM is secure” paper: it now states that the evaluation is synthetic, benchmark-specific, and not a general security guarantee. The remaining concerns are mostly about how strongly the results are phrased, whether the baseline is being described fairly, and whether the manifest-based benchmark protocol is being presented with enough clarity about what is actually counted.
+The paper is strongest when it frames the system as defense-in-depth with a deterministic containment boundary and when it reports paired accuracy/safety statistics rather than accuracy alone. However, several numeric claims in the manuscript are either under-supported by the stored artifacts or conflate distinct benchmark subsets, especially around red-team evaluation, latency/resource reporting, and the interpretation of the Layer 0 bypass/cost-savings numbers.
 
 ## Strengths
-- [S1] The paper now repeatedly qualifies its security claims as benchmark-specific. For example, the threat-model and adversarial-evaluation sections explicitly say the results “do not constitute a generalized security guarantee,” which is the right direction for a security paper with synthetic tests.
-- [S2] The reproducibility story is unusually concrete: the paper names the manifest file, the evaluation scripts, a commit hash, a seed, and the saved stress-test outputs. That is better evidence than a generic “code will be released” statement.
-- [S3] The baseline is not a strawman pure-RBAC comparator. The manuscript explicitly says the baseline includes authentication, time/network rules, and signature filtering, which is more defensible than comparing against role checks alone.
+- [S1] The evaluation package is unusually complete for a short systems paper: the manifest (`evaluation/benchmark_manifest_204.txt`), result JSONs under `results/`, and scripts (`scripts/02_evaluate_system.py`, `scripts/03_analyze_results.py`, `scripts/05_run_stress_test.py`, `scripts/07_generate_unmitigated_red_team.py`) are all present and align with the reproducibility section.
+- [S2] The manuscript reports paired statistics and safety metrics, not just raw accuracy; these are supported by `results/statistical_analysis_report.json` and `results/safety_metrics.json`.
+- [S3] The defense-in-depth story is coherent and code-backed: Layer 0 validation and JWT/ACL checks are implemented in `common/validation.py` and `decision_engine/validators/user_auth_validator.py`, which matches the system description in the manuscript.
 
 ## Weaknesses
-- [W1] **MAJOR:** The manuscript still occasionally overstates robustness in ways that outrun the evidence. Phrases like “100% defense rate” and “handled all evaluated evasion attempts” are too easy to read as broad security claims, even though the evidence is only for a synthetic, author-defined red-team suite. The draft does include caveats elsewhere, but the strongest summary statements should repeat those caveats so they are not misread as general guarantees.
-- [W2] **MAJOR:** The baseline is fair only if it is framed as a rule-hardened comparator, not as “production-representative” parity with the hybrid system. The code for `baseline_rbac.py` uses heuristic token checks and a lenient time parser, so the manuscript’s wording can overstate how close this baseline is to a real security gateway. The baseline label itself is acceptable; the stronger claim about production representativeness is the problem.
-- [W3] **MAJOR:** The manifest-backed benchmark protocol has hidden scope and independence issues. The manifest includes a non-scenario `summary.json` artifact, and the evaluation script duplicates each file twice, so the raw 204-run count is not the effective sample size. If the paper is using those repeated runs in significance testing and accuracy reporting, it should say so explicitly and report the filtered scenario count after skipping non-scenario entries.
-- [W4] **MINOR:** The reproducibility claim is slightly overconfident if it implies that commit hash + seed fully pin the hybrid results. The hybrid pipeline depends on an external LLM API, so a seed does not freeze model revisions, backend routing, or sampling behavior. The reproducibility section should scope this more carefully to stored result files or a frozen API snapshot.
+- [W1] **MAJOR:** The manuscript conflates two different “red-team” evaluations. The 71.4% figure in the Results section (`10/14 correct`) comes from the 7 red-team files in `evaluation/benchmark_manifest_204.txt` duplicated into 14 runs in `results/results_comparison.json`, not from the separate 105-scenario adversarial robustness suite in `results/red_team_results.json`. The text should explicitly distinguish these benchmarks; otherwise the reader can easily misread the 71.4% result as covering the 105-attack suite.
+- [W2] **MAJOR:** The claimed Layer 0 decomposition is not supported by the stored red-team artifact. The manuscript says the 70 blocked attacks were split into “40” sanitization/pattern-matching cases and “30” auth/JWT failures, but `results/red_team_results.json` records a different reason breakdown (e.g., `Invalid device_type format`, `Invalid device_id format`, `Invalid user_id format`, `Injection detected: prompt_injection`, `role_hijack`, `sql_tautology`) and does not expose a separate auth/JWT bucket. Likewise, the “46% bypass” / “without LLM invocation” language is inferred from `results/ablation_results.json`, not directly measured from routing logs.
+- [W3] **MAJOR:** The runtime/resource claims are only partially evidenced. `results/stress_test_results.json` supports 97 ms average latency, 31.5 RPS, and 34 timeouts, but the manuscript’s camera/sensor breakdown (156 ms / 38 ms) and resource numbers (94 MB memory, <1% CPU) do not appear in any JSON under `results/`. Moreover, `scripts/05_run_stress_test.py` hard-codes average latency/throughput in simulate mode, so these are synthetic replay traces rather than independently instrumented measurements.
+- [W4] **MAJOR:** The baseline is not a plain RBAC baseline, but a much stronger `RBAC+Rules Baseline` including auth-token checks, user-device ACLs, CIDR/time rules, and regex-based signature filters. That is defensible if positioned as a hardened gateway baseline, but it weakens the manuscript’s implicit comparison to “traditional RBAC” and should be presented more carefully to avoid overstating the improvement.
+- [W5] **MINOR:** The benchmark scope is under-specified: `evaluation/synthetic/summary.json` reports 145 generated scenarios, while the manuscript only discusses 102 general benchmark scenarios. The manifest (`evaluation/benchmark_manifest_204.txt`) pins the 102 used files, but the paper does not explain the selection rule from the larger generator corpus. This makes the 102-scenario claim reproducible only if the reader infers the subset from the manifest.
 
 ## Questions for Authors
-- [Q1] After filtering the manifest, how many entries are actual scored scenarios versus auxiliary artifacts like `summary.json`?
-- [Q2] Were the duplicated cached/uncached passes used only for cache verification, or did they also enter the headline accuracy and McNemar analysis? If they did, how do you justify the implied dependence structure?
-- [Q3] Can you clarify which specific baseline behaviors are heuristic shortcuts rather than cryptographic or formally validated checks?
-- [Q4] Which exact external LLM/version produced the reported results, and are the released result files sufficient to reproduce the same numbers if the API behavior changes later?
+- [Q1] Which artifact contains the camera-vs-sensor latency breakdown and the 94 MB / <1% CPU measurements? If none exists, should those numbers be removed or clearly labeled as unpublished console output?
+- [Q2] Can you provide direct routing evidence for the “46% of requests resolved without LLM invocation” claim, rather than inferring it from the baseline correct-DENY count in `results/ablation_results.json`?
+- [Q3] How were the 102 benchmark scenarios selected from the 145 scenarios reported in `evaluation/synthetic/summary.json`? Was the subset fixed before evaluation, or derived post hoc?
+- [Q4] Should the paper rename the 7-file manifest subset to avoid reusing “red-team” for both the 14-run comparison and the 105-scenario attack suite?
 
 ## Verdict
-Borderline accept for a workshop-style venue such as ITAT/CEUR, provided W1–W3 are tightened. As written, it is not yet strong enough for a top-tier security venue because the strongest robustness and reproducibility claims remain a little too loose. Confidence: 0.81.
+Overall: weak reject / major revision. Confidence: 0.87. The artifact package is promising and the core accuracy/safety numbers are mostly reproducible, but the manuscript currently overreaches on several evidence-linked claims. It would likely be borderline for a workshop/short-paper venue after clarification, but not ready for a stronger venue in its current form.
 
 ## Revision Plan
-1. Rewrite the highest-level robustness statements so they always include the benchmark scope.
-2. Recast the baseline as “RBAC+rules” and explicitly distinguish heuristic checks from deterministic/authenticated checks.
-3. Explain the manifest filtering and the duplicated-pass protocol, and report the effective number of scored scenarios after filtering.
-4. Add a reproducibility note that external LLM variability is not fixed by the repository seed alone.
+1. Separate the two red-team benchmarks throughout the paper: the 14-run manifest subset vs. the 105-scenario adversarial suite.
+2. Replace or qualify unsupported latency/resource claims, or add a machine-readable artifact that records them.
+3. Recompute or restate the Layer 0 bypass/cost-savings narrative using direct routing logs, not baseline-derived inference.
+4. Reframe the baseline as a hardened rules+auth gateway, or add a truly plain-RBAC baseline for context.
+5. Document how the 102 benchmark scenarios were selected from the 145-scenario synthetic generator corpus.
 
 ## Inline Annotations
 
-> “Evaluating the system on a synthetic benchmark, we show that while the LLM reasoning layer alone is vulnerable to prompt injection, pairing a deterministic validation pre-filter with strict semantic delimiters improves robustness under the benchmark threat model.”
-**[W1] MAJOR:** Good caveat, but the rest of the paper still uses stronger language like “100% defense rate” and “handled all evaluated evasion attempts.” Please keep the benchmark limitation attached whenever robustness is summarized.
+> "The 102 general benchmark scenarios were balanced with 45 ALLOW and 57 DENY scenarios."
+**[W5] MINOR:** The repository also contains `evaluation/synthetic/summary.json`, which reports 145 generated scenarios. Please explain how the 102 benchmark cases were selected from the larger corpus, or archive the exact selection script/output so this is reproducible.
 
-> “This baseline represents a modern, security-hardened API gateway capability, rather than a plain RBAC model that only evaluates user roles.”
-**[W2] MAJOR:** The baseline is indeed more than plain RBAC, but the code is still heuristic in places (for example, token checks are not cryptographic JWT verification, and malformed timestamps can be treated leniently). “Security-hardened” is stronger than the implementation supports.
+> "On the adversarial red-team dataset under standard rule checks, both systems achieved 71.4\% accuracy (10/14 correct), as the baseline's basic signature filters successfully blocked direct prompt injections, SQLi, and RTLO obfuscations that matched regex patterns."
+**[W1] MAJOR:** This is a different dataset from the 105-scenario attack suite in `results/red_team_results.json`. The 71.4% figure comes from the 7 manifest red-team files duplicated into 14 runs via `evaluation/benchmark_manifest_204.txt` / `results/results_comparison.json`. Please rename or split the benchmark language so readers do not conflate the two.
 
-> “The 204-run benchmark comparison is pinned by the explicit manifest file `evaluation/benchmark_manifest_204.txt`.”
-**[W3] MAJOR:** The manifest is not a pure list of scored scenarios: it includes `summary.json`, and the runner skips files without `expected_decision`. Also, each scenario is duplicated for cached/uncached replay, so the raw run count should not be treated as an independent sample size.
+> "This block rate is due to two distinct mechanisms: ... 40 out of the 70 cases ... the remaining 30 blocked requests failed the User-Device ACL checks or JWT verification pre-checks, triggering an immediate fail-secure DENY."
+**[W2] MAJOR:** `results/red_team_results.json` does not support this 40/30 decomposition. The stored reasons are validation failures such as `Invalid device_type format`, `Invalid device_id format`, `Invalid user_id format`, and injection detections; there is no separate auth/JWT bucket in the artifact.
 
-> “The reported metrics correspond to repository commit hash `8d2f7a9e` (using random seed `42` for data generation).”
-**[W4] MINOR:** The seed helps with scenario generation, but it does not pin external LLM behavior or API revisions. If reproducibility matters, specify the exact model/API snapshot or point to the stored result files as the canonical artifact.
+> "The latency breakdown shows that 46\% of requests are resolved in under 1ms via deterministic validation, whereas camera scenarios requiring full LLM context analysis average 156ms. Sensor scenarios, involving simpler policies, complete in 38ms. The 31.5 RPS throughput observed in the simulated load harness suggests that the system can process moderate concurrent request volumes on a single gateway node, and the low resource usage (94MB memory, $<$1\% CPU) indicates feasibility on modest hardware."
+**[W3] MAJOR:** Only the 97 ms / 31.5 RPS / 34-timeout replay is stored in `results/stress_test_results.json`; the camera/sensor split and memory/CPU numbers are not present in `results/`, and `scripts/05_run_stress_test.py` hard-codes the simulated averages. Treat these as synthetic traces unless you add a raw measurement artifact.
+
+> "This baseline represents a modern, security-hardened API gateway capability, rather than a plain RBAC model that only evaluates user roles."
+**[W4] MAJOR:** This is fine as positioning, but it is not a plain RBAC baseline. The manuscript should avoid implying a direct RBAC-vs-LLM comparison when the baseline also includes authentication, ACLs, time/network rules, and regex signatures.
+
+> "The reported metrics correspond to repository commit hash \texttt{8e322ee} and scenario-generation seed \texttt{42}."
+**[Q3]:** The commit hash appears to exist, but the paper should still point readers to the exact files that encode the benchmark subset and generation procedure, not just the hash and seed.
 
 ## Sources
-- `file:///home/lagha/PhD/projects/IoT-Access-Sentinel/manuscript/main_ceur.tex`
-- `file:///home/lagha/PhD/projects/IoT-Access-Sentinel/README.md`
-- `file:///home/lagha/PhD/projects/IoT-Access-Sentinel/decision_engine/baseline_rbac.py`
-- `file:///home/lagha/PhD/projects/IoT-Access-Sentinel/decision_engine/validators/user_auth_validator.py`
-- `file:///home/lagha/PhD/projects/IoT-Access-Sentinel/decision_engine/decision_pipeline.py`
-- `file:///home/lagha/PhD/projects/IoT-Access-Sentinel/common/validation.py`
-- `file:///home/lagha/PhD/projects/IoT-Access-Sentinel/evaluation/benchmark_manifest_204.txt`
-- `file:///home/lagha/PhD/projects/IoT-Access-Sentinel/scripts/02_evaluate_system.py`
+- file:///home/lagha/PhD/projects/IoT-Access-Sentinel/manuscript/main_ceur.tex
+- file:///home/lagha/PhD/projects/IoT-Access-Sentinel/results/results_comparison.json
+- file:///home/lagha/PhD/projects/IoT-Access-Sentinel/results/results_comparison_single_agent.json
+- file:///home/lagha/PhD/projects/IoT-Access-Sentinel/results/statistical_analysis_report.json
+- file:///home/lagha/PhD/projects/IoT-Access-Sentinel/results/safety_metrics.json
+- file:///home/lagha/PhD/projects/IoT-Access-Sentinel/results/red_team_results.json
+- file:///home/lagha/PhD/projects/IoT-Access-Sentinel/results/red_team_results_unmitigated.json
+- file:///home/lagha/PhD/projects/IoT-Access-Sentinel/results/ablation_results.json
+- file:///home/lagha/PhD/projects/IoT-Access-Sentinel/results/stress_test_results.json
+- file:///home/lagha/PhD/projects/IoT-Access-Sentinel/evaluation/benchmark_manifest_204.txt
+- file:///home/lagha/PhD/projects/IoT-Access-Sentinel/evaluation/synthetic/summary.json
+- file:///home/lagha/PhD/projects/IoT-Access-Sentinel/scripts/02_evaluate_system.py
+- file:///home/lagha/PhD/projects/IoT-Access-Sentinel/scripts/03_analyze_results.py
+- file:///home/lagha/PhD/projects/IoT-Access-Sentinel/scripts/05_run_stress_test.py
+- file:///home/lagha/PhD/projects/IoT-Access-Sentinel/scripts/07_generate_unmitigated_red_team.py
