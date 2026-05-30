@@ -105,13 +105,30 @@ logger -t iot-access "sensor device_id=sensor-temp-01 src_ip=192.168.2.50 dst_ip
 logger -t iot-access "camera src_ip=192.168.1.150 dst_ip=10.0.0.1:443 proto=HTTPS"
 ```
 
-## Integration with IoT-Access-Sentinel
+## Active Response Enforcement
 
-Once installed, these rules will:
-1. Parse IoT device logs
-2. Classify by device type
-3. Check against network/time policies
-4. Generate alerts with appropriate severity
-5. Forward to IoT-Access-Sentinel API for LLM decision
+IoT-Access-Sentinel triggers Wazuh Active Response based on access control decisions.
 
-The alert structure matches our `IoTAccessAlert` schema, making integration seamless.
+### 1. Default Responses
+The system leverages built-in Wazuh scripts for most actions:
+- **BLOCK_IP**: Triggers `firewall-drop` script (add/delete block rules).
+- **ISOLATE_DEVICE**: Triggers `firewall-drop` script for complete traffic isolation.
+
+### 2. Custom Responses (Traffic Shaping)
+- **RATE_LIMIT**: Attempts to trigger a custom `traffic-control` script.
+- **Note**: This script is NOT provided by default in Wazuh. Users must deploy a custom binary or script to `/var/ossec/active-response/bin/traffic-control` on their IoT agents or gateways to handle QoS/shaping.
+
+**Example `traffic-control` logic (Linux `tc`):**
+```bash
+#!/bin/bash
+# Basic traffic shaping script
+ACTION=$1
+IP=$2
+LIMIT=$3
+
+if [ "$ACTION" == "limit" ]; then
+  # Apply tc rules for rate limiting
+  logger "Rate limiting $IP to $LIMIT"
+  # (Actual tc commands here)
+fi
+```

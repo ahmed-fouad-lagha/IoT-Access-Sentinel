@@ -237,7 +237,7 @@ class EnforcementActions:
 
         try:
             # Send active response to Wazuh for traffic shaping
-            # Command: traffic-control (custom script would be needed on agent)
+            # Command: traffic-control (NOTE: This requires a custom script on the Wazuh agent)
             # This is a best-effort attempt to apply QOS/shaping
             
             response = await self.wazuh_connector.send_active_response(

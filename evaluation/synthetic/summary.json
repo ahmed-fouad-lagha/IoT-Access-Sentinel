@@ -1,19 +1,20 @@
 {
-  "generated_at": "2026-05-24T23:33:12.539078",
-  "total_scenarios": 145,
-  "categories": {
-    "camera_valid": 20,
-    "camera_violations": 15,
-    "sensors": 20,
-    "attacks_basic": 20,
-    "user_auth_valid": 15,
-    "user_auth_unauth": 15,
-    "system_wildcard": 5,
-    "boundary_time": 10,
-    "weekend_violations": 5,
-    "missing_userid": 10,
-    "invalid_tokens": 10
-  },
-  "expected_allow": 61,
-  "expected_deny": 84
+  "generator_output_info": {
+    "generated_at": "2026-05-24T23:33:12.539078",
+    "description": "Summary of the raw synthetic scenario pool. Note: The final evaluation benchmark uses a filtered, balanced subset of 102 unique scenarios defined in evaluation/benchmark_manifest_204.txt.",
+    "total_pool_scenarios": 145,
+    "pool_categories": {
+      "camera_valid": 20,
+      "camera_violations": 15,
+      "sensors": 20,
+      "attacks_basic": 20,
+      "user_auth_valid": 15,
+      "user_auth_unauth": 15,
+      "system_wildcard": 5,
+      "boundary_time": 10,
+      "weekend_violations": 5,
+      "missing_userid": 10,
+      "invalid_tokens": 10
+    }
+  }
 }

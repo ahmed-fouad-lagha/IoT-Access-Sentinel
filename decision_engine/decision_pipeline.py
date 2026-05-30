@@ -20,6 +20,7 @@ from tenacity import retry, stop_after_attempt, wait_exponential
 from config.settings import Settings
 from common.schemas import AccessDecision
 from common.logging_config import get_logger
+from common.validation import sanitize_secrets
 from .agents import call_policy_agent, call_context_agent
 from .llm_client import get_llm_client
 from .validators import get_user_auth_validator
@@ -195,7 +196,8 @@ class DecisionPipeline:
             dest_port = alert.destination_port or "unknown"
             protocol = alert.protocol or "unknown"
             rule_desc = alert.rule.description or "unknown"
-            time_bucket = datetime.now().strftime("%Y-%m-%d-%H")
+            # Increased granularity to minute-level to match sub-hour policy boundaries
+            time_bucket = datetime.now().strftime("%Y-%m-%d-%H-%M")
             
             # Use SHA-256 hash of JSON serialized fields to prevent cache poisoning
             key_data = json.dumps([device_type, device_id, user_id, source_ip, dest_ip, dest_port, protocol, rule_desc, time_bucket])
@@ -219,11 +221,15 @@ class DecisionPipeline:
             
             # Step 1: Context Analysis
             if self.use_single_agent:
-                # Single-agent mode: bypass Context Agent and pass default values
+                # Single-agent mode: bypass Context Agent and derive risk from rule level
+                # Map rule level (0-15) to risk score (0.0-1.0)
+                rule_level = alert.rule.level or 5
+                risk_score = min(1.0, rule_level / 15.0)
+                
                 context_analysis = {
-                    "risk_score": 0.5,
+                    "risk_score": risk_score,
                     "anomalies_detected": [],
-                    "context_summary": "Single-Agent Mode: Raw alert evaluated directly by Policy Agent."
+                    "context_summary": f"Single-Agent Mode: Raw alert evaluated directly by Policy Agent. Risk derived from rule level {rule_level}."
                 }
             else:
                 try:
@@ -316,7 +322,7 @@ class DecisionPipeline:
             protocol=alert.protocol or 'Unknown',
             timestamp=alert.timestamp,
             current_time=datetime.now().isoformat(),
-            rule_description=alert.rule.description,
+            rule_description=sanitize_secrets(alert.rule.description),
             rule_level=alert.rule.level
         )
         
@@ -367,7 +373,7 @@ class DecisionPipeline:
             session_id=alert.session_id or 'N/A',
             risk_score=context.get('risk_score', 0.5),
             anomalies=context.get('anomalies_detected', []),
-            context_summary=context.get('context_summary', 'No context'),
+            context_summary=sanitize_secrets(context.get('context_summary', 'No context')),
             policies=policies_text
         )
         
@@ -446,8 +452,9 @@ class DecisionPipeline:
             
             return True, "PASS"
         except Exception as e:
-            logger.warning("time_policy_check_parse_failed", timestamp=timestamp, error=str(e))
-            return True, "PASS (Parse error, lenient)"
+            logger.error("time_policy_check_parse_failed", timestamp=timestamp, error=str(e))
+            # Fail-secure: DENY on parsing errors to prevent potential bypasses
+            return False, f"Time parsing error (fail-secure): {str(e)}"
 
     def _check_network_policy(self, source_ip: str, allowed_source_networks: List[str]) -> Tuple[bool, str]:
         """Check if source IP is in allowed networks (using standard ipaddress CIDR matching)"""

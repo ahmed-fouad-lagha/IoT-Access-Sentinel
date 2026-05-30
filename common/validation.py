@@ -250,33 +250,46 @@ class InputValidator:
         """
         Redact sensitive information (passwords, tokens, keys) from text
         to prevent leaking credentials to LLMs.
+        
+        Uses multi-layered redaction:
+        1. Keyword-based matching for assignment patterns (key: value)
+        2. Known credential header patterns (Authorization: Bearer ...)
+        3. High-entropy/structural pattern matching (JWTs, long hashes)
         """
         if not text:
             return text
+            
+        # 1. Keyword-based redaction (handles key=value, key: value, "key": "value", etc.)
+        # Keywords covering passwords, keys, tokens, and credentials
+        keywords = r'(?:password|passwd|pwd|api[_-]?key|token|secret|credential|auth|id[_-]?secret|private[_-]?key|access[_-]?key)'
         
-        # Redact passwords
+        # Pattern matches keyword followed by common assignment operators and then the secret value
+        # The value can be optionally wrapped in quotes or brackets. 
+        # Redacts values that are at least 8 characters long to avoid redacting short non-secret words.
+        # Group 1: keyword + separator + optional opening delimiter
+        # Group 2: optional opening delimiter (nested in 1)
+        # Group 3: the secret value (8+ chars)
+        # Group 4: optional closing delimiter
+        assignment_pattern = rf'(?i)({keywords}\s*[:=]\s*(["\'\[]?))([\w\-\.\~\+\/\\=]{{8,}})(["\'\]]?)'
+        sanitized = re.sub(assignment_pattern, r'\1***REDACTED***\4', text)
+        
+        # 2. Authorization header and common token patterns
+        # Handles "Authorization: Bearer <token>", "X-API-Key: <key>", etc.
+        auth_pattern = r'(?i)(Bearer|Basic|Token|X-API-Key|Authorization:\s*(Bearer|Basic|Token)?)\s+([\w\-\.\~\+\/\\=]{8,})'
+        sanitized = re.sub(auth_pattern, r'\1 ***REDACTED***', sanitized)
+        
+        # 3. Structural patterns for common secret formats
+        # Redact JWT-like structures (three base64 parts separated by dots)
         sanitized = re.sub(
-            r'(password|passwd|pwd)\s*[:=]\s*\S+',
-            r'\1=***REDACTED***',
-            text,
-            flags=re.IGNORECASE
+            r'\b[a-zA-Z0-9\-_]{10,}\.[a-zA-Z0-9\-_]{10,}\.[a-zA-Z0-9\-_]{10,}\b',
+            '***REDACTED_JWT***',
+            sanitized
         )
         
-        # Redact API keys and secrets
-        sanitized = re.sub(
-            r'(api[_-]?key|token|secret)\s*[:=]\s*[\w\-]+',
-            r'\1=***REDACTED***',
-            sanitized,
-            flags=re.IGNORECASE
-        )
-        
-        # Redact Authorization header Bearer tokens
-        sanitized = re.sub(
-            r'(Bearer|Authorization:\s*Bearer)\s+[\w\-\.]+',
-            r'\1 ***REDACTED***',
-            sanitized,
-            flags=re.IGNORECASE
-        )
+        # Redact long high-entropy strings (e.g., 32+ character hex or 40+ base64)
+        # Matches typical API keys, hashes, and session IDs
+        sanitized = re.sub(r'\b[a-fA-F0-9]{32,}\b', '***REDACTED_HASH***', sanitized)
+        sanitized = re.sub(r'\b[a-zA-Z0-9\/\+=]{40,}\b', '***REDACTED_SECRET***', sanitized)
         
         return sanitized
     

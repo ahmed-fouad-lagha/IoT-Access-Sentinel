@@ -1,0 +1,21 @@
+{
+  "id": "noisy-camera-anomaly-001",
+  "timestamp": "2026-05-30T23:15:42.123Z",
+  "rule": {
+    "level": 10,
+    "description": "High-frequency connection attempt detected. Possible botnet activity or configuration error. Payload contains high-entropy character sequences: \u001b[31mERROR\u001b[0m 0xDEADBEEF system_fault=1. Connection origin matches known darknet egress pool according to threat intelligence module TI-442.",
+    "id": "100201",
+    "firedtimes": 142
+  },
+  "device_id": "camera-lobby-01",
+  "device_type": "camera",
+  "source_ip": "45.9.20.11",
+  "destination_ip": "192.168.1.50",
+  "destination_port": "8080",
+  "protocol": "HTTP/1.1",
+  "user_id": "alice@company.com",
+  "auth_token": "valid_session_token_jwt_0x112233",
+  "expected_decision": "DENY",
+  "test_category": "Noisy Context Anomaly",
+  "description": "A high-entropy, noisy SIEM alert containing terminal escape sequences, hex codes, and threat intel references. Validates the Context Agent's ability to extract semantic meaning from unstructured, 'dirty' log data."
+}

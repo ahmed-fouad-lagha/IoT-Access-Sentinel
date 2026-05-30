@@ -1,6 +1,31 @@
-## Test Scenarios
+# Evaluation & Benchmarking
 
-### Camera Tests (5 scenarios)
+IoT-Access-Sentinel includes two main evaluation paths: a quick **Smoke Test** for functional verification and a **Full Benchmark** representing the paper's core results.
+
+## 1. Full 204-run Benchmark (Paper Results)
+
+This is the canonical evaluation path described in the manuscript. It consists of 102 unique scenarios (including Red-Team attacks) executed twice to verify consistency and caching behavior.
+
+**How to Run:**
+```bash
+# Ensure server is running
+bash evaluation/run_tests.sh --full
+```
+
+**Manifest:** The specific scenarios used are defined in `evaluation/benchmark_manifest_204.txt`. Results are archived in `results/results_comparison.json`.
+
+---
+
+## 2. Smoke Test (Quick Functional Check)
+
+A lightweight test suite of 8 scenarios used for rapid development and verifying that the API is responding correctly.
+
+**How to Run:**
+```bash
+bash evaluation/run_tests.sh
+```
+
+### Smoke Test Scenarios (8 scenarios)
 
 **ALLOW Cases:**
 1. `camera_allow_1.json` - Valid camera during business hours (10:00)

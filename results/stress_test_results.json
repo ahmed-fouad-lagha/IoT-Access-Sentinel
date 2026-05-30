@@ -1,24 +1,22 @@
 {
   "metadata": {
-    "test_timestamp": "2026-05-30T09:09:01.947458Z",
+    "test_timestamp": "2026-05-30T14:54:57.659883Z",
     "mode": "simulate",
     "concurrency": 5,
-    "timeout_budget_ms": 150
+    "timeout_budget_ms": 150,
+    "note": "Metrics are measured via simulation harness."
   },
   "metrics": {
     "total_requests": 137,
-    "successful_responses": 103,
-    "api_timeouts": 34,
-    "availability_rate": 75.18248175182481,
-    "average_latency_ms": 97.0,
-    "throughput_rps": 31.5,
-    "fail_secure_denials": 34,
+    "successful_responses": 110,
+    "api_timeouts": 27,
+    "availability_rate": 80.2919708029197,
+    "average_latency_ms": 115.91836127758461,
+    "throughput_rps": 42.32549788762423,
+    "fail_secure_denials": 27,
     "false_permit_rate_under_stress": 0.0,
-    "duration_seconds": 4.349206349206349,
-    "camera_latency_ms": 156.0,
-    "sensor_latency_ms": 38.0,
+    "duration_seconds": 3.236819573008688,
     "memory_rss_mb": 94.0,
-    "cpu_percent": 0.8,
     "cpu_utilization_percent": 0.8
   }
 }
