@@ -1,0 +1,36 @@
+{
+  "description": "Latency distribution sensitivity analysis: Normal vs Log-Normal",
+  "timeout_budget_ms": 150,
+  "distributions": {
+    "normal": {
+      "timeout_rate_percent": 24.1,
+      "availability_rate": 75.91,
+      "average_latency_ms": 116.83,
+      "latency_p50_ms": 118.2,
+      "latency_p95_ms": 191.4,
+      "latency_p99_ms": 203.9,
+      "throughput_rps": 42.01,
+      "parameters": {
+        "type": "normal",
+        "mu": 115.0,
+        "sigma": 45.0
+      }
+    },
+    "lognormal": {
+      "timeout_rate_percent": 25.5,
+      "availability_rate": 74.45,
+      "average_latency_ms": 123.51,
+      "latency_p50_ms": 110.6,
+      "latency_p95_ms": 232.6,
+      "latency_p99_ms": 271.8,
+      "throughput_rps": 39.62,
+      "parameters": {
+        "type": "lognormal",
+        "mu_ln": 4.7449,
+        "sigma_ln": 0.45,
+        "theoretical_median_ms": 115.0,
+        "theoretical_mean_ms": 127.3
+      }
+    }
+  }
+}

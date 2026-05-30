@@ -1,0 +1,32 @@
+{
+  "metadata": {
+    "test_timestamp": "2026-05-30T16:40:11.818336Z",
+    "mode": "simulate",
+    "distribution": "normal",
+    "distribution_parameters": {
+      "type": "normal",
+      "mu": 115.0,
+      "sigma": 45.0
+    },
+    "concurrency": 5,
+    "timeout_budget_ms": 150,
+    "note": "Metrics are measured via simulation harness."
+  },
+  "metrics": {
+    "total_requests": 137,
+    "successful_responses": 104,
+    "api_timeouts": 33,
+    "availability_rate": 75.91,
+    "timeout_rate_percent": 24.1,
+    "average_latency_ms": 116.83,
+    "latency_p50_ms": 118.2,
+    "latency_p95_ms": 191.4,
+    "latency_p99_ms": 203.9,
+    "throughput_rps": 42.01,
+    "fail_secure_denials": 33,
+    "false_permit_rate_under_stress": 0.0,
+    "duration_seconds": 3.261,
+    "memory_rss_mb": 94.0,
+    "cpu_utilization_percent": 0.8
+  }
+}

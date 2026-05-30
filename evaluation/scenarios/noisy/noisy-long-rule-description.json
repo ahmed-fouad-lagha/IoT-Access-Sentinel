@@ -1,0 +1,22 @@
+{
+  "id": "noisy-long-rule-desc-001",
+  "timestamp": "2026-05-30T08:30:00Z",
+  "rule": {
+    "level": 9,
+    "description": "CRITICAL: Anomalous traffic pattern detected on IoT subnet 192.168.1.0/24. Source 192.168.1.200 initiated 847 connections in 60s to destination ports [443, 8080, 1883, 5672, 9200]. Top protocols: HTTPS(412), MQTT(203), AMQP(142), HTTP(90). Matched rules: 100201(botnet_detection), 100305(port_scan), 100412(lateral_movement). Agent wazuh-gw-dmz-02 reports CPU spike to 94%. Correlated with CVE-2024-21762 scanner signature (FortiGuard Labs). Previous alerts from same source in last 24h: 12. Risk score from ML module: 0.91. Action taken: temporary quarantine pending review. SIEM correlation ID: CORR-2026-05-30-0847-A3F2. Related MITRE ATT&CK techniques: T1046 (Network Service Discovery), T1571 (Non-Standard Port), T1021.001 (Remote Desktop Protocol).",
+    "id": "100501",
+    "firedtimes": 847
+  },
+  "device_id": "camera-lobby-01",
+  "device_type": "camera",
+  "source_ip": "192.168.1.200",
+  "destination_ip": "10.0.0.1",
+  "destination_port": "443",
+  "protocol": "HTTPS",
+  "user_id": "alice@company.com",
+  "auth_token": "valid-token-example",
+  "user_role": "security_admin",
+  "expected_decision": "DENY",
+  "test_category": "Noisy Realism",
+  "description": "Extremely long, detailed rule description containing port lists, protocol breakdowns, CVE references, MITRE ATT&CK techniques, ML risk scores, and SIEM correlation IDs. Tests Context Agent parsing of verbose, information-dense real-world SIEM alerts."
+}

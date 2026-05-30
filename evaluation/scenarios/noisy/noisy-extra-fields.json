@@ -1,0 +1,29 @@
+{
+  "id": "noisy-extra-fields-001",
+  "timestamp": "2026-05-30T10:15:00Z",
+  "rule": {
+    "level": 5,
+    "description": "Standard camera access request",
+    "id": "100010",
+    "firedtimes": 1,
+    "groups": ["iot", "camera", "access_control"],
+    "pci_dss": "10.2.1",
+    "gdpr": "IV_32.2"
+  },
+  "device_id": "camera-office-01",
+  "device_type": "camera",
+  "source_ip": "192.168.1.100",
+  "destination_ip": "10.0.0.1",
+  "destination_port": "443",
+  "protocol": "HTTPS",
+  "user_id": "alice@company.com",
+  "auth_token": "valid-token-example",
+  "user_role": "security_admin",
+  "agent_name": "wazuh-agent-gw01",
+  "manager_name": "wazuh-manager-prod",
+  "decoder_name": "json_decoder_v3",
+  "syscheck_changed": false,
+  "expected_decision": "ALLOW",
+  "test_category": "Noisy Realism",
+  "description": "Alert with extra unrecognized fields (groups, pci_dss, gdpr, agent_name, decoder_name, syscheck_changed) mimicking real Wazuh alert schema drift across versions."
+}

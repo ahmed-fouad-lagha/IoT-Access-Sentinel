@@ -1,0 +1,20 @@
+{
+  "id": "noisy-unicode-device-name-001",
+  "timestamp": "2026-05-30T15:00:00Z",
+  "rule": {
+    "level": 8,
+    "description": "Unrecognized device type attempting network access",
+    "id": "100099"
+  },
+  "device_id": "cam-hallway-03",
+  "device_type": "caméra",
+  "source_ip": "192.168.1.120",
+  "destination_ip": "10.0.0.1",
+  "protocol": "HTTPS",
+  "user_id": "bob@company.com",
+  "auth_token": "valid-token-bob",
+  "user_role": "operator",
+  "expected_decision": "DENY",
+  "test_category": "Noisy Realism",
+  "description": "Device type contains accented Unicode character ('caméra' instead of 'camera'). Tests NFKC normalization and policy matching when device names contain non-ASCII characters from internationalized deployments."
+}

@@ -1,0 +1,17 @@
+{
+  "id": "noisy-mixed-case-device-001",
+  "timestamp": "2026-05-30T14:30:00Z",
+  "rule": {
+    "level": 5,
+    "description": "Sensor data read request",
+    "id": "100050"
+  },
+  "device_id": "sensor-temp-01",
+  "device_type": "  Sensor  ",
+  "source_ip": "192.168.1.50",
+  "destination_ip": "10.0.0.5",
+  "protocol": "MQTT",
+  "expected_decision": "ALLOW",
+  "test_category": "Noisy Realism",
+  "description": "Device type with mixed case and leading/trailing whitespace ('  Sensor  ' instead of 'sensor'). Tests case-insensitive matching and trim handling."
+}

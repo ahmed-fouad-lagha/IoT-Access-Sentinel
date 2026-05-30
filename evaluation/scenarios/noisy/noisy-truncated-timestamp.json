@@ -1,0 +1,22 @@
+{
+  "id": "noisy-truncated-ts-001",
+  "timestamp": "2026-05-30",
+  "rule": {
+    "level": 7,
+    "description": "IoT camera access attempt from internal network segment - partial syslog forward",
+    "id": "100301",
+    "firedtimes": 3
+  },
+  "device_id": "camera-lobby-01",
+  "device_type": "camera",
+  "source_ip": "192.168.1.100",
+  "destination_ip": "10.0.0.1",
+  "destination_port": "443",
+  "protocol": "HTTPS",
+  "user_id": "alice@company.com",
+  "auth_token": "valid-token-example",
+  "user_role": "security_admin",
+  "expected_decision": "DENY",
+  "test_category": "Noisy Realism",
+  "description": "Truncated timestamp (date only, missing time component). Validates parser resilience to incomplete temporal data from misconfigured syslog forwarding."
+}

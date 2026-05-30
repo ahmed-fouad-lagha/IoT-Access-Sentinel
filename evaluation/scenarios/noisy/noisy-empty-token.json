@@ -1,0 +1,21 @@
+{
+  "id": "noisy-expired-partial-creds-001",
+  "timestamp": "2026-05-30T09:00:00Z",
+  "rule": {
+    "level": 6,
+    "description": "Camera access attempt with authentication anomaly detected",
+    "id": "100015"
+  },
+  "device_id": "camera-office-01",
+  "device_type": "camera",
+  "source_ip": "192.168.1.100",
+  "destination_ip": "10.0.0.1",
+  "destination_port": "443",
+  "protocol": "HTTPS",
+  "user_id": "alice@company.com",
+  "auth_token": "",
+  "user_role": "security_admin",
+  "expected_decision": "DENY",
+  "test_category": "Noisy Realism",
+  "description": "Empty auth_token string (not null, but empty). Tests edge case where the token field is present but contains no value, which can happen when session cookies expire mid-request."
+}

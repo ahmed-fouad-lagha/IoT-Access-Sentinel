@@ -1,0 +1,18 @@
+{
+  "id": "noisy-nonstandard-protocol-001",
+  "timestamp": "2026-05-30T12:00:00.000+02:00",
+  "rule": {
+    "level": 6,
+    "description": "Non-standard protocol detected on IoT device connection",
+    "id": "100077"
+  },
+  "device_id": "sensor-temp-01",
+  "device_type": "sensor",
+  "source_ip": "192.168.1.50",
+  "destination_ip": "10.0.0.5",
+  "destination_port": "5672",
+  "protocol": "AMQP/0.9.1",
+  "expected_decision": "ALLOW",
+  "test_category": "Noisy Realism",
+  "description": "Non-standard protocol string ('AMQP/0.9.1' with version) and timezone-offset timestamp (+02:00 instead of Z). Tests protocol parsing flexibility and timezone-aware temporal processing."
+}

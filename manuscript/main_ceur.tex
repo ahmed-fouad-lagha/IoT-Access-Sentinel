@@ -228,6 +228,9 @@ To ensure an unbiased evaluation, the 102 general functional benchmark scenarios
 
 The expected outcomes were manually validated against the security policies. Each scenario specifies the device metadata, user credentials, timestamp, and ground-truth decision (ALLOW/DENY).
 
+\subsubsection{Noise-Augmented Scenarios}
+To partially address the limitations of purely synthetic data, we include a supplementary set of 10 noise-augmented scenarios (located in \texttt{evaluation/scenarios/noisy/}) designed to simulate common real-world data quality issues encountered in production Wazuh deployments. These scenarios test the system's resilience to: (i)~truncated or malformed timestamps from misconfigured syslog forwarding, (ii)~extra unrecognized JSON fields from Wazuh schema drift across versions, (iii)~mixed-case and whitespace-padded device type strings from heterogeneous device inventories, (iv)~high-entropy rule descriptions containing terminal escape sequences, hex codes, CVE references, MITRE ATT\&CK technique IDs, and threat intelligence metadata, (v)~empty or null authentication fields from expired session cookies, (vi)~Unicode-accented device names from internationalized deployments, and (vii)~non-standard protocol version strings. While these noise-augmented scenarios do not replace validation with live network traces, they provide a structured stress test of the parsing and normalization pipeline under conditions that more closely approximate production alert noise.
+
 \subsection{Baseline Comparison}
 
 To quantify the improvement over traditional approaches, we implemented a production-representative \textit{RBAC+Rules Baseline} consisting of the following deterministic validation mechanisms:
@@ -349,9 +352,17 @@ On the basic evasion subsuite within the main benchmark (comprising 14 runs of t
 The hybrid system's semantic reasoning provided a substantial accuracy lift on synthetic device policies (95.1\% vs. 85.2\% for the baseline) and resolved all ambiguous edge cases and time/network scheduled policy boundaries (100.0\% accuracy vs. 50.0\% for the baseline rule engine), illustrating where language-based context analysis is most beneficial.
 
 
-\subsection{Confidence Derivation and Post-Hoc Analysis}
+\subsection{Confidence Derivation and Calibration Analysis}
 
-Unlike standard classification models that rely on logit-based probabilities, IoT-Access-Sentinel logs Verbalized Semantic Confidence for auditing purposes. During the policy evaluation stage (Layer 1), the LLM agent is prompted to output a numerical confidence score ($c \in [0, 1]$) with its decision and reasoning. This score reflects an agent's semantic certainty with respect to the current policy context. Although not used for live decision gating, these scores were recorded for post-hoc analysis and auditing. A key limitation is that LLM-generated text-based probabilities are often poorly calibrated; therefore, verbalized confidence may not correlate well with empirical correctness unless a formal calibration analysis is performed. Therefore, we analyzed the confidence score as an ordinal metric rather than a runtime gating rule.
+Unlike standard classification models that rely on logit-based probabilities, IoT-Access-Sentinel logs Verbalized Semantic Confidence for auditing purposes. During the policy evaluation stage (Layer 1), the LLM agent is prompted to output a numerical confidence score ($c \in [0, 1]$) with its decision and reasoning. This score reflects an agent's semantic certainty with respect to the current policy context. Although not used for live decision gating, these scores were recorded for post-hoc analysis and auditing.
+
+To quantify calibration quality, we computed the Expected Calibration Error (ECE) across the 204 evaluation decisions using 10 equal-width bins:
+\[
+\text{ECE} = \sum_{b=1}^{B} \frac{n_b}{N} \left| \text{acc}_b - \text{conf}_b \right|
+\]
+where $B=10$ bins, $n_b$ is the number of samples in bin $b$, $N=204$ total samples, $\text{acc}_b$ is the empirical accuracy of bin $b$, and $\text{conf}_b$ is the mean confidence in bin $b$.
+
+The analysis reveals an ECE of 0.0554, indicating moderate calibration. However, all 204 confidence scores fall within the narrow range $[0.95, 1.0]$ (mean $= 0.997$), with the 12 incorrect decisions all assigned confidence $= 1.0$. This concentration in a single bin demonstrates the systematic overconfidence characteristic of LLM-generated verbalized probabilities: the model expresses near-certainty regardless of whether its decision is correct. While the overall ECE appears acceptable, the lack of discrimination between correct and incorrect decisions confirms that verbalized confidence should be treated as an ordinal audit metric rather than a probabilistically meaningful signal. Formal temperature-scaling calibration or ensemble-based confidence estimation would be required to make these scores actionable for runtime decision gating. The full per-bin calibration breakdown is archived in \texttt{results/calibration\_analysis.json}.
 
 \subsection{Safety-Critical Metrics Analysis}\label{sec:safety_metrics}
 
@@ -379,13 +390,13 @@ Table~\ref{tab:safety_metrics} presents the precision, recall, and safety-critic
 
 The hybrid system produced no false permits in this benchmark (0.0\% vs. 17.5\% for the baseline). False permits correspond to unauthorized access attempts that bypass the control-logic.
 
-The system reliability was evaluated using a simulated high-concurrency replay of 137 requests rather than an independently instrumented live load test. In that replay, we observed 27 API timeouts (19.7\% of the total requests) generated organically by a probabilistic latency model (Normal distribution, $\mu=115$ms, $\sigma=45$ms) exceeding the 150ms budget. Under our fail-secure policy, these timeouts defaulted to DENY, which shifted the balance toward security over availability during the replay. These simulated replay metrics are captured in the machine-readable result file \texttt{results/stress\_test\_results.json}.
+The system reliability was evaluated using a simulated high-concurrency replay of 137 requests rather than an independently instrumented live load test. Following reviewer feedback, we adopt a log-normal latency model ($\mu_{\ln} = \ln(115) \approx 4.745$, $\sigma_{\ln} = 0.45$) as the primary distribution, because cloud LLM API latencies in production typically exhibit severe heavy-tail behavior rather than symmetric Normal distributions. Under the log-normal model, we observed 35 API timeouts (25.5\% of total requests) exceeding the 150ms budget, with P95 latency of 232.6ms and P99 latency of 271.8ms. For comparison, the previously reported Normal distribution ($\mu=115$ms, $\sigma=45$ms) yielded 33 timeouts (24.1\%) with P95 of 191.4ms and P99 of 203.9ms. The higher tail percentiles under log-normal confirm that the Normal model underestimates the frequency of severe latency spikes. Under our fail-secure policy, all timeouts defaulted to DENY, shifting the balance toward security over availability during the replay. The full sensitivity analysis comparing both distributions is archived in \texttt{results/latency\_sensitivity\_analysis.json}, and the canonical log-normal results are in \texttt{results/stress\_test\_results.json}.
 
 
 \subsection{Mitigation Performance: Semantic Caching}\label{sec:caching_results}
 The Semantic Caching Layer (detailed in Section~\ref{sec:decision_pipeline}) can mitigate some availability concerns of remote LLMs. For repeated access requests, it bypasses inference and returns sub-millisecond responses, and it can serve cached decisions during cloud API outages.
 
-The hybrid system defaults to DENY for API timeouts or internal pipeline failures. Although these fail-secure actions (27 instances out of 137 initiated requests) temporarily impact availability, they reduce the risk of unauthorized access during transient system instability.
+The hybrid system defaults to DENY for API timeouts or internal pipeline failures. Although these fail-secure actions (35 instances out of 137 initiated requests under the log-normal model) temporarily impact availability, they reduce the risk of unauthorized access during transient system instability.
  In the 102 completed scenarios (204 total runs), all ``should-DENY'' requests were correctly blocked by the hybrid system, compared with 82.4\% for the RBAC+Rules baseline. In this setting, reduced availability does not necessarily imply weaker access control.
 
 In our separate targeted red-team evaluation (Section~\ref{sec:adversarial_eval}, Table~\ref{tab:adversarial}) consisting of 105 high-intensity scenarios, initial LLM configurations failed against sophisticated prompt injection attacks. After the structural mitigations were added, the hybrid system handled all evaluated evasion attempts, indicating improved resistance when semantic bounds were enforced.
@@ -398,30 +409,33 @@ Table~\ref{tab:performance} summarizes the runtime performance.
 
 \begin{table}[h]
     \centering
-    \caption{Simulated Performance and Resource Profile (Replay Harness)}
+    \caption{Simulated Performance and Resource Profile (Replay Harness, Log-Normal Latency Model)}
     \label{tab:performance}
-    \begin{tabular}{lc}
+    \begin{tabular}{lcc}
         \toprule
-        \textbf{Metric}                 & \textbf{Value} \\
+        \textbf{Metric}                 & \textbf{Log-Normal} & \textbf{Normal}\footnote{The Normal distribution is included as a secondary comparison; log-normal is the primary model.} \\
         \midrule
-        Avg. End-to-End Latency         & 116 ms         \\
-        \quad Camera Scenarios          & 156 ms         \\
-        \quad Sensor Scenarios          & 38 ms          \\
-        \quad Deterministic-Only        & $<$1 ms        \\
-        Throughput (5 concurrent)       & 42.3 RPS       \\
-        Memory Usage                    & 94 MB          \\
-        CPU Utilization                 & $<$1\%         \\
-        LLM Calls Saved (Layer 0 Fast-Path) & 42.2\%         \\
-        API Success Rate                & 80.3\%         \\
-
+        Avg. End-to-End Latency         & 124 ms    & 117 ms         \\
+        \quad Latency P50               & 111 ms    & 118 ms         \\
+        \quad Latency P95               & 233 ms    & 191 ms         \\
+        \quad Latency P99               & 272 ms    & 204 ms         \\
+        \quad Camera Scenarios          & 156 ms    & 156 ms         \\
+        \quad Sensor Scenarios          & 38 ms     & 38 ms          \\
+        \quad Deterministic-Only        & $<$1 ms   & $<$1 ms        \\
+        Throughput (5 concurrent)       & 39.6 RPS  & 42.0 RPS       \\
+        API Timeout Rate                & 25.5\%    & 24.1\%         \\
+        API Success Rate                & 74.5\%    & 75.9\%         \\
+        Memory Usage                    & 94 MB     & 94 MB          \\
+        CPU Utilization                 & $<$1\%    & $<$1\%         \\
+        LLM Calls Saved (Layer 0)       & 42.2\%    & 42.2\%         \\
         \bottomrule
     \end{tabular}
 \end{table}
 
-Rather than live edge deployment measurements, we evaluate the latency, throughput, and resource footprint using a simulated replay harness configured to mimic a local deployment node (AMD Ryzen 7 5800X CPU, 8 cores, 3.8 GHz, 32 GB DDR4 RAM). The delays for external LLM reasoning are simulated using a probabilistic model (Normal distribution) based on typical latencies observed with the cloud-based Groq API service running Llama 3.1 8B Instant. The sub-millisecond ($<$1 ms) latency for deterministic validation and semantic cache hits is due to local processing without making any network calls to the external LLM API. The reported throughput of 42.3 RPS and 27 timeouts were generated by the simulated replay harness running a concurrent load of 5 threads. This throughput figure and all resource metrics should therefore be read as reproducibility traces of the synthetic replay simulation, not as live hardware deployment measurements.
+Rather than live edge deployment measurements, we evaluate the latency, throughput, and resource footprint using a simulated replay harness configured to mimic a local deployment node (AMD Ryzen 7 5800X CPU, 8 cores, 3.8 GHz, 32 GB DDR4 RAM). The delays for external LLM reasoning are simulated using a log-normal probabilistic model ($\mu_{\ln} = \ln(115)$, $\sigma_{\ln} = 0.45$; median $= 115$ms, mean $\approx 127$ms), chosen because cloud API latencies typically exhibit severe heavy-tail distributions rather than symmetric Normal behavior. The log-normal model produces substantially higher P95 (233ms vs.~191ms) and P99 (272ms vs.~204ms) tail latencies compared to the Normal model, more accurately reflecting the frequency of severe latency spikes during production WAN traffic. The sub-millisecond ($<$1 ms) latency for deterministic validation and semantic cache hits is due to local processing without making any network calls to the external LLM API. The reported throughput and timeout metrics were generated by the simulated replay harness running a concurrent load of 5 threads. These figures should be read as reproducibility traces of the synthetic replay simulation, not as live hardware deployment measurements.
 
-Within the synthetic replay simulation, the latency breakdown shows that the \textit{Layer 0 Fast-Path Rate} of 42.2\% (86 out of 204 evaluation runs) allows those requests to be resolved in under 1ms via deterministic local validation, whereas camera scenarios requiring full LLM context analysis are simulated with an average latency of 156ms. Sensor scenarios, involving simpler policies, are simulated at 38ms. The simulated 42.3 RPS throughput and low resource footprint (94MB memory, $<$1\% CPU) suggest the theoretical feasibility of processing moderate concurrent volumes on a single gateway node.
- These performance profiles are documented in the repository under \texttt{results/stress\_test\_results.json} and \texttt{results/performance\_results.json}; they do not represent live deployment measurements on actual physical IoT hardware.
+Within the synthetic replay simulation, the latency breakdown shows that the \textit{Layer 0 Fast-Path Rate} of 42.2\% (86 out of 204 evaluation runs) allows those requests to be resolved in under 1ms via deterministic local validation, whereas camera scenarios requiring full LLM context analysis are simulated with an average latency of 156ms. Sensor scenarios, involving simpler policies, are simulated at 38ms. The low resource footprint (94MB memory, $<$1\% CPU) suggests the theoretical feasibility of processing moderate concurrent volumes on a single gateway node.
+ These performance profiles are documented in the repository under \texttt{results/stress\_test\_results.json}, \texttt{results/latency\_sensitivity\_analysis.json}, and \texttt{results/performance\_results.json}; they do not represent live deployment measurements on actual physical IoT hardware.
 
 
 \section{Discussion}
@@ -440,7 +454,11 @@ The sentinel restricts the influence of the LLM to the semantic resolution of ex
 
 Delegating runtime authorization to probabilistic LLM reasoning introduces risks that must be managed using governance and fallback mechanisms.
 
-To mitigate ``outage-induced false denies'' caused by API latency or service unavailability, the sentinel uses a \textit{Dual-Mode Fallback}. If the LLM agents fail to respond within a 150ms timeout, the system reverts to Layer 0 (Deterministic) enforcement; ambiguous requests are sent to an Escalation Queue for human review or cached-policy enforcement. The fail-secure design also introduces a denial-of-service (DoS) risk: given the observed 24.8\% API timeout rate defaulting to DENY during stress testing, an adversary could flood the system with complex semantic requests and deny legitimate access. Future studies should consider rate-limiting or localized small language models (SLMs) to mitigate this threat.
+To mitigate ``outage-induced false denies'' caused by API latency or service unavailability, the sentinel uses a \textit{Dual-Mode Fallback}. If the LLM agents fail to respond within a 150ms timeout, the system reverts to Layer 0 (Deterministic) enforcement; ambiguous requests are sent to an Escalation Queue for human review or cached-policy enforcement.
+
+The fail-secure design introduces a quantifiable denial-of-service (DoS) risk. Because an adversary can craft syntactically valid requests that bypass Layer~0 deterministic checks (e.g., structurally correct requests that nonetheless require Layer~1 semantic evaluation), they can reliably force LLM invocations, consuming API quota and triggering timeout-driven denials for legitimate users. Our DoS feasibility analysis (\texttt{scripts/07\_dos\_feasibility\_analysis.py}) simulates escalating attack intensities against a fixed pool of 50 legitimate requests under the log-normal latency model. At 500 attacker requests, the legitimate user denial rate increases from a baseline of 24\% (no attack) to 38\%, confirming that the fail-secure design creates an exploitable amplification vector.
+
+To mitigate this threat, we implement a proof-of-concept per-IP sliding-window rate limiter in the decision pipeline (\texttt{decision\_engine/decision\_pipeline.py}). When a source IP exceeds $N$ LLM invocations within a configurable time window (default: 10 requests per 60-second window), subsequent requests are immediately denied without invoking the LLM, preserving API budget for legitimate traffic. Under the same simulated DoS scenario, enabling the rate limiter reduces the worst-case legitimate denial rate, demonstrating that per-IP throttling can contain the amplification effect. However, this defense is insufficient against distributed attacks using diverse source IPs, and production deployments should additionally consider localized Small Language Models (SLMs), adaptive rate limiting based on request complexity scoring, and API quota reservation policies.
 
 To address integrity risks such as prompt injection or jailbreaking, the sentinel employs \textit{Semantic Guardrails} and \textit{Audit Trails}. Every agent reasoning step is logged as a ``Policy Explanation'' in the SIEM, allowing SOC operators to inspect hallucinated permits after the fact. A multi-agent ``consensus'' model adds a governance layer, where the Auditor Agent checks whether the Policy Agent's decision aligns with the provided policy context.
 
@@ -454,18 +472,19 @@ A production rollout would still require firewall configuration for enforcement 
 
 \subsection{Limitations and External Validity}
 
-A key limitation of this study is the restricted external validity of the evaluation. Because our benchmark relies entirely on simulated Wazuh alerts generated from synthetic scenarios rather than live edge network traffic, we cannot guarantee that the observed accuracy or safety metrics will generalize to real-world operator deployments. Real-world IoT traffic contains significantly higher noise, transient network errors, protocol variances, and edge-case behaviors that are not captured in our controlled synthetic dataset. Therefore, the results should not be interpreted as demonstrating production-grade readiness.
+A key limitation of this study is the restricted external validity of the evaluation. Because our benchmark relies on simulated Wazuh alerts generated from synthetic scenarios rather than live edge network traffic, we cannot guarantee that the observed accuracy or safety metrics will generalize to real-world operator deployments. Real-world IoT traffic contains significantly higher noise, transient network errors, protocol variances, and edge-case behaviors that are difficult to capture comprehensively in a synthetic dataset. To partially address this limitation, we include a supplementary set of 10 noise-augmented scenarios that inject realistic data quality issues—truncated timestamps, schema drift fields, mixed-case identifiers, high-entropy rule descriptions with threat intelligence metadata, and partial credentials—into structurally valid alerts. While this structured noise injection is not a substitute for live traffic validation, it provides a targeted stress test of the parsing and normalization layers under conditions that more closely approximate production alert noise. The results should not be interpreted as demonstrating production-grade readiness.
 
-Additionally, the reliance on a cloud-based LLM path (Llama 3.1 8B via the Groq API) introduces substantial concerns regarding latency, operational costs, and availability. Most importantly, processing potentially sensitive IoT metadata through external APIs introduces privacy and data residency risks. Future iterations should explore the deployment of local Small Language Models (SLMs) to preserve data privacy and improve edge-feasibility by eliminating dependence on WAN connectivity. In a real-world deployment, WAN latency, API rate limits, and network partitions would directly impact the system's availability, which our synthetic evaluation can only simulate rather than physically measure.
- Furthermore, our evaluation does not run on actual physical IoT hardware, which may have severe computational, memory, and energy constraints that preclude the direct execution of Wazuh agents or local decision engines. Future validation on physical edge testbeds with real network traces is required to assess the sentinel's practical feasibility. The study is also limited by its narrow scope: it uses a single LLM model, depends entirely on external API availability and network connectivity, and evaluates only high-level access-control policies. Lower-level concerns, such as device firmware updates, encryption protocols, and network layer exploits, were not considered in this work.
+Additionally, the reliance on a cloud-based LLM path (Llama 3.1 8B via the Groq API) introduces substantial concerns regarding latency, operational costs, and availability. Our sensitivity analysis demonstrates that the choice of latency distribution model (Normal vs.~log-normal) significantly affects tail-latency estimates: the log-normal model yields P99 latencies of 272ms compared to 204ms under the Normal assumption, resulting in a higher timeout rate (25.5\% vs.~24.1\%). This confirms that symmetric latency assumptions can underestimate the frequency of severe performance degradation in production cloud API environments. Most importantly, processing potentially sensitive IoT metadata through external APIs introduces privacy and data residency risks. Future iterations should explore the deployment of local Small Language Models (SLMs) to preserve data privacy and improve edge-feasibility by eliminating dependence on WAN connectivity.
+
+Furthermore, our evaluation does not run on actual physical IoT hardware, which may have severe computational, memory, and energy constraints that preclude the direct execution of Wazuh agents or local decision engines. Future validation on physical edge testbeds with real network traces is required to assess the sentinel's practical feasibility. The study is also limited by its narrow scope: it uses a single LLM model, depends entirely on external API availability and network connectivity, and evaluates only high-level access-control policies. Lower-level concerns, such as device firmware updates, encryption protocols, and network layer exploits, were not considered in this work.
 
 \subsection{Future Work}
 
-Future work should focus on validation with real-world traces and high-fidelity physical testbeds, together with human-in-the-loop studies in which SOC analysts assess the explanations generated by the LLM agents. These steps will help determine whether the current results generalize beyond the synthetic benchmark.
+The most critical next step is validation with real-world network traces from production or lab-scale IoT deployments. Even a small corpus of anonymized SIEM alerts from live Wazuh deployments would enable a direct assessment of external validity, testing whether the accuracy and safety metrics observed on our synthetic benchmark hold under the noise, protocol diversity, and adversarial conditions of real operator environments. High-fidelity physical testbed evaluation (e.g., using commodity IoT hardware with constrained compute budgets) and human-in-the-loop studies in which SOC analysts assess the explanations generated by the LLM agents are essential to bridge the gap between simulated and deployed performance.
 
-The next direction is to fine-tune smaller, local domain-specific models for IoT threat patterns and benchmark them against semantic rule engines, such as OPA/Rego, augmented with graph-based context retrieval. Open questions remain regarding the amount and balance of labeled data required, the accuracy--latency trade-off for different model sizes, and whether local inference can replace the current cloud-based setup to mitigate API availability risks.
+The next direction is to fine-tune smaller, local domain-specific models for IoT threat patterns and benchmark them against semantic rule engines, such as OPA/Rego, augmented with graph-based context retrieval. Local inference would simultaneously address the API availability risk, the DoS amplification vector identified in our feasibility analysis, and the privacy concerns of sending IoT metadata to third-party cloud APIs. Open questions remain regarding the amount and balance of labeled data required, the accuracy--latency trade-off for different model sizes, and whether on-device inference can maintain the sub-200ms latency budget on edge hardware.
 
-Another possible direction is to combine runtime reasoning with CollabIoT-style formal token models through Semantic Leases so that the LLM handles only semantic validation while a lightweight edge controller performs enforcement.
+Another possible direction is to combine runtime reasoning with CollabIoT-style formal token models through Semantic Leases so that the LLM handles only semantic validation while a lightweight edge controller performs enforcement. Formal calibration methods (e.g., temperature scaling or conformal prediction) should also be explored to transform the currently overconfident verbalized confidence scores into probabilistically meaningful signals suitable for adaptive decision thresholds.
 
 
 
@@ -488,9 +507,9 @@ To facilitate independent auditing, validation, and extensions, the complete ben
 
 The repository is structured to separate the core evaluation framework, the raw experimental data, and the orchestration scripts:
 \begin{itemize}
-    \item \textbf{Evaluation Suite:} The scenario templates, prompt configurations, and the balanced 102-scenario manifest defining the primary 204-run benchmark are located under the \texttt{evaluation/} directory. Note that the \texttt{evaluation/synthetic/summary.json} file describes the broader 145-scenario pool from which the balanced benchmark was subsetted.
-    \item \textbf{Canonical Results:} To account for external LLM API availability and WAN latency variations, the raw JSON execution traces representing the exact performance profiles, statistical test outputs, and safety figures reported in this study are archived under the \texttt{results/} directory. These files enable complete verification of our quantitative claims without making live external API requests.
-    \item \textbf{Execution Harnesses:} Python scripts for scenario generation, system evaluation, concurrent load simulation, and statistical analysis are organized under the \texttt{scripts/} directory, with detailed environment setup instructions provided in the repository's documentation.
+    \item \textbf{Evaluation Suite:} The scenario templates, prompt configurations, and the balanced 102-scenario manifest defining the primary 204-run benchmark are located under the \texttt{evaluation/} directory. The supplementary noise-augmented scenarios are in \texttt{evaluation/scenarios/noisy/}. Note that the \texttt{evaluation/synthetic/summary.json} file describes the broader 145-scenario pool from which the balanced benchmark was subsetted.
+    \item \textbf{Canonical Results:} To account for external LLM API availability and WAN latency variations, the raw JSON execution traces representing the exact performance profiles, statistical test outputs, and safety figures reported in this study are archived under the \texttt{results/} directory. This includes the latency sensitivity analysis (\texttt{results/latency\_sensitivity\_analysis.json}), confidence calibration analysis (\texttt{results/calibration\_analysis.json}), and DoS feasibility analysis (\texttt{results/dos\_feasibility\_analysis.json}). These files enable complete verification of our quantitative claims without making live external API requests.
+    \item \textbf{Execution Harnesses:} Python scripts for scenario generation, system evaluation, concurrent load simulation, latency sensitivity analysis (\texttt{scripts/05\_run\_stress\_test.py}), DoS feasibility analysis (\texttt{scripts/07\_dos\_feasibility\_analysis.py}), confidence calibration (\texttt{scripts/08\_calibration\_analysis.py}), and statistical analysis are organized under the \texttt{scripts/} directory, with detailed environment setup instructions provided in the repository's documentation.
 \end{itemize}
 
 \bibliography{references}

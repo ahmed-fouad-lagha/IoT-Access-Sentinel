@@ -1,0 +1,22 @@
+{
+  "id": "noisy-high-entropy-rule-001",
+  "timestamp": "2026-05-30T03:42:18.789Z",
+  "rule": {
+    "level": 12,
+    "description": "ALERT: Multiple rapid connections detected from src=45.9.20.11 dst=192.168.1.50:8080 proto=HTTP/1.1 | ThreatIntel: match=TI-442 (C2 egress pool, confidence=0.87) | IDS sig: ET TROJAN Generic - POST Containing \\\"bot\\\" | Decoded payload fragment: \\u001b[31m0xDEADBEEF\\u001b[0m sys_fault=1 retry_count=142 | GeoIP: src_country=NL src_asn=AS49981 | Agent: wazuh-gw-dmz-02",
+    "id": "100201",
+    "firedtimes": 142
+  },
+  "device_id": "camera-lobby-01",
+  "device_type": "camera",
+  "source_ip": "45.9.20.11",
+  "destination_ip": "192.168.1.50",
+  "destination_port": "8080",
+  "protocol": "HTTP",
+  "user_id": "alice@company.com",
+  "auth_token": "valid-token-example",
+  "user_role": "security_admin",
+  "expected_decision": "DENY",
+  "test_category": "Noisy Realism",
+  "description": "High-entropy rule description with terminal escape sequences, hex codes, threat intelligence references, IDS signatures, GeoIP data, and agent metadata. Tests Context Agent extraction from noisy, unstructured real-world log data."
+}

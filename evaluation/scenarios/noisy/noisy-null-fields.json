@@ -1,0 +1,22 @@
+{
+  "id": "noisy-duplicate-fields-001",
+  "timestamp": "2026-05-30T11:00:00Z",
+  "rule": {
+    "level": 5,
+    "description": "Standard sensor read - duplicated via multi-hop syslog relay",
+    "id": "100050",
+    "firedtimes": 1
+  },
+  "device_id": "sensor-temp-01",
+  "device_type": "sensor",
+  "source_ip": "192.168.1.50",
+  "destination_ip": "10.0.0.5",
+  "destination_port": "1883",
+  "protocol": "MQTT",
+  "user_id": null,
+  "auth_token": null,
+  "user_role": null,
+  "expected_decision": "ALLOW",
+  "test_category": "Noisy Realism",
+  "description": "Sensor with all optional auth fields explicitly set to null (not missing). Tests handling of explicit null values vs. absent fields, common in multi-hop syslog relay configurations."
+}

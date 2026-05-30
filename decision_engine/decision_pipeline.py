@@ -12,8 +12,10 @@ import json
 import yaml
 import hashlib
 import ipaddress
+import time
 from typing import Dict, Any, Optional, List, Tuple
 from datetime import datetime, timezone, timedelta
+from collections import defaultdict
 from cachetools import TTLCache
 from tenacity import retry, stop_after_attempt, wait_exponential
 
@@ -55,10 +57,17 @@ class DecisionPipeline:
         self.cache_misses = 0
         self.use_single_agent = settings.use_single_agent
         
+        # Per-IP rate limiter for LLM invocations (DoS mitigation)
+        # Sliding window: max N LLM invocations per source IP per window
+        self.rate_limit_enabled = getattr(settings, 'rate_limit_enabled', False)
+        self.rate_limit_window_s = getattr(settings, 'rate_limit_window_s', 60)
+        self.rate_limit_max_requests = getattr(settings, 'rate_limit_max_requests', 10)
+        self._rate_limit_tracker: Dict[str, List[float]] = defaultdict(list)
+        
         # Load prompts
         self.prompts = self._load_prompts()
         
-        logger.info("decision_pipeline_initialized", num_policies=len(self.policies.get("policies", [])), model=self.model, provider=self.provider)
+        logger.info("decision_pipeline_initialized", num_policies=len(self.policies.get("policies", [])), model=self.model, provider=self.provider, rate_limit_enabled=self.rate_limit_enabled)
     
     def _load_policies(self) -> Dict[str, Any]:
         """Load access policies from YAML file"""
@@ -149,6 +158,24 @@ class DecisionPipeline:
                 alert_id=alert.id,
                 reason=user_auth_result.reason
             )
+
+            # Per-IP rate limit check before LLM invocation (DoS mitigation)
+            if self.rate_limit_enabled and alert.source_ip:
+                if self._is_rate_limited(alert.source_ip):
+                    logger.warning(
+                        "rate_limit_exceeded",
+                        alert_id=alert.id,
+                        source_ip=alert.source_ip
+                    )
+                    return AccessDecision(
+                        action="DENY",
+                        confidence=1.0,
+                        reason=f"Rate limit exceeded for source IP {alert.source_ip}. "
+                               f"Max {self.rate_limit_max_requests} LLM invocations per "
+                               f"{self.rate_limit_window_s}s window.",
+                        policy_matched="rate_limit_dos_mitigation",
+                        timestamp=datetime.now(timezone.utc)
+                    )
 
             # Enrich alert metadata from user authorization results
             if user_auth_result.matched_role and not alert.user_role:
@@ -478,3 +505,37 @@ class DecisionPipeline:
                     return True, "PASS"
                     
         return False, f"Source IP {source_ip} not in allowed networks {allowed_source_networks}"
+
+    def _is_rate_limited(self, source_ip: str) -> bool:
+        """
+        Check if a source IP has exceeded the LLM invocation rate limit.
+        
+        Uses a sliding window approach: tracks timestamps of recent LLM
+        invocations per IP, and rejects new requests if the count within
+        the window exceeds the configured maximum.
+        
+        This is a DoS mitigation mechanism to prevent attackers from
+        exhausting the LLM API budget by flooding with syntactically
+        valid requests that bypass Layer 0.
+        
+        Args:
+            source_ip: The source IP address to check
+            
+        Returns:
+            True if the IP is rate-limited (should be denied)
+        """
+        now = time.monotonic()
+        window_start = now - self.rate_limit_window_s
+        
+        # Prune expired entries
+        timestamps = self._rate_limit_tracker[source_ip]
+        self._rate_limit_tracker[source_ip] = [t for t in timestamps if t > window_start]
+        
+        # Check if limit exceeded
+        if len(self._rate_limit_tracker[source_ip]) >= self.rate_limit_max_requests:
+            return True
+        
+        # Record this invocation
+        self._rate_limit_tracker[source_ip].append(now)
+        return False
+
