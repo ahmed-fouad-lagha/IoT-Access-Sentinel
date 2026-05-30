@@ -1,5 +1,5 @@
 #!/bin/bash
-# Simple bash-based test runner using curl
+# Test runner using curl
 
 API_URL="http://localhost:8000"
 SCENARIOS_DIR="evaluation/scenarios"
@@ -12,6 +12,28 @@ echo "IoT-Access-Sentinel - Test Suite" | tee -a "$RESULTS_FILE"
 echo "==========================================================" | tee -a "$RESULTS_FILE"
 echo "" | tee -a "$RESULTS_FILE"
 
+# --- Modes ---
+MODE="smoke"
+if [ "$1" == "--full" ]; then
+    MODE="full"
+elif [ "$1" == "--ablation" ]; then
+    MODE="ablation"
+fi
+
+if [ "$MODE" == "full" ]; then
+    echo "Running FULL 204-run Benchmark Comparison..."
+    python3 scripts/02_evaluate_system.py --mode rbac
+    exit 0
+fi
+
+if [ "$MODE" == "ablation" ]; then
+    echo "Running Single-Agent Ablation Study..."
+    python3 scripts/02_evaluate_system.py --mode single-agent
+    exit 0
+fi
+
+# Default Smoke Test
+echo "Running SMOKE TEST (8 scenarios)..."
 # Counter variables
 total=0
 passed=0

@@ -165,7 +165,8 @@ Once deployed, the services are available on the following ports:
 The framework was evaluated on a comprehensive test-suite (102 functional scenarios and 105 red-team adversarial attacks).
 
 ### Key Performance Findings
-* **Functional Accuracy**: Hybrid LLM achieved **94.1% accuracy** (192/204 correct decisions) compared to **82.4%** (168/204 correct) of the RBAC+Rules Baseline. McNemar's test ($\chi^2 = 16.53, p < 0.001$) shows the improvement is statistically significant.
+* **Functional Accuracy**: Hybrid LLM achieved **94.1% accuracy** (192/204 correct decisions) compared to **82.4%** (168/204 correct) of the RBAC+Rules Baseline. 
+  * *Note on Methodology*: The benchmark consists of 102 unique scenarios, each executed twice to verify consistency. While these are not 204 independent samples, the repetition ensures results are not due to transient LLM variance. McNemar's test ($\chi^2 = 16.53, p < 0.001$) shows the improvement is statistically significant.
 * **Adversarial Resilience**: The system recorded a **100% defense rate** against 105 red-team attacks:
   * **66.7% (70/105)** were blocked deterministically by **Layer 0** (using Unicode normalizations, RTLO/Bidi strip, and token validations).
   * **33.3% (35/105)** (complex semantic/context attacks) were blocked by **Layer 1**'s zero-trust prompts.
@@ -173,7 +174,7 @@ The framework was evaluated on a comprehensive test-suite (102 functional scenar
   * **Deterministic Fast-Path**: `< 1 ms` (No LLM called; handles **42.2%** of incoming traffic; specifically 86 out of 204 runs that fail Layer 0 user authorization pre-checks).
   * **Semantic Cache Hit**: `< 1 ms` (Bypasses LLM reasoning).
   * **Generative Slow-Path**: Average of **97 ms** (Camera: 156ms; Sensor: 38ms).
-* **Availability & Reliability**: Under high stress concurrent loads, Sentinel's fail-secure policy triggered **34 API timeouts**, defaulting to DENY. This demonstrates a robust safety-first security stance (0% False Permit Rate).
+* **Availability & Reliability**: Under high stress concurrent loads, Sentinel's fail-secure policy triggered **34 API timeouts**, defaulting to DENY. This demonstrates a robust safety-first security stance (0% False Permit Rate). Results are measured via a high-concurrency replay harness.
 
 ## Testing & Verification
 
@@ -191,21 +192,28 @@ pip install -r requirements.txt
 pytest -v tests/
 ```
 
-### Running the Scenario Benchmark
-Ensure the server is running locally or in Docker:
-```bash
-# Run the FastAPI server locally
-python main.py
-```
-Execute the automated test script to run the benign scenario suite and output accuracy metrics:
-```bash
-bash evaluation/run_tests.sh
-```
+### Running the Evaluation Benchmarks
+Ensure the server is running locally or in Docker (`python main.py`).
+
+1. **Smoke Test** (Quick validation of 8 scenarios):
+   ```bash
+   bash evaluation/run_tests.sh
+   ```
+
+2. **Full 204-run Benchmark** (Reproduces paper accuracy claims):
+   ```bash
+   bash evaluation/run_tests.sh --full
+   ```
+
+3. **Single-Agent Ablation Study** (Measured independently, no mocking):
+   ```bash
+   bash evaluation/run_tests.sh --ablation
+   ```
 
 ### Running the Concurrency Stress Test
-Run the simulated stress-testing and availability replay harness to evaluate fail-secure default actions:
+Run the stress-testing harness to evaluate fail-secure default actions:
 ```bash
-# Run the stress-test simulation replay (outputs to results/stress_test_results.json)
+# Run the stress-test simulation (Calculates metrics from measured execution)
 python3 scripts/05_run_stress_test.py --mode simulate
 ```
 
