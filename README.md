@@ -112,7 +112,6 @@ When a connection is denied, the system triggers the **Enforcer** (implemented i
   * [models.py](file:///home/lagha/PhD/projects/IoT-Access-Sentinel/observer/models.py) — Pydantic models for incoming Wazuh alerts
 * [evaluation/](file:///home/lagha/PhD/projects/IoT-Access-Sentinel/evaluation/) — Test suites and benchmarks
   * [run_tests.sh](file:///home/lagha/PhD/projects/IoT-Access-Sentinel/evaluation/run_tests.sh) — E2E test suite bash runner
-* [manuscript/](file:///home/lagha/PhD/projects/IoT-Access-Sentinel/manuscript/) — ITAT 2026 conference LaTeX paper and resources
 
 ## Quick Start & Deployment
 
@@ -174,7 +173,7 @@ The framework was evaluated on a comprehensive test-suite (102 functional scenar
   * **Deterministic Fast-Path**: `< 1 ms` (No LLM called; handles **42.2%** of incoming traffic; specifically 86 out of 204 runs that fail Layer 0 user authorization pre-checks).
   * **Semantic Cache Hit**: `< 1 ms` (Bypasses LLM reasoning).
   * **Generative Slow-Path**: Average of **97 ms** (Camera: 156ms; Sensor: 38ms).
-* **Availability & Reliability**: Under high stress concurrent loads, Sentinel's fail-secure policy triggered **34 API timeouts**, defaulting to DENY. This demonstrates a robust safety-first security stance (0% False Permit Rate). Results are measured via a high-concurrency replay harness.
+* **Availability & Reliability**: Under high stress concurrent loads, Sentinel's fail-secure policy triggered **34 API timeouts**, defaulting to DENY. This demonstrates a robust safety-first security stance (0% False Permit Rate). Results are measured via a high-concurrency replay framework.
 
 ## Testing & Verification
 
@@ -210,8 +209,8 @@ Ensure the server is running locally or in Docker (`python main.py`).
    bash evaluation/run_tests.sh --ablation
    ```
 
-### Running the Concurrency Stress Test
-Run the stress-testing harness to evaluate fail-secure default actions:
+### Running the Stress Test
+Run the stress-testing framework to evaluate fail-secure default actions:
 ```bash
 # Run the stress-test simulation (Calculates metrics from measured execution)
 python3 scripts/05_run_stress_test.py --mode simulate
