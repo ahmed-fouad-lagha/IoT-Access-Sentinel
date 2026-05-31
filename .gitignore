@@ -76,29 +76,3 @@ htmlcov/
 # Project Specific
 # =========================
 wazuh-docker/
-
-# =========================
-# LaTeX
-# =========================
-# LaTeX auxiliary files
-*.aux
-*.bbl
-*.bcf
-*.blg
-*.fdb_latexmk
-*.fls
-*.log
-*.out
-*.run.xml
-*.synctex.gz
-*.toc
-*.lof
-*.lot
-*.nav
-*.snm
-*.vrb
-*.xmpi
-*.xmpdata
-*.synctex
-*.abs
-*.pdf
