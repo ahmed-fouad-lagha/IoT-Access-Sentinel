@@ -204,7 +204,7 @@ Ensure the server is running locally or in Docker (`python main.py`).
    bash evaluation/run_tests.sh --full
    ```
 
-3. **Single-Agent Ablation Study** (Measured independently, no mocking):
+3. **Single-Agent Ablation Study**:
    ```bash
    bash evaluation/run_tests.sh --ablation
    ```
