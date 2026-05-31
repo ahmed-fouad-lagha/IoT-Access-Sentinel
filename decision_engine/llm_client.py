@@ -29,21 +29,31 @@ def get_llm_client(settings: Settings) -> Union[AsyncOpenAI, genai.Client]:
     provider = settings.llm_provider.lower()
     
     if provider == "openai":
-        if not settings.openai_api_key:
+        # Force loading directly from the .env file to bypass shell overrides
+        from dotenv import dotenv_values
+        env_vals = dotenv_values(".env")
+        api_key = env_vals.get("OPENAI_API_KEY") or settings.openai_api_key
+        base_url = env_vals.get("OPENAI_BASE_URL") or settings.openai_base_url
+        
+        if not api_key:
             raise ValueError("OpenAI API key not configured. Set OPENAI_API_KEY in .env")
         
-        logger.info("creating_openai_client", model=settings.llm_model, base_url=settings.openai_base_url or "default")
+        # If using a Groq key (starts with gsk_), force direct Groq endpoint to bypass shell env overrides
+        if api_key.startswith("gsk_"):
+            base_url = "https://api.groq.com/openai/v1"
+            
+        logger.info("creating_openai_client", model=settings.llm_model, base_url=base_url or "default")
         
         # Create OpenAI async client (supports Groq and other OpenAI-compatible APIs)
         # We inject User-Agent to bypass AgentRouter client authentication checks
         client_kwargs = {
-            "api_key": settings.openai_api_key,
+            "api_key": api_key,
             "default_headers": {
                 "User-Agent": "IoT-Access-Sentinel/0.1.0"
             }
         }
-        if settings.openai_base_url:
-            client_kwargs["base_url"] = settings.openai_base_url
+        if base_url:
+            client_kwargs["base_url"] = base_url
         
         client = AsyncOpenAI(**client_kwargs)
         

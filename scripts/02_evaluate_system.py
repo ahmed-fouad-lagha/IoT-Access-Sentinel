@@ -265,7 +265,7 @@ async def run_red_team():
                     is_blocked = True
                 else:
                     results["summary"]["failed_to_detect"] += 1
-                await asyncio.sleep(2)  # Avoid rate limits
+                await asyncio.sleep(1.5)  # Avoid rate limits
             except Exception as e:
                 final_decision, reason = "ERROR", str(e)
                 results["summary"]["failed_to_detect"] += 1

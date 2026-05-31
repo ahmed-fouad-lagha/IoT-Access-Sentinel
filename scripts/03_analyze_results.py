@@ -177,6 +177,18 @@ def mcnemar_test(rbac_decisions: list, hybrid_decisions: list) -> Dict:
     elif chi_square > 3.841: return {"chi_square": chi_square, "p_value": "< 0.05", "significant": True, "contingency_table": {"a": a, "b": b, "c": c, "d": d}}
     return {"chi_square": chi_square, "p_value": "> 0.05", "significant": False, "contingency_table": {"a": a, "b": b, "c": c, "d": d}}
 
+def _deduplicate_decisions(decisions: list) -> list:
+    """Deduplicate the 204-run decision list to the 102 unique scenarios.
+
+    The benchmark executes each of the 102 scenarios twice (uncached then
+    cached), yielding 204 entries.  Because cached runs are deterministic
+    copies, including them in McNemar's test violates the independence
+    assumption.  This helper takes every *first* run of each consecutive
+    pair (indices 0, 2, 4, …) to recover the 102 independent samples.
+    """
+    return [decisions[i] for i in range(0, len(decisions), 2)]
+
+
 def run_stats(results_file="results/results_comparison.json"):
     print("\n" + "=" * 80)
     print("STATISTICAL ANALYSIS")
@@ -184,20 +196,26 @@ def run_stats(results_file="results/results_comparison.json"):
     
     with open(results_file) as f:
         data = json.load(f)
-        
-    total_tests = data['rbac']['total']
-    baseline_correct = data['rbac']['correct']
-    llm_correct = data['hybrid']['correct']
-    
-    baseline_accuracy = (baseline_correct / total_tests) * 100
-    llm_accuracy = (llm_correct / total_tests) * 100
+
+    # --- Deduplicate to 102 unique scenarios for statistical testing ---
+    rbac_unique = _deduplicate_decisions(data['rbac']['decisions'])
+    hybrid_unique = _deduplicate_decisions(data['hybrid']['decisions'])
+    unique_total = len(rbac_unique)
+    unique_baseline_correct = sum(1 for d in rbac_unique if d['correct'])
+    unique_llm_correct = sum(1 for d in hybrid_unique if d['correct'])
+
+    baseline_accuracy = (unique_baseline_correct / unique_total) * 100
+    llm_accuracy = (unique_llm_correct / unique_total) * 100
     improvement = llm_accuracy - baseline_accuracy
     
-    mcnemar_result = mcnemar_test(data['rbac']['decisions'], data['hybrid']['decisions'])
-    baseline_ci = calculate_confidence_interval(baseline_correct, total_tests)
-    llm_ci = calculate_confidence_interval(llm_correct, total_tests)
+    # McNemar's test on 102 independent samples only
+    mcnemar_result = mcnemar_test(rbac_unique, hybrid_unique)
+    baseline_ci = calculate_confidence_interval(unique_baseline_correct, unique_total)
+    llm_ci = calculate_confidence_interval(unique_llm_correct, unique_total)
     
-    print(f"\nMcNemar's Test (with continuity correction):")
+    print(f"\nNote: Statistics computed on {unique_total} unique (deduplicated) scenarios.")
+    print(f"      Cached duplicates excluded to satisfy independence assumption.\n")
+    print(f"McNemar's Test (with continuity correction):")
     print(f"  - Contingency Table: a={mcnemar_result['contingency_table']['a']}, b={mcnemar_result['contingency_table']['b']}, c={mcnemar_result['contingency_table']['c']}, d={mcnemar_result['contingency_table']['d']}")
     print(f"  - Statistic: {mcnemar_result['chi_square']:.4f} | p-value: {mcnemar_result['p_value']}")
     print(f"  - Significant Difference: {'YES ✓' if mcnemar_result['significant'] else 'NO ✗'}")
@@ -208,7 +226,9 @@ def run_stats(results_file="results/results_comparison.json"):
     
     summary = {
         "overall": {
-            "total_tests": total_tests, "baseline_accuracy": baseline_accuracy, "llm_accuracy": llm_accuracy,
+            "unique_scenarios": unique_total,
+            "total_runs_before_dedup": data['rbac']['total'],
+            "baseline_accuracy": baseline_accuracy, "llm_accuracy": llm_accuracy,
             "improvement": improvement, "chi_square": mcnemar_result['chi_square'], "p_value": mcnemar_result['p_value'],
             "statistically_significant": mcnemar_result['significant']
         },

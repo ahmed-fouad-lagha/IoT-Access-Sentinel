@@ -140,7 +140,7 @@ Recent literature on Natural Language Access Control (NLAC)~\cite{lace2025, xu20
 
 \subsection{Threat Model}
 
-We operate under an adversarial threat model wherein malicious actors actively attempt to circumvent access controls via input manipulation, prompt injection, SQL injection, Unicode-based obfuscation, semantic evasion, and temporal and network-based bypasses. We assume a well-resourced adversary capable of observing the system architecture, adapting their payloads iteratively, and directly interacting with the IoT network perimeter. However, we explicitly assume that the attackers do not possess valid, uncompromised cryptographic-authentication credentials.
+We operate under an adversarial threat model wherein malicious actors actively attempt to circumvent access controls via input manipulation, prompt injection, SQL injection, Unicode-based obfuscation, semantic evasion, and temporal and network-based bypasses. We assume a well-resourced adversary capable of observing the system architecture, adapting their payloads iteratively, and directly interacting with the IoT network perimeter. We distinguish between two threat scenarios: (i) external attackers lacking valid credentials, and (ii) insider threats or compromised endpoints that possess valid credentials or target automated machine-to-machine services (such as sensors) that do not require user-level cryptographic authentication. While the former are deterministically blocked at Layer 0, the latter allow malicious payloads to reach Layer 1, thereby evaluating the semantic robustness of the LLM reasoning chain.
 
 \subsection{Defense Mechanisms}
 
@@ -156,33 +156,34 @@ We rigorously evaluated the adversarial robustness of the hybrid architecture us
     \centering
     \caption{Benchmark Adversarial Attack Detection Results (105 Scenarios)}
     \label{tab:adversarial}
-    \begin{tabular}{lccc}
+    \begin{tabular}{lcccc}
         \toprule
-        \textbf{Attack Category} & \textbf{Tested} & \textbf{Layer 0 Only} & \textbf{Proposed Hybrid} \\
+        \textbf{Attack Category} & \textbf{Tested} & \textbf{LLM Only}$^\dagger$ & \textbf{Layer 0 Only} & \textbf{Proposed Hybrid} \\
         \midrule
-        Direct Prompt Injection  & 10              & 10 (100\%)              & 10 (100\%)              \\
-        Role-Play Hijack         & 10              & 10 (100\%)              & 10 (100\%)              \\
-        Unicode RTLO/Evasion     & 10              & 10 (100\%)              & 10 (100\%)              \\
-        Hidden Char Evasion      & 10              & 10 (100\%)              & 10 (100\%)              \\
-        Payload Splitting        & 10              & 10 (100\%)              & 10 (100\%)              \\
-        Semantic Deception       & 5               & 5 (100\%)               & 5 (100\%)               \\
-        Chain-of-Thought Hijack  & 10              & 0 (0\%)                 & 10 (100\%)              \\
-        Contextual Contradiction & 10              & 0 (0\%)                 & 10 (100\%)              \\
-        Advanced Injection       & 15              & 15 (100\%)              & 15 (100\%)              \\
-        Metadata Smuggling       & 15              & 0 (0\%)                 & 15 (100\%)              \\
+        Direct Prompt Injection  & 10              & 10 (100\%)                    & 10 (100\%)              & 10 (100\%)              \\
+        Role-Play Hijack         & 10              & 0 (0\%)                      & 10 (100\%)              & 10 (100\%)              \\
+        Unicode RTLO/Evasion     & 10              & 2 (20\%)                      & 10 (100\%)              & 10 (100\%)              \\
+        Hidden Char Evasion      & 10              & 1 (10\%)                      & 10 (100\%)              & 10 (100\%)              \\
+        Payload Splitting        & 10              & 10 (100\%)                    & 10 (100\%)              & 10 (100\%)              \\
+        Semantic Deception       & 5               & 5 (100\%)                     & 5 (100\%)               & 5 (100\%)               \\
+        Chain-of-Thought Hijack  & 10              & 0 (0\%)                      & 0 (0\%)                 & 10 (100\%)              \\
+        Contextual Contradiction & 10              & 0 (0\%)                      & 0 (0\%)                 & 10 (100\%)              \\
+        Advanced Injection       & 15              & 15 (100\%)                    & 15 (100\%)              & 15 (100\%)              \\
+        Metadata Smuggling       & 15              & 0 (0\%)                      & 0 (0\%)                 & 15 (100\%)              \\
         \midrule
-        \textbf{Overall}         & \textbf{105}    & \textbf{70 (66.7\%)}    & \textbf{105 (100\%)}    \\
+        \textbf{Overall}         & \textbf{105}    & \textbf{43 (41.0\%)}         & \textbf{70 (66.7\%)}    & \textbf{105 (100\%)}    \\
         \bottomrule
+        \multicolumn{5}{l}{\footnotesize $^\dagger$Counterfactual ablation: LLM without Layer 0 sanitization or structured prompt delimiters.}
     \end{tabular}
 \end{table}
 
 The deterministic pre-filter successfully intercepted 66.7\% of the adversarial attempts (70/105) at Layer 0, thoroughly insulating the downstream LLM agents from the malicious payloads. This robust interception rate is driven by two distinct validation mechanisms.
 \begin{enumerate}
-    \item \textbf{Format Validation Constraints}: Strict schema enforcement and character-set constraints on device identifiers (e.g., actively rejecting directional overrides or zero-width control characters) blocked 40 of the 70 cases. This included 10 Unicode right-to-left override (RTLO) attempts, 10 hidden character exploits, and 20 instances of malformed device type strings.
-    \item \textbf{Regex-Based Pattern Matching}: Direct pattern matches against established attack signatures (e.g., SQL tautologies or explicit direct injection keywords) neutralized the remaining 30 cases, comprising 10 direct prompt injections, 10 role-play hijacks, and 10 payload splitting attempts.
+    \item \textbf{Format Validation Constraints}. Strict schema enforcement and character-set constraints on device identifiers (e.g., actively rejecting directional overrides or zero-width control characters) blocked 40 of the 70 cases. This included 10 Unicode right-to-left override (RTLO) attempts, 10 hidden character exploits, and 20 instances of malformed device type strings.
+    \item \textbf{Regex-Based Pattern Matching}. Direct pattern matches against established attack signatures (e.g., SQL tautologies or explicit direct injection keywords) neutralized the remaining 30 cases, comprising 10 direct prompt injections, 10 role-play hijacks, and 10 payload splitting attempts.
 \end{enumerate}
 
-The remaining 33.3\% of the adversarial payloads (35/105) successfully bypassed Layer 0. These attacks predominantly rely on sophisticated semantic anomalies, such as contextual contradictions, chain-of-thought hijacking, and metadata smuggling, which appear structurally pristine and carry canonicalized text. However, these latent threats were successfully detected and neutralized by the contextual semantic comparison of the Policy Agent and zero-trust prompt constraints in Layer 1.
+The remaining 33.3\% of the adversarial payloads (35/105) successfully bypassed Layer 0. These 35 scenarios targeted automated sensors which, under the global security policy, do not require user-level credentials. Consequently, they successfully traversed the Layer 0 authentication checks. These attacks predominantly rely on sophisticated semantic anomalies, such as contextual contradictions, chain-of-thought hijacking, and metadata smuggling, which appear structurally pristine and carry canonicalized text. However, these latent threats were successfully detected and neutralized by the contextual semantic comparison of the Policy Agent and zero-trust prompt constraints in Layer 1.
 
 To mitigate the systemic risk of inadvertently ceding absolute enforcement authority to a probabilistic model, Layer 0 functions as an uncompromising containment boundary that is impenetrable. Every ingested field is routed through a rigorous \texttt{normalize\_text} pipeline utilizing \texttt{unicodedata.normalize('NFKC')} to neutralize homoglyph attacks. This is immediately followed by aggressive regex stripping of directional overrides (\texttt{\textbackslash u202A-\textbackslash u202E}), Bidi Isolates (\texttt{\textbackslash u2066-\textbackslash u2069}), and zero-width control characters. Unlike previous architectures (e.g., LACE), where formal OPA verification occurs \textit{after} LLM policy generation, our sentinel enforces these formal checks \textit{before} the LLM processes the data, ensuring that the language model reasons exclusively over sanitized, canonicalized contexts. 
 
@@ -209,7 +210,7 @@ We integrated custom decoders and analytical rules within the Wazuh Manager~\cit
 
 The Decide stage operationalizes the two-layer defense-in-depth strategy. Layer 0 performs deterministic User Authorization Pre-checks before invoking any external LLM reasoning. It rigorously verifies token integrity and evaluates least-privilege mappings against preconfigured allowlists, immediately returning a fail-secure DENY decision when authentication or device membership checks fail~\cite{mitre2023attack}. Layer 1 exclusively processes requests that successfully satisfy the Layer 0 criteria. It provisions a specialized Context Agent to synthesize behavioral anomalies derived from the SIEM alert, alongside a Policy Agent tasked with evaluating this synthesis against the formalized security policy using strictly constrained prompt instructions.
 
-To mitigate the operational impact of remote LLM latency or transient service degradation, the pipeline incorporates a dual-mode fallback mechanism that reverts to a deterministic fail-secure behavior if Layer 1 exceeds its strictly defined timeout budget. Additionally, a semantic caching layer stores prior authorization decisions indexed by a SHA-256 hash of the device type, device ID, user role, and policy context. This cache employs a time-to-live (TTL) eviction policy (defaulting to 3600 s) to ensure that decisions are periodically re-evaluated against the underlying LLM logic. Furthermore, any administrative modification to the global security policy (\path{access_policies.yaml}) triggers an immediate global invalidation of the semantic cache. This mechanism guarantees that new authorization rules are enforced instantaneously across all subsequent requests, effectively eliminating the risk of policy staleness during rapid context shifts or emergency security posture updates.
+To mitigate the operational impact of remote LLM latency or transient service degradation, the pipeline incorporates a dual-mode fallback mechanism that reverts to a deterministic fail-secure behavior if Layer 1 exceeds its strictly defined timeout budget. Additionally, a semantic caching layer stores prior authorization decisions indexed by a SHA-256 hash of the device type, device ID, user role, policy context, and a temporal bucket string representing the request's time of day binned into minute-level intervals (to prevent cache poisoning while maintaining a high cache hit rate for sub-hour policy boundaries). This cache employs a time-to-live (TTL) eviction policy (defaulting to 3600 s) to ensure that decisions are periodically re-evaluated against the underlying LLM logic. Furthermore, any administrative modification to the global security policy (\path{access_policies.yaml}) triggers an immediate global invalidation of the semantic cache. This mechanism guarantees that new authorization rules are enforced instantaneously across all subsequent requests, effectively eliminating the risk of policy staleness during rapid context shifts or emergency security posture updates.
 
 \subsection{Act: Distributed Enforcement via Wazuh Active Response}
 
@@ -228,35 +229,28 @@ This decentralized design facilitates distributed enforcement directly at the co
 
 \section{Evaluation Methodology}\label{sec:evaluation}
 
-We systematically evaluated the IoT-Access-Sentinel by leveraging two distinct analytical datasets: a comprehensive functional benchmark comprising 102 test scenarios and a dedicated, high-intensity red-team adversarial suite consisting of 105 diversity-driven attack attempts. The 102 functional benchmark scenarios meticulously span critical security enforcement categories: User Authorization, Basic Evasion (evaluating rudimentary regex-based SQL/XSS/prompt injection filters), Temporal and Network Policies, Device-Specific Rules, and complex Edge Cases.
+We systematically evaluated the IoT-Access-Sentinel by leveraging three distinct analytical datasets: (1) a comprehensive functional benchmark comprising 102 test scenarios, (2) a dedicated, high-intensity red-team adversarial suite consisting of 105 diversity-driven attack attempts, and (3) a high-concurrency stress test dataset comprising 137 simulated requests used to evaluate system availability and latency distribution under load. The 102 functional benchmark scenarios meticulously span critical security enforcement categories: User Authorization, Basic Evasion (evaluating rudimentary regex-based SQL/XSS/prompt injection filters), Temporal and Network Policies, Device-Specific Rules, and complex Edge Cases.
 
 To preclude class imbalance and ensure analytical rigor, 102 functional scenarios were distributed across 45 ALLOW and 57 DENY configurations. Each scenario was executed twice (yielding 204 total runs) to evaluate both the uncached and cached pathways of the agent. Conversely, the separate 105 red-team adversarial scenarios strictly represent 100\% DENY states, as they exclusively focus on advanced evasion prevention and adversarial robustness under severe attack configurations.
 
 Ground-truth expectations were manually derived and validated against established security policies. Each scenario deterministically specifies the device metadata, user credentials, event timestamp, and requisite ground-truth authorization decision (ALLOW/DENY).
 
 \subsubsection{Noise-Augmented Scenarios}
-To partially mitigate the inherent limitations of purely synthetic datasets, we incorporated a supplementary suite of 10 noise-augmented scenarios (located in \path{evaluation/scenarios/noisy/}), which were deliberately designed to emulate the pervasive data-quality degradation frequently observed in production Wazuh deployments. These scenarios rigorously test the pipeline's resilience against (i)truncated or malformed timestamps resulting from misconfigured syslog forwarding, (ii)unrecognized JSON fields introduced by Wazuh schema drift across version upgrades, (iii)mixed-case and whitespace-padded device identifiers characteristic of heterogeneous device inventories, (iv)high-entropy rule descriptions injecting terminal escape sequences, hex codes, CVE references, MITRE ATT\ technique IDs, and threat intelligence metadata, (v)empty or null authentication fields stemming from expired session cookies, (vi)Unicode-accented device nomenclature from internationalized environments, and (vii)non-standard protocol versioning strings. Although these augmented scenarios cannot entirely replace validation against live network captures, they provide a structured and rigorous stress test of the parsing and normalization boundary under conditions that closely approximate realistic production alert noise.
+To partially mitigate the inherent limitations of purely synthetic datasets, we incorporated a supplementary suite of 10 noise-augmented scenarios (located in \path{evaluation/scenarios/noisy/}), which were deliberately designed to emulate the pervasive data-quality degradation frequently observed in production Wazuh deployments. These scenarios rigorously test the pipeline's resilience against (i)truncated or malformed timestamps resulting from misconfigured syslog forwarding, (ii)unrecognized JSON fields introduced by Wazuh schema drift across version upgrades, (iii)mixed-case and whitespace-padded device identifiers characteristic of heterogeneous device inventories, (iv)high-entropy rule descriptions injecting terminal escape sequences, hex codes, CVE references, MITRE ATT\&CK technique IDs, and threat intelligence metadata, (v)empty or null authentication fields stemming from expired session cookies, (vi)Unicode-accented device nomenclature from internationalized environments, and (vii)non-standard protocol versioning strings. Although these augmented scenarios cannot entirely replace validation against live network captures, they provide a structured and rigorous stress test of the parsing and normalization boundary under conditions that closely approximate realistic production alert noise.
+
+\subsubsection{Stress Testing and Availability Dataset}\label{sec:stress_test_dataset}
+To evaluate the system's availability, throughput, and fail-secure behavior under operational load, we constructed a third dataset consisting of a high-concurrency replay of 137 access requests. This stress test harness (located in \path{scripts/05_run_stress_test.py}) simulates a peak-traffic event where 5 concurrent tasks replay camera access requests (using credentials from a security administrator, Alice, requesting access to camera-office-01). To evaluate the decision engine's resilience to API latency and timeout spikes, we modeled remote LLM API latency using two distinct probability distributions: a standard Normal distribution ($N(\mu=115\text{ ms}, \sigma=45\text{ ms})$) and a heavy-tailed Log-Normal distribution ($LogN(\mu_{\ln}=\ln(115)\approx4.745, \sigma_{\ln}=0.45$)), reflecting the tail latencies observed in cloud-based LLM APIs. The system's timeout budget was constrained to a strict 150~ms limit, forcing the pipeline to fall back to a fail-secure DENY decision when the latency budget is exceeded, thereby enabling a controlled evaluation of system safety under stress.
 
 \subsection{Baseline Comparison}
 
-To quantitatively isolate the performance gains strictly attributable to our multi-agent LLM architecture, we implemented a production-representative \textit{RBAC+Rules Baseline}. Crucially, to ensure an absolutely fair, non-strawman comparison, this baseline is implemented using the exact same deterministic codebase as Layer 0 of our proposed hybrid system, entirely omitting Layer 1 (the LLM reasoning chain). It encompasses the following deterministic validation mechanisms:
-\begin{itemize}
-    \item \textbf{User Authentication}: Rigorous session token verification (validating JSON Web Tokens or string format keys).
-    \item \textbf{User-Device Mapping}: Strict Access Control Lists (ACLs) bounding users and roles to authorized device identifiers.
-    \item \textbf{Network/Time Rules}: Standard CIDR-based subnet validation coupled with scheduled temporal filtering.
-    \item \textbf{Basic Signature Filtering}: Regex-based pattern matching applied to incoming text fields to intercept elementary SQL injection (\texttt{UNION}, \texttt{DROP}), Cross-Site Scripting (\texttt{<script>}), and direct prompt injection substrings (e.g., \texttt{IGNORE PREVIOUS}).
-\end{itemize}
-By explicitly mirroring a modern, security-hardened API gateway, this baseline significantly exceeds the defensive capabilities of a rudimentary RBAC model that exclusively evaluates user roles. Designating this shared-code configuration as the comparative anchor ensures that any observed accuracy improvements in the hybrid system are exclusively the result of its advanced contextual reasoning, rather than disparities in baseline implementation.
+To quantitatively isolate the performance gains strictly attributable to our multi-agent LLM architecture, we implemented a production-representative \textit{RBAC+Rules Baseline}. To ensure a fair ablation, this baseline executes the exact same deterministic codebase as Layer 0 of our proposed hybrid system, entirely omitting Layer 1 (the LLM reasoning chain). It applies four deterministic validation mechanisms: (1)~session token verification for user authentication; (2)~strict Access Control Lists (ACLs) bounding users to authorized device identifiers; (3)~standard CIDR-based subnet validation coupled with scheduled temporal filtering; and (4)~regex-based pattern matching on incoming text fields to intercept elementary SQL injection, Cross-Site Scripting, and direct prompt injection substrings.
+
+By mirroring a security-hardened API gateway, this baseline exceeds the defensive capabilities of a rudimentary RBAC model that only evaluates user roles. Using this shared-code configuration as the comparative anchor ensures that any observed accuracy improvements in the hybrid system stem entirely from its advanced contextual reasoning, rather than implementation disparities.
 
 
 \subsection{Evaluation Metrics and Statistical Testing}
 
-To ensure the statistical validity of our findings, we used the following metrics and testing frameworks:
-\begin{itemize}
-    \item McNemar's test of significance for paired binary classification outcomes ($\alpha=0.01$).
-    \item 95\% confidence intervals for overall accuracy and error rates.
-    \item Category-wise accuracy stratification to precisely identify the specific scenarios where LLM reasoning provides an operational advantage.
-\end{itemize}
+To ensure the statistical validity of our findings, we used McNemar's test of significance for paired binary classification outcomes ($\alpha=0.01$), generated 95\% confidence intervals for overall accuracy and error rates, and applied category-wise accuracy stratification to precisely identify the specific scenarios where LLM reasoning provides an operational advantage.
 
 Furthermore, the operational viability of the system was evaluated based on end-to-end latency (from alert receipt to enforcement command generation), throughput (measured in concurrent requests per second), and overall resource footprint (memory and CPU utilization).
 
@@ -280,11 +274,11 @@ Table~\ref{tab:overall} presents the aggregate performance comparison, demonstra
     \end{tabular}
 \end{table}
 
-The 204 runs were generated by executing the 102 test scenarios twice: once to evaluate the end-to-end decision logic from a cold start (uncached path) and once to rigorously verify that the local semantic caching layer consistently stores and returns the identical authorization decision upon subsequent queries (cached path). These duplicated runs served primarily as an empirical verification of system determinism rather than 204 statistically independent samples. Consequently, McNemar's test was applied strictly to assess the paired performance differential between the two systems across these specific paired verification runs.
+The 204 runs were generated by executing the 102 test scenarios twice: once to evaluate the end-to-end decision logic from a cold start (uncached path) and once to rigorously verify that the local semantic caching layer consistently stores and returns the identical authorization decision upon subsequent queries (cached path). Because these cached runs are deterministic duplicates of the uncached runs, they do not constitute independent samples and are excluded from all statistical significance calculations. All reported McNemar's test statistics and confidence intervals are computed strictly on the 102 unique, independent test scenarios to satisfy the paired independence assumption.
 
 Crucially, the RBAC+Rules baseline implements identical deterministic authentication, role mapping, temporal constraints, and subnet filtering as Layer 0 of our proposed hybrid system. Therefore, the 11.7\% accuracy improvement achieved by the hybrid system (94.1\%) over the baseline (82.4\%) cleanly isolates the semantic gain provided by the multi-agent LLM reasoning layer (Layer 1) when resolving complex requests for which structural rules alone lack the expressivity to accurately authorize.
 
-McNemar's test ($\chi^2 = 16.53$, $p < 0.001$) confirms that this accuracy improvement is statistically significant at the $\alpha = 0.001$ level, allowing us to confidently reject the null hypothesis of equivalent performance. The non-overlapping confidence intervals further substantiate this conclusion.
+McNemar's test, computed on the 102 independent scenarios ($\chi^2 = 7.56$, $p < 0.01$), confirms that this accuracy improvement is statistically significant at the $\alpha = 0.01$ level, allowing us to confidently reject the null hypothesis of equivalent performance. The non-overlapping confidence intervals further substantiate this conclusion.
 
 \subsection{Component Ablation Analysis}
 
@@ -334,16 +328,16 @@ Figure~\ref{fig:performance_chart} delineates the specific scenario categories i
                 column sep=1.5ex 
             },
             ylabel={Accuracy (\%)},
-            symbolic x coords={Basic Evasion (Subset), Synthetic, Edge Cases, Time/Network, User Auth},
+            symbolic x coords={Basic Evasion, Synthetic, Edge Cases, Time/Network, User Auth},
             xtick=data,
             ymin=0, ymax=115, 
             ytick={0,20,40,60,80,100},
         ]
         % RBAC+Rules Baseline Data
-        \addplot[fill=gray!40] coordinates {(Basic Evasion (Subset),71.4) (Synthetic,85.2) (Edge Cases,50.0) (Time/Network,50.0) (User Auth,100.0)};
+        \addplot[fill=gray!40] coordinates {(Basic Evasion,71.4) (Synthetic,85.2) (Edge Cases,50.0) (Time/Network,50.0) (User Auth,100.0)};
         
         % Hybrid LLM Data
-        \addplot[fill=black!80, text=black] coordinates {(Basic Evasion (Subset),71.4) (Synthetic,95.1) (Edge Cases,100.0) (Time/Network,100.0) (User Auth,100.0)};
+        \addplot[fill=black!80, text=black] coordinates {(Basic Evasion,71.4) (Synthetic,95.1) (Edge Cases,100.0) (Time/Network,100.0) (User Auth,100.0)};
         
         \legend{RBAC+Rules Baseline, Hybrid LLM}
         \end{axis}
@@ -373,7 +367,7 @@ The analysis yielded an ECE of 0.0554, indicating moderate calibration. However,
 
 \subsection{Safety-Critical Metrics Analysis}\label{sec:safety_metrics}
 
-Table~\ref{tab:safety_metrics} details the precision, recall, and safety-critical error rates of both evaluated systems.
+Table~\ref{tab:safety_metrics} details the precision, recall, and safety-critical error rates of both evaluated systems. These metrics are computed on the 102 functional scenarios under normal latency conditions. In a production setting under high-concurrency stress, any API timeouts that trigger fail-secure denials would be classified as operational False Denies, directly degrading the system's operational recall.
 
 \begin{table}[h]
     \centering
@@ -397,15 +391,15 @@ Table~\ref{tab:safety_metrics} details the precision, recall, and safety-critica
 
 Remarkably, the hybrid system exhibited a False Permit Rate of 0.0\% (compared to 17.5\% for the baseline) across the benchmark suite. False permits are highly critical security failures that represent unauthorized access attempts that successfully bypass the control logic.
 
-The system reliability was evaluated using a simulated high-concurrency replay of 137 requests. Based on external reviewer feedback and the empirical realities of cloud architectures, we modeled LLM API latencies using a log-normal distribution ($\mu_{\ln} = \ln(115) \approx 4.745$, $\sigma_{\ln} = 0.45$), which accurately reflects the severe heavy-tail behavior typical of production API endpoints, rather than a symmetric normal distribution. Under this log-normal model, we observed 35 API timeouts (25.5\% of total requests) exceeding the strict 150ms budget, with a P95 latency of 232.6ms and a P99 latency of 271.8ms. In contrast, a purely normal distribution model ($\mu=115$ms, $\sigma=45$ms) underestimated these spikes, yielding 33 timeouts (24.1\%) with lower P95 (191.4ms) and P99 (203.9ms) tails. Under our fail-secure policy architecture, all simulated timeouts automatically defaulted to DENY, deliberately prioritizing network security over the immediate availability.
+The system reliability was evaluated using a simulated high-concurrency replay of 137 requests (as described in Section~\ref{sec:stress_test_dataset}). Based on external reviewer feedback and the empirical realities of cloud architectures, we modeled LLM API latencies using a log-normal distribution ($\mu_{\ln} = \ln(115) \approx 4.745$, $\sigma_{\ln} = 0.45$), which accurately reflects the severe heavy-tail behavior typical of production API endpoints, rather than a symmetric normal distribution. Under this log-normal model, we observed 35 API timeouts (25.5\% of total requests) exceeding the strict 150ms budget, with a P95 latency of 232.6ms and a P99 latency of 271.8ms. In contrast, a purely normal distribution model ($\mu=115$ms, $\sigma=45$ms) underestimated these spikes, yielding 33 timeouts (24.1\%) with lower P95 (191.4ms) and P99 (203.9ms) tails. Under our fail-secure policy architecture, all simulated timeouts automatically defaulted to DENY, deliberately prioritizing network security over the immediate availability.
 
 
 \subsection{Mitigation Performance: Semantic Caching}\label{sec:caching_results}
 The Semantic Caching Layer (detailed in Section~\ref{sec:decision_pipeline}) serves as the primary mitigation against the availability risks inherent to remote LLM reliance. By bypassing inference for repeated access requests, it reliably delivers sub-millisecond responses and ensures the continuous enforcement of cached decisions during transient cloud API outages.
 
-When API timeouts or internal pipeline failures occur, the hybrid system defaults to DENY. Although these fail-secure actions (35 instances out of 137 initiated requests under the log-normal model) temporarily degrade system availability, they categorically eliminate the risk of unauthorized network access during periods of system instability. Across the 102 completed scenarios (204 total runs), the hybrid system correctly blocked all ``should-DENY'' requests, significantly outperforming the 82.4\% block rate of the RBAC+Rules baseline. In critical infrastructure security, this demonstrates that reduced availability does not equate to a degraded access control.
+When API timeouts or internal pipeline failures occur, the hybrid system defaults to DENY. Although these fail-secure actions (35 instances out of 137 initiated requests under the log-normal model) temporarily degrade system availability, they categorically eliminate the risk of unauthorized network access during periods of system instability. These 35 fail-secure denials are counted as operational False Denies in our load-testing report, directly illustrating how latency-induced timeouts degrade the recall metric in practice. Across the 102 completed scenarios (204 total runs), the hybrid system correctly blocked all ``should-DENY'' requests, significantly outperforming the 82.4\% block rate of the RBAC+Rules baseline. In critical infrastructure security, this demonstrates that reduced availability does not equate to a degraded access control.
 
-Furthermore, within the dedicated red-team evaluation (Section~\ref{sec:adversarial_eval}), the initial unconstrained LLM configurations consistently succumbed to sophisticated prompt injection attacks. However, upon implementing structural mitigations (Layer 0 sanitization and strict semantic delimiters), the hybrid system successfully neutralized all the evaluated evasion attempts. This post-mitigation behavior underscores the necessity of a defense-in-depth approach, demonstrating that LLM reliability in adversarial conditions is fundamentally dependent on deterministic data bounding.
+Furthermore, a counterfactual ablation within the dedicated red-team evaluation (Section~\ref{sec:adversarial_eval}) demonstrates the vulnerability of an unconstrained LLM configuration. As shown in the ``LLM Only'' column of Table~\ref{tab:adversarial}, the LLM operating without Layer~0 input sanitization or structured prompt delimiters detected only 41.0\% of the 105 adversarial payloads, suffering from a 0\% detection rate on sophisticated prompt injections, role-play hijacks, contextual contradictions, and metadata smuggling. Upon implementing structural mitigations (Layer~0 sanitization and strict semantic delimiters), the hybrid system successfully neutralized all the evaluated evasion attempts (100\% detection rate). This stark contrast underscores the necessity of a defense-in-depth approach, demonstrating that LLM reliability in adversarial conditions is fundamentally dependent on deterministic data bounding.
 
 \subsection{System Performance Metrics}
 

@@ -166,7 +166,7 @@ The framework was evaluated on a comprehensive test-suite (102 functional scenar
 
 ### Key Performance Findings
 * **Functional Accuracy**: Hybrid LLM achieved **94.1% accuracy** (192/204 correct decisions) compared to **82.4%** (168/204 correct) of the RBAC+Rules Baseline. 
-  * *Note on Methodology*: The benchmark consists of 102 unique scenarios, each executed twice to verify consistency. While these are not 204 independent samples, the repetition ensures results are not due to transient LLM variance. McNemar's test ($\chi^2 = 16.53, p < 0.001$) shows the improvement is statistically significant.
+  * *Note on Methodology*: The benchmark consists of 102 unique scenarios, each executed twice to verify caching consistency. Since cached runs are deterministic duplicates, McNemar's test is computed strictly on the 102 independent scenarios ($\chi^2 = 7.56, p < 0.01$), confirming the improvement is statistically significant.
 * **Adversarial Resilience**: The system recorded a **100% defense rate** against 105 red-team attacks:
   * **66.7% (70/105)** were blocked deterministically by **Layer 0** (using Unicode normalizations, RTLO/Bidi strip, and token validations).
   * **33.3% (35/105)** (complex semantic/context attacks) were blocked by **Layer 1**'s zero-trust prompts.
