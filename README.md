@@ -4,10 +4,10 @@
 
 **Autonomous Context-Aware Access Control for IoT via Multi-Agent Generative AI**
 
-[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](file:///home/lagha/PhD/projects/IoT-Access-Sentinel/LICENSE)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![Docker](https://img.shields.io/badge/docker-ready-blue.svg)](#-quick-start--deployment)
-[![ITAT 2026](https://img.shields.io/badge/ITAT%202026-Paper-purple.svg)](file:///home/lagha/PhD/projects/IoT-Access-Sentinel/manuscript/main_ceur.tex)
+[![ITAT 2026](https://img.shields.io/badge/ITAT%202026-Accepted-brightgreen.svg)](https://itat.ics.upjs.sk)
 
 </div>
 
