@@ -43,6 +43,7 @@ Your role is to analyze the contextual information surrounding an IoT device con
 - Night-time operation is normal if device type allows 24/7 access
 
 **Your Output Format:**
+You MUST respond with ONLY a raw JSON object — no markdown, no code fences, no explanation.
 Provide a JSON object with your analysis:
 {
     "risk_score": <float between 0.0 (safe) and 1.0 (high risk)>,
@@ -56,6 +57,7 @@ Provide a JSON object with your analysis:
 - Don't flag normal operations as suspicious
 - Be specific about what's unusual (if anything)
 - Empty anomalies list is acceptable for normal connections
+- OUTPUT ONLY THE JSON OBJECT. No other text.
 """
 
 
@@ -91,6 +93,9 @@ async def call_context_agent(client: Union[AsyncOpenAI, genai.Client], model: st
                 {"role": "user", "content": prompt}
             ],
             temperature=0.2,
-            max_tokens=1024
+            max_tokens=2048
         )
-        return response.choices[0].message.content
+        content = response.choices[0].message.content
+        if not content and hasattr(response.choices[0].message, 'reasoning'):
+            content = response.choices[0].message.reasoning
+        return content or ""

@@ -8,6 +8,7 @@ Hybrid Architecture:
 - Step 2: Policy evaluation (LLM with context)
 """
 
+import asyncio
 import json
 import yaml
 import hashlib
@@ -17,7 +18,8 @@ from typing import Dict, Any, Optional, List, Tuple
 from datetime import datetime, timezone, timedelta
 from collections import defaultdict
 from cachetools import TTLCache
-from tenacity import retry, stop_after_attempt, wait_exponential
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
+from openai import RateLimitError, APIConnectionError, APITimeoutError
 
 from config.settings import Settings
 from common.schemas import AccessDecision
@@ -26,6 +28,7 @@ from common.validation import sanitize_secrets
 from .agents import call_policy_agent, call_context_agent
 from .llm_client import get_llm_client
 from .validators import get_user_auth_validator
+from .prompt_guard import scan_alert
 from observer.models import IoTAccessAlert
 
 logger = get_logger(__name__)
@@ -121,8 +124,10 @@ class DecisionPipeline:
         """
         Make access control decision using hybrid pipeline:
         1. Deterministic user authorization check (fail-fast)
-        2. LLM context analysis
-        3. LLM policy evaluation
+        1b. Prompt Guard: injection scan on user-supplied fields
+        2. Semantic cache lookup
+        3. LLM context analysis
+        4. LLM policy evaluation
         
         Args:
             alert: IoT access alert from Wazuh
@@ -212,6 +217,32 @@ class DecisionPipeline:
                     net_ok, net_reason = self._check_network_policy(alert.source_ip, allowed_networks)
                     if not net_ok:
                         network_check_status = f"FAIL ({net_reason})"
+
+            # Step 0b: Prompt Guard — injection scan on all user-supplied text fields
+            # Two layers: deterministic regex (instant) + ML guard model (async)
+            # Runs BEFORE cache lookup so injections never get cached.
+            guard_result = await scan_alert(
+                client=self.llm_client,
+                alert_fields={
+                    "rule_description": alert.rule.description,
+                    "device_id": alert.device_id,
+                    "user_id": alert.user_id,
+                    "user_role": alert.user_role,
+                }
+            )
+            if guard_result.is_injection:
+                logger.warning(
+                    "prompt_guard_injection_blocked",
+                    alert_id=alert.id,
+                    reason=guard_result.reason
+                )
+                return AccessDecision(
+                    action="DENY",
+                    confidence=1.0,
+                    reason=f"Prompt injection detected: {guard_result.reason}",
+                    policy_matched="prompt_guard",
+                    timestamp=datetime.now(timezone.utc)
+                )
 
             # --- SEMANTIC CACHE LOOKUP ---
             # Build granular cache key to prevent security bypasses
@@ -329,7 +360,11 @@ class DecisionPipeline:
                 timestamp=datetime.now(timezone.utc)
             )
     
-    @retry(stop=stop_after_attempt(5), wait=wait_exponential(multiplier=2, min=4, max=30))
+    @retry(
+        stop=stop_after_attempt(2),
+        wait=wait_exponential(multiplier=1, min=1, max=5),
+        retry=retry_if_exception_type((RateLimitError, APIConnectionError, APITimeoutError, asyncio.TimeoutError))
+    )
     async def _analyze_context(self, alert: IoTAccessAlert) -> Dict[str, Any]:
         """
         Use Context Agent to analyze connection context
@@ -353,28 +388,27 @@ class DecisionPipeline:
             rule_level=alert.rule.level
         )
         
-        # Call context agent with provider
-        result = await call_context_agent(self.llm_client, self.model, context_prompt, self.provider)
+        # Call context agent with timeout budget
+        timeout = self.settings.llm_api_timeout
+        result = await asyncio.wait_for(
+            call_context_agent(self.llm_client, self.model, context_prompt, self.provider),
+            timeout=timeout
+        )
         
         # Parse JSON response
         try:
-            # Extract JSON from response
-            response_text = result if isinstance(result, str) else str(result)
-            # Find JSON in response (may have extra text before/after)
-            json_start = response_text.find("{")
-            json_end = response_text.rfind("}") + 1
-            if json_start >= 0 and json_end > json_start:
-                context_data = json.loads(response_text[json_start:json_end])
-            else:
-                logger.warning("context_agent_no_json", response=response_text)
-                context_data = {"risk_score": 0.5, "anomalies_detected": [], "context_summary": "Parse error"}
-        except json.JSONDecodeError as e:
-            logger.error("context_agent_json_error", error=str(e), response=result)
+            context_data = self._extract_json(result)
+        except (json.JSONDecodeError, ValueError) as e:
+            logger.error("context_agent_json_error", error=str(e), response=repr(result))
             context_data = {"risk_score": 0.5, "anomalies_detected": [], "context_summary": "JSON parse error"}
         
         return context_data
     
-    @retry(stop=stop_after_attempt(5), wait=wait_exponential(multiplier=2, min=4, max=30))
+    @retry(
+        stop=stop_after_attempt(2),
+        wait=wait_exponential(multiplier=1, min=1, max=5),
+        retry=retry_if_exception_type((RateLimitError, APIConnectionError, APITimeoutError, asyncio.TimeoutError))
+    )
     async def _evaluate_policy(self, alert: IoTAccessAlert, context: Dict[str, Any]) -> Dict[str, Any]:
         """
         Use Policy Agent to evaluate access policies
@@ -404,20 +438,18 @@ class DecisionPipeline:
             policies=policies_text
         )
         
-        result = await call_policy_agent(self.llm_client, self.model, policy_prompt, self.provider)
+        # Call policy agent with timeout budget
+        timeout = self.settings.llm_api_timeout
+        result = await asyncio.wait_for(
+            call_policy_agent(self.llm_client, self.model, policy_prompt, self.provider),
+            timeout=timeout
+        )
         
         # Parse JSON response
         try:
-            response_text = result if isinstance(result, str) else str(result)
-            json_start = response_text.find("{")
-            json_end = response_text.rfind("}") + 1
-            if json_start >= 0 and json_end > json_start:
-                policy_data = json.loads(response_text[json_start:json_end])
-            else:
-                logger.warning("policy_agent_no_json", response=response_text)
-                policy_data = {"action": "DENY", "confidence": 1.0, "reason": "Parse error - fail safe", "policy_matched": "error"}
-        except json.JSONDecodeError as e:
-            logger.error("policy_agent_json_error", error=str(e), response=result)
+            policy_data = self._extract_json(result)
+        except (json.JSONDecodeError, ValueError) as e:
+            logger.error("policy_agent_json_error", error=str(e), response=repr(result))
             policy_data = {"action": "DENY", "confidence": 1.0, "reason": "JSON parse error - fail safe", "policy_matched": "error"}
         
         return policy_data
@@ -444,6 +476,53 @@ class DecisionPipeline:
             device_type=alert.device_type,
             user_role=alert.user_role
         )
+
+    def _extract_json(self, text: str) -> Dict[str, Any]:
+        """
+        Robustly extract a JSON object from LLM response text.
+        Handles: raw JSON, markdown code fences (```json...```), extra preamble text.
+        Raises json.JSONDecodeError or ValueError if no valid JSON found.
+        """
+        import re
+        response_text = text if isinstance(text, str) else str(text)
+        
+        # 1. Strip markdown code fences: ```json\n{...}\n``` or ```\n{...}\n```
+        fence_match = re.search(r'```(?:json)?\s*(\{.*?\})\s*```', response_text, re.DOTALL)
+        if fence_match:
+            return json.loads(fence_match.group(1))
+        
+        # 2. Find the outermost JSON object by scanning for matching braces
+        start = response_text.find("{")
+        if start == -1:
+            raise ValueError(f"No JSON object found in response: {repr(response_text[:200])}")
+        
+        depth = 0
+        end = -1
+        in_string = False
+        escape_next = False
+        for i, ch in enumerate(response_text[start:], start=start):
+            if escape_next:
+                escape_next = False
+                continue
+            if ch == '\\' and in_string:
+                escape_next = True
+                continue
+            if ch == '"':
+                in_string = not in_string
+                continue
+            if not in_string:
+                if ch == '{':
+                    depth += 1
+                elif ch == '}':
+                    depth -= 1
+                    if depth == 0:
+                        end = i + 1
+                        break
+        
+        if end == -1:
+            raise ValueError(f"Unbalanced braces in response: {repr(response_text[:200])}")
+        
+        return json.loads(response_text[start:end])
 
     def _get_policy(self, device_type: str) -> Optional[Dict[str, Any]]:
         """Find policy for device type in config policies list"""

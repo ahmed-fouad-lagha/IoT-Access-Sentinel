@@ -63,7 +63,7 @@ class Settings(BaseSettings):
     
     # Timeouts
     wazuh_api_timeout: int = 30
-    llm_api_timeout: int = 60
+    llm_api_timeout: int = 30
     
     model_config = SettingsConfigDict(
         env_file=".env",

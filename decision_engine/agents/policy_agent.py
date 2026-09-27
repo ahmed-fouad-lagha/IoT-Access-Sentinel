@@ -58,6 +58,7 @@ Your role is to analyze IoT device connection attempts against defined access po
 6. If auth_token is 'invalid' or 'missing' when require_authentication=true → DENY.
 
 **Your Output Format:**
+You MUST respond with ONLY a raw JSON object — no markdown, no code fences, no preamble, no explanation.
 You must respond in this exact JSON format:
 {
     "action": "ALLOW" or "DENY",
@@ -70,6 +71,7 @@ You must respond in this exact JSON format:
 - High confidence (>0.9) for clear policy matches or explicit violations.
 - Lower confidence (0.6-0.8) for complex context or ambiguity (though still default to DENY if uncertain).
 - Always explain user authorization status in your reason.
+- OUTPUT ONLY THE JSON OBJECT. No other text before or after.
 """
 
 
@@ -105,6 +107,9 @@ async def call_policy_agent(client: Union[AsyncOpenAI, genai.Client], model: str
                 {"role": "user", "content": prompt}
             ],
             temperature=0.1,
-            max_tokens=1024
+            max_tokens=2048
         )
-        return response.choices[0].message.content
+        content = response.choices[0].message.content
+        if not content and hasattr(response.choices[0].message, 'reasoning'):
+            content = response.choices[0].message.reasoning
+        return content or ""

@@ -46,8 +46,10 @@ def get_llm_client(settings: Settings) -> Union[AsyncOpenAI, genai.Client]:
         
         # Create OpenAI async client (supports Groq and other OpenAI-compatible APIs)
         # We inject User-Agent to bypass AgentRouter client authentication checks
+        import httpx
         client_kwargs = {
             "api_key": api_key,
+            "timeout": httpx.Timeout(connect=5.0, read=30.0, write=10.0, pool=5.0),
             "default_headers": {
                 "User-Agent": "IoT-Access-Sentinel/0.1.0"
             }
