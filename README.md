@@ -1,3 +1,13 @@
+---
+title: IoT Access Sentinel
+emoji: 🛡️
+colorFrom: blue
+colorTo: indigo
+sdk: gradio
+app_file: app.py
+pinned: false
+---
+
 # IoT-Access-Sentinel
 
 <div align="center">
