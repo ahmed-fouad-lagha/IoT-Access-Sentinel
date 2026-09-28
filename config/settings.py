@@ -23,7 +23,7 @@ class Settings(BaseSettings):
     # Wazuh Manager Configuration (adapted from AI_SOC)
     wazuh_manager_url: str = "https://wazuh-manager:55000"
     wazuh_username: str = "wazuh-wui"
-    wazuh_password: str  # Required - loaded from .env
+    wazuh_password: str = "change-me-to-a-random-password"
     wazuh_verify_ssl: bool = False  # Set True in production with valid certs
     
     # Wazuh Alert Filtering
@@ -56,9 +56,9 @@ class Settings(BaseSettings):
     log_level: str = "info"
     
     # JWT and Webhook Secrets
-    jwt_secret_key: str  # Required - loaded from .env
+    jwt_secret_key: str = "change-me-to-a-random-secret"
     jwt_algorithm: str = "HS256"
-    webhook_api_key: str  # Required - loaded from .env
+    webhook_api_key: str = "change-me-to-a-random-key"
     verify_jwt_expiration: bool = True
     
     # Timeouts
