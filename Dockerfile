@@ -1,15 +1,22 @@
-# Dockerfile for IoT-Access-Sentinel
+# Stage 1: Build React/Vite Frontend
+FROM node:20-alpine AS frontend-builder
+WORKDIR /app/demo
+COPY demo/package*.json ./
+RUN npm install
+COPY demo/ ./
+RUN npm run build
+
+# Stage 2: Python Backend with FastAPI
 FROM python:3.11-slim
 
-# Set environment variables
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-ENV PYTHONPATH=/app
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app \
+    PORT=7860 \
+    HOST=0.0.0.0
 
-# Set work directory
 WORKDIR /app
 
-# Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     curl \
@@ -17,15 +24,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy project files
+# Copy all project files and built frontend
 COPY . .
+COPY --from=frontend-builder /app/demo/dist ./demo/dist
 
-# Expose port
-EXPOSE 8000
+# Hugging Face Spaces requires running as non-root user (UID 1000)
+RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
+USER appuser
 
-# Run the application
+EXPOSE 7860
+
 CMD ["python", "main.py"]

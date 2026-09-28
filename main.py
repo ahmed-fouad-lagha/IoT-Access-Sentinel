@@ -140,6 +140,13 @@ async def verify_webhook_api_key(
     4. Return enriched alert with decision and enforcement results
     """
 )
+@app.post(
+    "/api/access-control",
+    response_model=EnrichedIoTAlert,
+    status_code=status.HTTP_200_OK,
+    include_in_schema=False,
+    dependencies=[Depends(verify_webhook_api_key)]
+)
 async def process_access_alert(alert: IoTAccessAlert):
     """
     Process IoT access control alert with production-grade security
@@ -384,9 +391,12 @@ async def metrics_endpoint():
     return Response(content=get_metrics_endpoint(), media_type="text/plain")
 
 
-@app.get("/", summary="Service information")
-async def root():
-    """Root endpoint with service information"""
+import os
+from fastapi.staticfiles import StaticFiles
+
+@app.get("/api/info", summary="Service information")
+async def service_info():
+    """Service information endpoint"""
     return {
         "service": settings.service_name,
         "version": settings.service_version,
@@ -399,6 +409,14 @@ async def root():
             "docs": "/docs (GET) - API documentation"
         }
     }
+
+dist_dir = os.path.join(os.path.dirname(__file__), "demo", "dist")
+if os.path.exists(dist_dir):
+    app.mount("/", StaticFiles(directory=dist_dir, html=True), name="static")
+else:
+    @app.get("/", summary="Service information")
+    async def root():
+        return await service_info()
 
 
 if __name__ == "__main__":
