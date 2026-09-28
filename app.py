@@ -20,6 +20,17 @@ from typing import Tuple
 
 import gradio as gr
 
+# ZeroGPU compatibility for Hugging Face Spaces (in case ZeroGPU is enabled)
+try:
+    import spaces
+    @spaces.GPU
+    def _zero_gpu_init():
+        """Satisfies ZeroGPU startup check if ZeroGPU hardware is active."""
+        return True
+except Exception:
+    def _zero_gpu_init():
+        return True
+
 # Ensure local imports work in Spaces
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
