@@ -21,13 +21,14 @@ jobs:
             exit 1
           fi
 
-          HF_USER="${{ vars.HF_USERNAME }}"
-          HF_USERNAME="${HF_USER:-ahmed-fouad-lagha}"
-          HF_SPACE="${{ vars.HF_SPACE_NAME }}"
-          HF_SPACE_NAME="${HF_SPACE:-IoT-Access-Sentinel}"
+          HF_USERNAME="ahmed-fouad-lagha"
+          HF_SPACE_NAME="IoT-Access-Sentinel"
 
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
+
+          # Configure Git credential helper to supply HF_TOKEN safely without URL-encoding issues
+          git config --local credential.helper "!f() { echo \"username=${HF_USERNAME}\"; echo \"password=${HF_TOKEN}\"; }; f"
 
           # Create a clean deployment snapshot excluding historical bloated git objects and binary files
           git branch -D hf-deploy 2>/dev/null || true
@@ -53,7 +54,10 @@ EOF
           git add -A
           git commit -m "deploy: sync to Hugging Face Spaces $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
 
-          # Force push the clean snapshot to Hugging Face Spaces main branch
-          echo "Syncing snapshot to Hugging Face Spaces: ${HF_USERNAME}/${HF_SPACE_NAME}..."
-          git push -v --force "https://${HF_USERNAME}:${HF_TOKEN}@huggingface.co/spaces/${HF_USERNAME}/${HF_SPACE_NAME}" hf-deploy:main
-          echo "Deployment sync completed successfully!"
+          echo "Target Space: ${HF_USERNAME}/${HF_SPACE_NAME}"
+          git remote add space "https://huggingface.co/spaces/${HF_USERNAME}/${HF_SPACE_NAME}" 2>/dev/null || git remote set-url space "https://huggingface.co/spaces/${HF_USERNAME}/${HF_SPACE_NAME}"
+
+          echo "Pushing snapshot to Hugging Face Spaces main branch..."
+          git push --force space hf-deploy:main
+
+          echo "Deployment snapshot successfully delivered to Hugging Face Spaces!"
