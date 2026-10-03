@@ -8,6 +8,10 @@ Threat Defenses: MITRE ATLAS AML.T0051 (Prompt Injection) & MITRE ATT&CK T1036.0
 
 import os
 import sys
+
+# Disable unstable Node.js SSR proxy in Gradio 6 on Spaces to prevent SSE 404 stream errors
+os.environ["GRADIO_SSR_MODE"] = "False"
+
 import time
 import json
 import hmac
@@ -91,12 +95,12 @@ def generate_jwt_token(user_id: str, role: str, secret: str = None) -> str:
 
 
 def check_active_llm_status() -> str:
-    """Checks and returns the active execution mode badge."""
+    """Checks and returns the active execution mode badge with guaranteed contrast."""
     if pipeline and getattr(pipeline, 'llm_client', None):
         prov = getattr(pipeline, 'provider', 'OpenAI-compatible')
         mod = getattr(pipeline, 'model', 'unknown')
-        return f"<div class='status-pill active-llm'>Live Multi-Agent LLM Active ({prov} / {mod})</div>"
-    return "<div class='status-pill deterministic-engine'>Zero-Trust Deterministic Engine Active (Fast Path & Policy Evaluator)</div>"
+        return f"<div class='status-pill active-llm'>Multi-Agent LLM Active ({prov} / {mod})</div>"
+    return "<div class='status-pill deterministic-engine'>Deterministic Engine Active (Fast-Path ACL & Policy Rules)</div>"
 
 
 async def evaluate_access_request(
@@ -262,46 +266,156 @@ def load_preset_sensor():
     return "sensor", "sensor-temp-01", "iot-platform@company.com", "system", "192.168.2.50", get_next_monday_morning(), "Routine ambient environmental sensor telemetry", "No Token"
 
 
-# Enterprise Cybersecurity Theme CSS
+# Enterprise High-Contrast CSS: Ensures 100% text readability in any Hugging Face theme mode
 CUSTOM_CSS = """
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
-:root {
+/* Force dark mode background and high contrast typography */
+:root, .dark, body, .gradio-container {
     --bg-primary: #090d16;
     --bg-secondary: #0f172a;
-    --border-color: #1e293b;
+    --bg-card: #131d33;
+    --border-color: #27364f;
+    --text-primary: #f8fafc;
+    --text-secondary: #cbd5e1;
+    --text-muted: #94a3b8;
     --accent-blue: #38bdf8;
     --accent-emerald: #10b981;
     --accent-crimson: #ef4444;
     --accent-amber: #f59e0b;
-}
 
-body, .gradio-container {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
-    background-color: var(--bg-primary) !important;
-    color: #f1f5f9 !important;
+    background-color: #090d16 !important;
+    color: #f8fafc !important;
 }
 
+/* Ensure all labels, headings, and text have absolute contrast */
+label, 
+.block label, 
+.block label span, 
+.label-wrap span,
+.gr-form label,
+div[data-testid="block-label"] span,
+span.text-gray-500,
+span.text-gray-600,
+span.text-gray-700 {
+    color: #38bdf8 !important;
+    font-weight: 600 !important;
+    font-size: 0.82rem !important;
+    letter-spacing: 0.02em !important;
+    text-transform: uppercase !important;
+}
+
+/* Headings and Markdown content */
+h1, h2, h3, h4, h5, h6, 
+.prose h1, .prose h2, .prose h3, .prose h4, .prose strong {
+    color: #f8fafc !important;
+    font-weight: 700 !important;
+}
+
+p, span, .prose p, .prose span, .prose li {
+    color: #cbd5e1 !important;
+}
+
+/* Inputs, Textareas, and Dropdowns */
+input, textarea, select, .gr-input, .gr-box {
+    background-color: #131d33 !important;
+    color: #f8fafc !important;
+    border: 1px solid #27364f !important;
+    border-radius: 8px !important;
+    font-size: 0.95rem !important;
+}
+
+input:focus, textarea:focus, select:focus {
+    border-color: #38bdf8 !important;
+    box-shadow: 0 0 0 1px #38bdf8 !important;
+}
+
+input::placeholder, textarea::placeholder {
+    color: #64748b !important;
+}
+
+/* Readonly and Disabled Output Fields: Fix invisible / washed-out text */
+input[readonly], textarea[readonly], 
+input:disabled, textarea:disabled,
+.gr-input[readonly], .gr-input:disabled {
+    background-color: #0b1120 !important;
+    color: #f8fafc !important;
+    -webkit-text-fill-color: #f8fafc !important;
+    opacity: 1 !important;
+    border: 1px solid #1e293b !important;
+    font-weight: 500 !important;
+}
+
+/* Radio button options and text */
+div[data-testid="radio-group"] label,
+div[data-testid="radio-group"] span,
+.gr-radio label,
+.gr-radio span {
+    color: #f1f5f9 !important;
+    font-weight: 500 !important;
+    font-size: 0.92rem !important;
+    text-transform: none !important;
+}
+
+/* Accordion headers */
+button.label-wrap, 
+button.label-wrap span, 
+.accordion-header,
+.accordion-header span {
+    color: #e2e8f0 !important;
+    font-weight: 600 !important;
+    text-transform: none !important;
+}
+
+/* Buttons */
+button.primary, .btn-primary {
+    background: #0284c7 !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    border: none !important;
+    border-radius: 8px !important;
+}
+
+button.primary:hover, .btn-primary:hover {
+    background: #0369a1 !important;
+}
+
+button.secondary, .btn-secondary {
+    background: #131d33 !important;
+    color: #f1f5f9 !important;
+    border: 1px solid #27364f !important;
+    border-radius: 8px !important;
+    font-weight: 500 !important;
+    transition: all 0.15s ease-in-out !important;
+}
+
+button.secondary:hover, .btn-secondary:hover {
+    background: #1e293b !important;
+    border-color: #38bdf8 !important;
+    color: #38bdf8 !important;
+}
+
+/* Hero container */
 .hero-container {
-    background: linear-gradient(180deg, rgba(15, 23, 42, 0.9) 0%, rgba(9, 13, 22, 0.95) 100%);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: linear-gradient(180deg, #0f172a 0%, #090d16 100%);
+    border: 1px solid #1e293b;
     border-radius: 12px;
     padding: 24px 28px;
     margin-bottom: 24px;
-    backdrop-filter: blur(8px);
 }
 
 .hero-title {
     font-size: 1.75rem;
     font-weight: 700;
-    color: #f8fafc;
+    color: #f8fafc !important;
     letter-spacing: -0.02em;
     margin: 0;
 }
 
 .hero-subtitle {
     font-size: 0.95rem;
-    color: #94a3b8;
+    color: #94a3b8 !important;
     margin: 6px 0 0;
     line-height: 1.5;
 }
@@ -324,21 +438,21 @@ body, .gradio-container {
 }
 
 .badge-blue {
-    background: rgba(56, 189, 248, 0.1);
-    color: #38bdf8;
-    border: 1px solid rgba(56, 189, 248, 0.25);
+    background: rgba(56, 189, 248, 0.12);
+    color: #38bdf8 !important;
+    border: 1px solid rgba(56, 189, 248, 0.3);
 }
 
 .badge-emerald {
-    background: rgba(16, 185, 129, 0.1);
-    color: #34d399;
-    border: 1px solid rgba(16, 185, 129, 0.25);
+    background: rgba(16, 185, 129, 0.12);
+    color: #34d399 !important;
+    border: 1px solid rgba(16, 185, 129, 0.3);
 }
 
 .badge-indigo {
-    background: rgba(99, 102, 241, 0.1);
-    color: #818cf8;
-    border: 1px solid rgba(99, 102, 241, 0.25);
+    background: rgba(99, 102, 241, 0.12);
+    color: #818cf8 !important;
+    border: 1px solid rgba(99, 102, 241, 0.3);
 }
 
 .status-pill {
@@ -351,39 +465,39 @@ body, .gradio-container {
 }
 
 .active-llm {
-    background: rgba(16, 185, 129, 0.12);
-    color: #34d399;
-    border: 1px solid rgba(16, 185, 129, 0.3);
+    background: rgba(16, 185, 129, 0.15);
+    color: #34d399 !important;
+    border: 1px solid rgba(16, 185, 129, 0.4);
 }
 
 .deterministic-engine {
-    background: rgba(245, 158, 11, 0.12);
-    color: #fbbf24;
-    border: 1px solid rgba(245, 158, 11, 0.3);
+    background: rgba(245, 158, 11, 0.15);
+    color: #fbbf24 !important;
+    border: 1px solid rgba(245, 158, 11, 0.4);
 }
 
+/* Verdict cards */
 .verdict-card {
     border-radius: 10px;
     padding: 22px 24px;
     margin-bottom: 16px;
     text-align: left;
-    transition: all 0.2s ease-in-out;
 }
 
 .verdict-allowed {
-    background: linear-gradient(135deg, rgba(6, 78, 59, 0.5) 0%, rgba(4, 47, 46, 0.4) 100%);
+    background: linear-gradient(135deg, rgba(6, 78, 59, 0.6) 0%, rgba(4, 47, 46, 0.5) 100%);
     border: 1px solid #10b981;
     box-shadow: 0 4px 20px -2px rgba(16, 185, 129, 0.25);
 }
 
 .verdict-denied {
-    background: linear-gradient(135deg, rgba(69, 10, 10, 0.5) 0%, rgba(45, 10, 10, 0.4) 100%);
+    background: linear-gradient(135deg, rgba(69, 10, 10, 0.6) 0%, rgba(45, 10, 10, 0.5) 100%);
     border: 1px solid #ef4444;
     box-shadow: 0 4px 20px -2px rgba(239, 68, 68, 0.25);
 }
 
 .verdict-failsecure {
-    background: linear-gradient(135deg, rgba(69, 26, 3, 0.5) 0%, rgba(45, 20, 5, 0.4) 100%);
+    background: linear-gradient(135deg, rgba(69, 26, 3, 0.6) 0%, rgba(45, 20, 5, 0.5) 100%);
     border: 1px solid #f59e0b;
     box-shadow: 0 4px 20px -2px rgba(245, 158, 11, 0.25);
 }
@@ -396,26 +510,26 @@ body, .gradio-container {
     margin-bottom: 4px;
 }
 
-.verdict-allowed .verdict-tag { color: #34d399; }
-.verdict-denied .verdict-tag { color: #f87171; }
-.verdict-failsecure .verdict-tag { color: #fbbf24; }
+.verdict-allowed .verdict-tag { color: #34d399 !important; }
+.verdict-denied .verdict-tag { color: #f87171 !important; }
+.verdict-failsecure .verdict-tag { color: #fbbf24 !important; }
 
 .verdict-title {
     font-size: 1.25rem;
     font-weight: 700;
-    color: #f8fafc;
+    color: #f8fafc !important;
     margin-bottom: 4px;
 }
 
 .verdict-desc {
     font-size: 0.9rem;
-    color: #cbd5e1;
+    color: #cbd5e1 !important;
     line-height: 1.4;
 }
 
 .arch-summary-panel {
-    background: rgba(15, 23, 42, 0.6);
-    border: 1px solid var(--border-color);
+    background: #0f172a;
+    border: 1px solid #1e293b;
     border-radius: 10px;
     padding: 16px 20px;
     margin-top: 24px;
@@ -429,7 +543,54 @@ code, pre {
 }
 """
 
+# Native Gradio theme with explicit dark & light mode tokens
+theme = gr.themes.Soft(
+    primary_hue="sky",
+    secondary_hue="indigo",
+    neutral_hue="slate",
+    font=[gr.themes.GoogleFont("Inter"), "sans-serif"],
+    font_mono=[gr.themes.GoogleFont("JetBrains Mono"), "monospace"],
+).set(
+    body_background_fill="#090d16",
+    body_background_fill_dark="#090d16",
+    body_text_color="#f8fafc",
+    body_text_color_dark="#f8fafc",
+    body_text_color_subdued="#94a3b8",
+    body_text_color_subdued_dark="#94a3b8",
+    background_fill_primary="#0f172a",
+    background_fill_primary_dark="#0f172a",
+    background_fill_secondary="#131d33",
+    background_fill_secondary_dark="#131d33",
+    border_color_primary="#27364f",
+    border_color_primary_dark="#27364f",
+    block_background_fill="#0f172a",
+    block_background_fill_dark="#0f172a",
+    block_border_color="#1e293b",
+    block_border_color_dark="#1e293b",
+    block_label_background_fill="#131d33",
+    block_label_background_fill_dark="#131d33",
+    block_label_text_color="#38bdf8",
+    block_label_text_color_dark="#38bdf8",
+    block_title_text_color="#f8fafc",
+    block_title_text_color_dark="#f8fafc",
+    input_background_fill="#131d33",
+    input_background_fill_dark="#131d33",
+    input_border_color="#27364f",
+    input_border_color_dark="#27364f",
+    input_placeholder_color="#64748b",
+    input_placeholder_color_dark="#64748b",
+    checkbox_label_text_color="#f1f5f9",
+    checkbox_label_text_color_dark="#f1f5f9",
+    accordion_text_color="#e2e8f0",
+    accordion_text_color_dark="#e2e8f0",
+    button_secondary_background_fill="#131d33",
+    button_secondary_background_fill_dark="#131d33",
+    button_secondary_text_color="#f8fafc",
+    button_secondary_text_color_dark="#f8fafc",
+)
+
 with gr.Blocks(title="IoT-Access-Sentinel") as demo:
+    gr.HTML(f"<style>{CUSTOM_CSS}</style>")
     gr.HTML("""
     <div class="hero-container">
         <h1 class="hero-title">IoT-Access-Sentinel</h1>
@@ -507,8 +668,8 @@ with gr.Blocks(title="IoT-Access-Sentinel") as demo:
             gr.Markdown("#### Decision Telemetry & Inspection")
             
             out_banner = gr.HTML("""
-            <div style='background: rgba(15, 23, 42, 0.5); border: 1px dashed #334155; border-radius: 10px; padding: 24px; text-align: center;'>
-                <span style='color: #94a3b8; font-size: 0.95rem; font-weight: 500;'>Awaiting connection attempt. Select a preset or submit an inspection request.</span>
+            <div style='background: #0f172a; border: 1px dashed #334155; border-radius: 10px; padding: 24px; text-align: center;'>
+                <span style='color: #cbd5e1; font-size: 0.95rem; font-weight: 500;'>Awaiting connection attempt. Select a preset or submit an inspection request.</span>
             </div>
             """)
             
@@ -546,19 +707,19 @@ with gr.Blocks(title="IoT-Access-Sentinel") as demo:
         <strong style="color: #cbd5e1;">Framework Defense Specifications:</strong>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px;">
             <div>
-                <strong>Layer 0 Fast Path (&lt; 1 ms):</strong>
+                <strong style="color: #f1f5f9;">Layer 0 Fast Path (&lt; 1 ms):</strong>
                 Deterministic HMAC-SHA256 JWT cryptographic validation, IP subnet CIDR filtering, temporal business hour checking, and Unicode NFKC/RTLO normalization.
             </div>
             <div>
-                <strong>Prompt Guard (AML.T0051):</strong>
+                <strong style="color: #f1f5f9;">Prompt Guard (AML.T0051):</strong>
                 Multi-tier input scan preventing adversarial instruction overrides (e.g., <code>DECISION=ALLOW</code>) and metadata smuggling attacks.
             </div>
             <div>
-                <strong>Semantic Caching (&lt; 1 ms):</strong>
+                <strong style="color: #f1f5f9;">Semantic Caching (&lt; 1 ms):</strong>
                 Deterministic SHA-256 context hashing allows repeated semantic evaluations to bypass LLM inference latency.
             </div>
             <div>
-                <strong>Layer 1 Multi-Agent Reasoning (~150 ms):</strong>
+                <strong style="color: #f1f5f9;">Layer 1 Multi-Agent Reasoning (~150 ms):</strong>
                 Context Agent analyzes telemetry dynamics; Policy Agent conducts zero-trust evaluation against declarative access control policies.
             </div>
         </div>
@@ -569,6 +730,7 @@ if __name__ == "__main__":
     demo.queue().launch(
         server_name="0.0.0.0",
         server_port=int(os.environ.get("PORT", 7860)),
-        theme=gr.themes.Soft(primary_hue="sky", secondary_hue="indigo", neutral_hue="slate"),
-        css=CUSTOM_CSS
+        theme=theme,
+        css=CUSTOM_CSS,
+        ssr_mode=False
     )
