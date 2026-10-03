@@ -21,8 +21,6 @@ htmlcov/
 .gemini/
 tests/
 evaluation/
-demo/node_modules/
-demo/dist/
 results/
 tools/
 manuscript/

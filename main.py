@@ -391,9 +391,6 @@ async def metrics_endpoint():
     return Response(content=get_metrics_endpoint(), media_type="text/plain")
 
 
-import os
-from fastapi.staticfiles import StaticFiles
-
 @app.get("/api/info", summary="Service information")
 async def service_info():
     """Service information endpoint"""
@@ -402,21 +399,21 @@ async def service_info():
         "version": settings.service_version,
         "description": "Autonomous Context-Aware Access Control for IoT via Multi-Agent Generative AI",
         "research": "Access Management (M0801) - Active authorization enforcement using LLMs",
+        "live_demo": "https://huggingface.co/spaces/ahmed-fouad-lagha/IoT-Access-Sentinel",
         "endpoints": {
             "access_control": "/access-control (POST) - Process IoT access alert",
             "alerts": "/alerts (GET) - Fetch and analyze recent alerts",
             "health": "/health (GET) - Health check",
-            "docs": "/docs (GET) - API documentation"
+            "docs": "/docs (GET) - Interactive API documentation (Swagger)",
+            "redoc": "/redoc (GET) - Alternative API documentation (ReDoc)"
         }
     }
 
-dist_dir = os.path.join(os.path.dirname(__file__), "demo", "dist")
-if os.path.exists(dist_dir):
-    app.mount("/", StaticFiles(directory=dist_dir, html=True), name="static")
-else:
-    @app.get("/", summary="Service information")
-    async def root():
-        return await service_info()
+
+@app.get("/", summary="Service Information & API Documentation")
+async def root():
+    """Root endpoint providing service status and links"""
+    return await service_info()
 
 
 if __name__ == "__main__":
