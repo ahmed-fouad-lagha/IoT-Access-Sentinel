@@ -56,7 +56,7 @@ class Settings(BaseSettings):
     log_level: str = "info"
     
     # JWT and Webhook Secrets
-    jwt_secret_key: str = "change-me-to-a-random-secret"
+    jwt_secret_key: str = "change-me-to-a-random-secret-key-32-chars"
     jwt_algorithm: str = "HS256"
     webhook_api_key: str = "change-me-to-a-random-key"
     verify_jwt_expiration: bool = True

@@ -82,7 +82,7 @@ def get_off_hours_timestamp() -> str:
 
 def generate_jwt_token(user_id: str, role: str, secret: str = None) -> str:
     """Generates a cryptographically valid HMAC-SHA256 JWT token for test requests."""
-    secret = secret or getattr(settings, 'jwt_secret_key', 'change-me-to-a-random-secret')
+    secret = secret or getattr(settings, 'jwt_secret_key', 'change-me-to-a-random-secret-key-32-chars')
     header = base64.urlsafe_b64encode(json.dumps({"alg": "HS256", "typ": "JWT"}).encode()).rstrip(b'=').decode()
     payload = base64.urlsafe_b64encode(json.dumps({
         "sub": user_id,
