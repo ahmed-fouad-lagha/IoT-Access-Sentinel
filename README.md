@@ -255,10 +255,13 @@ curl -X POST http://localhost:8000/access-control \
 If you find **IoT-Access-Sentinel** helpful in your research, please cite our paper:
 
 ```bibtex
-@inproceedings{lagha2026sentinel,
-  title={IoT-Access-Sentinel: Hybrid Zero-Trust Access Control Framework for Edge IoT Networks},
-  author={Lagha, Ahmed Fouad and collaborators},
-  booktitle={Proceedings of the Information Technologies -- Applications and Theory (ITAT 2026)},
+@inproceedings{lagha2026context,
+  title={Context-Aware Access Control for IoT Devices Using Two-Role LLM Reasoning: A Security Evaluation},
+  author={Lagha, Ahmed Fouad and Seddiki, Loubna and Araar, Oumaima and Lend{\'a}k, Imre},
+  booktitle={Proceedings of the 26th Conference on Information Technologies -- Applications and Theory (ITAT 2026)},
+  series={CEUR Workshop Proceedings},
+  publisher={CEUR-WS.org},
+  address={Biele Karpaty, Slovakia},
   year={2026}
 }
 ```
