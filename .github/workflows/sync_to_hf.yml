@@ -11,9 +11,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          lfs: true
 
       - name: Push to Hugging Face Spaces
         env:
@@ -25,4 +22,14 @@ jobs:
             echo "::error::HF_TOKEN secret is missing! Please configure HF_TOKEN under GitHub Settings -> Secrets and variables -> Actions."
             exit 1
           fi
-          git push --force "https://${HF_USERNAME}:${HF_TOKEN}@huggingface.co/spaces/${HF_USERNAME}/${HF_SPACE_NAME}" master:main
+
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+
+          # Create a clean deployment snapshot excluding historical bloated git objects (>10MB)
+          git checkout --orphan hf-deploy
+          git add -A
+          git commit -m "deploy: sync to Hugging Face Spaces [skip ci]"
+
+          # Force push the clean snapshot to Hugging Face Spaces main branch
+          git push --force "https://${HF_USERNAME}:${HF_TOKEN}@huggingface.co/spaces/${HF_USERNAME}/${HF_SPACE_NAME}" hf-deploy:main
