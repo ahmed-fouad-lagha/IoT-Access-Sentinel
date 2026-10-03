@@ -26,8 +26,9 @@ jobs:
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
 
-          # Create a clean deployment snapshot excluding historical bloated git objects (>10MB)
+          # Create a clean deployment snapshot excluding historical bloated git objects and binary files
           git checkout --orphan hf-deploy
+          git rm -rf assets/ 2>/dev/null || true
           git add -A
           git commit -m "deploy: sync to Hugging Face Spaces [skip ci]"
 

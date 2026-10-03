@@ -26,7 +26,7 @@ pinned: false
 
 The framework specifically addresses the MITRE ATT&CK **Access Management (M0801)** gap (User Identification & Verification) by bridging the semantic gap between high-level policies and low-level logs. It places a deterministic validation pre-filter and multi-agent Large Language Model (LLM) reasoning in a unified real-time runtime authorization path.
 
-![Hybrid Architecture](./assets/hybrid-architecture.png)
+![Hybrid Architecture](https://raw.githubusercontent.com/ahmed-fouad-lagha/IoT-Access-Sentinel/master/assets/hybrid-architecture.png)
 
 _Figure 1: Architecture of the IoT-Access-Sentinel framework_
 
