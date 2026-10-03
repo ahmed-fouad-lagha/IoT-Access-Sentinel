@@ -16,8 +16,10 @@ jobs:
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
+          set -euo pipefail
+
           if [ -z "$HF_TOKEN" ]; then
-            echo "::error::HF_TOKEN secret is missing! Please configure HF_TOKEN under GitHub Settings -> Secrets and variables -> Actions."
+            echo "::error::HF_TOKEN secret is missing!"
             exit 1
           fi
 
@@ -27,37 +29,34 @@ jobs:
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
 
-          # Configure Git credential helper to supply HF_TOKEN safely without URL-encoding issues
-          git config --local credential.helper "!f() { echo \"username=${HF_USERNAME}\"; echo \"password=${HF_TOKEN}\"; }; f"
-
-          # Create a clean deployment snapshot excluding historical bloated git objects and binary files
+          # Create a clean orphan deployment snapshot
           git branch -D hf-deploy 2>/dev/null || true
           git checkout --orphan hf-deploy
           git rm -rf assets/ 2>/dev/null || true
 
-          # Inject Hugging Face Space runtime metadata into README.md for the Space artifact
-          cat << 'EOF' > /tmp/hf_metadata.txt
----
-title: IoT Access Sentinel
-emoji: 🛡️
-colorFrom: blue
-colorTo: indigo
-sdk: gradio
-sdk_version: 6.29.1
-app_file: app.py
-pinned: false
----
+          # Inject Hugging Face Space metadata into README.md
+          # NOTE: Using printf instead of heredoc to avoid '---' at column 0
+          # which YAML parsers interpret as a document separator, silently
+          # truncating the run script.
+          printf '%s\n' \
+            '---' \
+            'title: IoT Access Sentinel' \
+            'emoji: 🛡️' \
+            'colorFrom: blue' \
+            'colorTo: indigo' \
+            'sdk: gradio' \
+            'sdk_version: 6.29.1' \
+            'app_file: app.py' \
+            'pinned: false' \
+            '---' \
+            '' > /tmp/hf_header.txt
 
-EOF
-          cat /tmp/hf_metadata.txt README.md > /tmp/README_HF.md && mv /tmp/README_HF.md README.md
+          cat /tmp/hf_header.txt README.md > /tmp/README_HF.md
+          mv /tmp/README_HF.md README.md
 
           git add -A
-          git commit -m "deploy: sync to Hugging Face Spaces $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+          git commit -m "deploy: sync $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
 
-          echo "Target Space: ${HF_USERNAME}/${HF_SPACE_NAME}"
-          git remote add space "https://huggingface.co/spaces/${HF_USERNAME}/${HF_SPACE_NAME}" 2>/dev/null || git remote set-url space "https://huggingface.co/spaces/${HF_USERNAME}/${HF_SPACE_NAME}"
-
-          echo "Pushing snapshot to Hugging Face Spaces main branch..."
-          git push --force space hf-deploy:main
-
-          echo "Deployment snapshot successfully delivered to Hugging Face Spaces!"
+          echo "Pushing to https://huggingface.co/spaces/${HF_USERNAME}/${HF_SPACE_NAME}"
+          git push --force "https://${HF_USERNAME}:${HF_TOKEN}@huggingface.co/spaces/${HF_USERNAME}/${HF_SPACE_NAME}" hf-deploy:main
+          echo "Done."
