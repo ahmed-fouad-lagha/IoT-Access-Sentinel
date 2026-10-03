@@ -47,7 +47,7 @@ EOF
           cat /tmp/hf_metadata.txt README.md > /tmp/README_HF.md && mv /tmp/README_HF.md README.md
 
           git add -A
-          git commit -m "deploy: sync to Hugging Face Spaces [skip ci]"
+          git commit -m "deploy: sync to Hugging Face Spaces $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
 
           # Force push the clean snapshot to Hugging Face Spaces main branch
           git push --force "https://${HF_USERNAME}:${HF_TOKEN}@huggingface.co/spaces/${HF_USERNAME}/${HF_SPACE_NAME}" hf-deploy:main
