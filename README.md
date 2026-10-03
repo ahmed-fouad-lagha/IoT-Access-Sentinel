@@ -1,14 +1,3 @@
----
-title: IoT Access Sentinel
-emoji: 🛡️
-colorFrom: blue
-colorTo: indigo
-sdk: gradio
-sdk_version: 6.29.1
-app_file: app.py
-pinned: false
----
-
 # IoT-Access-Sentinel
 
 <div align="center">
@@ -20,36 +9,33 @@ pinned: false
 [![CI Tests](https://github.com/ahmed-fouad-lagha/IoT-Access-Sentinel/actions/workflows/ci.yml/badge.svg)](https://github.com/ahmed-fouad-lagha/IoT-Access-Sentinel/actions/workflows/ci.yml)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
-[![Docker](https://img.shields.io/badge/docker-ready-blue.svg)](#-docker-deployment)
+[![Docker](https://img.shields.io/badge/docker-ready-blue.svg)](#docker-deployment)
 
 <p align="center">
-  <a href="https://huggingface.co/spaces/ahmed-fouad-lagha/IoT-Access-Sentinel"><strong>🚀 Try the Live Interactive Demo »</strong></a>
+  <a href="https://huggingface.co/spaces/ahmed-fouad-lagha/IoT-Access-Sentinel"><strong>Live Demo</strong></a>
   •
-  <a href="#-key-results--benchmarks"><strong>View Benchmarks »</strong></a>
+  <a href="#architecture"><strong>Architecture</strong></a>
   •
-  <a href="#-quick-start"><strong>Quick Start »</strong></a>
+  <a href="#evaluation--benchmarks"><strong>Benchmarks</strong></a>
   •
-  <a href="#-api-documentation"><strong>API Docs »</strong></a>
+  <a href="#quick-start"><strong>Quick Start</strong></a>
+  •
+  <a href="#api-reference"><strong>API Reference</strong></a>
 </p>
 
 </div>
 
 ---
 
-### 🌟 Live Interactive Demo
-
-Experience **IoT-Access-Sentinel** in real time on **Hugging Face Spaces**:
-👉 **[huggingface.co/spaces/ahmed-fouad-lagha/IoT-Access-Sentinel](https://huggingface.co/spaces/ahmed-fouad-lagha/IoT-Access-Sentinel)**
-
-Test legitimate access requests, detect adversarial attacks (Unicode RTLO evasion, metadata smuggling, prompt injections), and inspect real-time Layer 0 and Layer 1 decision breakdowns without installing any local dependencies.
+> **Live Demonstration**: An interactive deployment of the framework is hosted on [Hugging Face Spaces](https://huggingface.co/spaces/ahmed-fouad-lagha/IoT-Access-Sentinel). It provides real-time verification of Layer 0 deterministic filtering and Layer 1 multi-agent reasoning across the benchmark scenarios without requiring local installation.
 
 ---
 
-## 📌 Overview
+## Overview
 
-**IoT-Access-Sentinel** is an autonomous, hybrid zero-trust access control framework tailored for Edge IoT networks. It bridges the semantic gap between low-level telemetry logs and high-level organizational security policies, specifically addressing the **MITRE ATT&CK Access Management (M0801)** gap (*User Identification & Verification*).
+**IoT-Access-Sentinel** is an autonomous, hybrid zero-trust access control framework designed for Edge IoT networks. It addresses the **MITRE ATT&CK Access Management (M0801)** gap (*User Identification & Verification*) by bridging the semantic divide between low-level telemetry logs and high-level organizational security policies.
 
-Sentinel integrates a deterministic micro-firewall validation pre-filter (**Layer 0**) with multi-agent Large Language Model reasoning (**Layer 1**) into a unified runtime authorization pipeline.
+The system integrates a deterministic micro-firewall validation pre-filter (**Layer 0**) with multi-agent Large Language Model reasoning (**Layer 1**) into a unified runtime authorization pipeline.
 
 ![Hybrid Architecture](https://raw.githubusercontent.com/ahmed-fouad-lagha/IoT-Access-Sentinel/master/assets/hybrid-architecture.png)
 
@@ -59,14 +45,14 @@ Sentinel integrates a deterministic micro-firewall validation pre-filter (**Laye
 
 ---
 
-## ⚙️ Architecture & Decision Pipeline
+## Architecture
 
 Sentinel enforces zero-trust authorization policies using a hybrid **Observe → Decide → Act** pipeline:
 
 ```mermaid
 graph TD
     subgraph Observe [1. Observe]
-        Wazuh[Wazuh Agent/SIEM Manager] -->|Access Log Alert| API[FastAPI Webhook: /access-control]
+        Wazuh[Wazuh Agent / SIEM Manager] -->|Access Log Alert| API[FastAPI Webhook: /access-control]
     end
 
     subgraph Decide [2. Decide: Hybrid Decision Engine]
@@ -108,23 +94,23 @@ graph TD
 ```
 
 ### 1. Layer 0: Deterministic Validation (Fast Path — `< 1 ms`)
-* **Input Sanitization & Normalization**: Uses `unicodedata.normalize('NFKC')` and strips directional overrides (`\u202A`–`\u202E`), Bidi isolates (`\u2066`–`\u2069`), and zero-width characters to stop homoglyph and right-to-left override evasion attacks dead in their tracks ([validation.py](common/validation.py)).
+* **Input Sanitization & Normalization**: Normalizes incoming payloads with `unicodedata.normalize('NFKC')` and strips directional overrides (`\u202A`–`\u202E`), Bidi isolates (`\u2066`–`\u2069`), and zero-width characters to prevent homoglyph and right-to-left override evasion attacks ([validation.py](common/validation.py)).
 * **Cryptographic Token Verification**: Verifies JWT signatures, validates expirations, and enforces that the subject identity matches the requesting entity ([user_auth_validator.py](decision_engine/validators/user_auth_validator.py)).
-* **Static Access Rule Pre-filtering**: Enforces network CIDR allowlists and scheduled operating hours. Invalid requests are rejected in **~1ms** without consuming LLM inference tokens.
+* **Static Access Rule Pre-filtering**: Evaluates IP subnet CIDR blocks and operating hour schedules. Invalid requests are rejected in **~1 ms** without consuming LLM inference tokens.
 
 ### 2. Layer 1: Multi-Agent Generative Reasoning (Slow Path — `~97 ms`)
 When deterministic checks pass but contextual ambiguity exists:
 * **Context Agent**: Aggregates environmental telemetry, historical risk patterns, and device metadata into a concise context report ([context_agent.py](decision_engine/agents/context_agent.py)).
-* **Policy Agent**: Compares context against high-level natural language access policies with zero-trust reasoning and generates an explainable decision with a calibrated semantic confidence score ([policy_agent.py](decision_engine/agents/policy_agent.py)).
+* **Policy Agent**: Benchmarks context against high-level natural language security policies with zero-trust reasoning, returning an explainable decision with a calibrated semantic confidence score ([policy_agent.py](decision_engine/agents/policy_agent.py)).
 * **Semantic Caching**: SHA-256 context hashing caches decisions (TTL: 1 hour) so repeated identical queries resolve in sub-millisecond times ([decision_pipeline.py](decision_engine/decision_pipeline.py)).
 * **Fail-Secure Architecture**: If the LLM experiences latency spikes, API timeouts, or rate limits, Sentinel immediately defaults to **DENY** (0% False Permit Rate).
 
 ### 3. Real-Time Enforcement Layer
-Denied access triggers the active enforcer ([actions.py](enforcer/actions.py)), which communicates with the Wazuh REST API to trigger a dynamic firewall drop (`firewall-drop`) on the endpoint for 3600 seconds.
+Denied access triggers active response ([actions.py](enforcer/actions.py)), which communicates with the Wazuh REST API to trigger a dynamic firewall drop (`firewall-drop`) on the endpoint for 3600 seconds.
 
 ---
 
-## 📊 Key Results & Benchmarks
+## Evaluation & Benchmarks
 
 Sentinel was evaluated against a rigorous benchmark comprising **102 unique scenarios** (evaluated across 204 runs to verify cache reproducibility) and **105 adversarial red-team attacks**:
 
@@ -139,11 +125,11 @@ Sentinel was evaluated against a rigorous benchmark comprising **102 unique scen
 | **Average End-to-End Latency** | — | **97 ms** | Real-time capable |
 | **Fail-Secure Safety Under Stress** | Baseline Fails Open | **0% False Permits** | 100% Fail-Secure |
 
-> **Statistical Significance**: McNemar's test on the 102 independent scenarios yielded $\chi^2 = 7.56$ ($p < 0.01$), confirming a statistically significant improvement over traditional rule-based and RBAC systems.
+> **Statistical Significance**: McNemar's test on the 102 independent scenarios yielded $\chi^2 = 7.56$ ($p < 0.01$), confirming a statistically significant improvement over traditional rule-based and RBAC baselines.
 
 ---
 
-## 📁 Repository Structure
+## Repository Structure
 
 ```text
 IoT-Access-Sentinel/
@@ -167,13 +153,18 @@ IoT-Access-Sentinel/
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
-### Option 1: Live Web Demo (Zero Installation)
-Visit the live demo on Hugging Face Spaces:  
-👉 **[https://huggingface.co/spaces/ahmed-fouad-lagha/IoT-Access-Sentinel](https://huggingface.co/spaces/ahmed-fouad-lagha/IoT-Access-Sentinel)**
+### 1. Interactive Demo
+To run the interactive Gradio demo locally:
+```bash
+python app.py
+```
+Open `http://localhost:7860` in your browser.
 
-### Option 2: Local Setup
+Alternatively, access the live cloud deployment on [Hugging Face Spaces](https://huggingface.co/spaces/ahmed-fouad-lagha/IoT-Access-Sentinel).
+
+### 2. Local API Server
 
 1. **Clone the repository**:
    ```bash
@@ -188,34 +179,24 @@ Visit the live demo on Hugging Face Spaces:
    pip install -r requirements.txt
    ```
 
-3. **Launch either the API Server or the Interactive Demo**:
-   * **To run the Interactive Gradio Demo**:
-     ```bash
-     python app.py
-     ```
-     Open `http://localhost:7860` in your browser.
-
-   * **To run the FastAPI Access Control Server**:
-     ```bash
-     python main.py
-     ```
-     Access interactive OpenAPI docs at `http://localhost:8000/docs`.
+3. **Launch the FastAPI Server**:
+   ```bash
+   python main.py
+   ```
+   Interactive OpenAPI documentation is available at `http://localhost:8000/docs`.
 
 ---
 
-## 🐳 Docker Deployment
+## Docker Deployment
 
-Run the complete standalone Sentinel container:
+Build and run the standalone Sentinel container:
 
 ```bash
-# Build the container
 docker build -t iot-access-sentinel .
-
-# Run the container
 docker run -d -p 8000:8000 --name sentinel iot-access-sentinel
 ```
 
-Or launch the entire SIEM integration (Wazuh Manager, Indexer, Dashboard & Sentinel) via Docker Compose:
+To run the full SIEM stack (Wazuh Manager, Indexer, Dashboard, and Sentinel):
 
 ```bash
 docker-compose up -d --build
@@ -223,17 +204,17 @@ docker-compose up -d --build
 
 ---
 
-## 🧪 Testing & Verification
+## Testing & Verification
 
-Run the comprehensive pytest suite verifying deterministic pre-checks, cryptographic token validations, prompt injection defenses, and fail-secure mechanisms:
+Run the test suite verifying deterministic pre-checks, cryptographic token validations, prompt injection defenses, and fail-secure mechanisms:
 
 ```bash
 pytest tests/ -v
 ```
 
-To run the reproducibility evaluation benchmark:
+To reproduce the benchmark results:
 ```bash
-# Quick functional check (8 scenarios)
+# Smoke test (8 scenarios)
 bash evaluation/run_tests.sh
 
 # Full benchmark (204 evaluation runs)
@@ -242,9 +223,9 @@ bash evaluation/run_tests.sh --full
 
 ---
 
-## 📖 API Documentation
+## API Reference
 
-The FastAPI backend automatically serves interactive Swagger documentation:
+The FastAPI backend provides automated OpenAPI documentation:
 
 * **Swagger UI**: `http://localhost:8000/docs`
 * **ReDoc**: `http://localhost:8000/redoc`
@@ -269,9 +250,9 @@ curl -X POST http://localhost:8000/access-control \
 
 ---
 
-## 📜 Citation
+## Citation
 
-If you find **IoT-Access-Sentinel** helpful in your research or applications, please cite our paper:
+If you find **IoT-Access-Sentinel** helpful in your research, please cite our paper:
 
 ```bibtex
 @inproceedings{lagha2026sentinel,
@@ -284,6 +265,6 @@ If you find **IoT-Access-Sentinel** helpful in your research or applications, pl
 
 ---
 
-## 📄 License
+## License
 
 This project is licensed under the **Apache License 2.0** — see the [LICENSE](LICENSE) file for details.

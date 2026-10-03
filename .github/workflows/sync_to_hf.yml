@@ -29,6 +29,16 @@ jobs:
           # Create a clean deployment snapshot excluding historical bloated git objects and binary files
           git checkout --orphan hf-deploy
           git rm -rf assets/ 2>/dev/null || true
+
+          # Inject Hugging Face Space runtime metadata into README.md for the Space artifact
+          python3 -c '
+with open("README.md", "r") as f:
+    readme = f.read()
+hf_header = "---\\ntitle: IoT Access Sentinel\\nemoji: 🛡️\\ncolorFrom: blue\\ncolorTo: indigo\\nsdk: gradio\\nsdk_version: 6.29.1\\napp_file: app.py\\npinned: false\\n---\\n\\n"
+with open("README.md", "w") as f:
+    f.write(hf_header + readme)
+'
+
           git add -A
           git commit -m "deploy: sync to Hugging Face Spaces [skip ci]"
 
