@@ -404,6 +404,35 @@ button.secondary:hover, .btn-secondary:hover {
     color: #0284c7 !important;
 }
 
+/* Benchmark Presets: Equal height, perfect alignment, clean typography */
+.preset-row {
+    margin-bottom: 8px !important;
+    gap: 12px !important;
+}
+
+.preset-btn {
+    min-height: 44px !important;
+    height: 44px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    font-size: 0.84rem !important;
+    font-weight: 500 !important;
+    padding: 6px 12px !important;
+    line-height: 1.25 !important;
+    white-space: nowrap !important;
+}
+
+/* Column headers alignment */
+.gr-column h4 {
+    margin-top: 4px !important;
+    margin-bottom: 14px !important;
+    font-size: 1.05rem !important;
+    font-weight: 700 !important;
+    color: #0f172a !important;
+}
+
 /* Hero container */
 .hero-container {
     background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
@@ -634,14 +663,14 @@ with gr.Blocks(title="IoT-Access-Sentinel") as demo:
         out_llm_status = gr.HTML(check_active_llm_status())
 
     gr.Markdown("#### Evaluation Benchmark Presets (Click to Load Scenario)")
-    with gr.Row():
-        btn_preset_1 = gr.Button("Scenario 1: Authorized Security Staff (ALLOW)", variant="secondary")
-        btn_preset_2 = gr.Button("Scenario 2: Unauthorized Identity (DENY - M0801)", variant="secondary")
-        btn_preset_3 = gr.Button("Scenario 3: Unicode RTLO Evasion (DENY - T1036.002)", variant="secondary")
-    with gr.Row():
-        btn_preset_4 = gr.Button("Scenario 4: Prompt Injection Smuggling (DENY - AML.T0051)", variant="secondary")
-        btn_preset_5 = gr.Button("Scenario 5: Off-Hours Camera Boundary Violation (DENY)", variant="secondary")
-        btn_preset_6 = gr.Button("Scenario 6: 24/7 Sensor Baseline Telemetry (ALLOW)", variant="secondary")
+    with gr.Row(elem_classes=["preset-row"]):
+        btn_preset_1 = gr.Button("Scenario 1: Security Staff (ALLOW)", variant="secondary", elem_classes=["preset-btn"])
+        btn_preset_2 = gr.Button("Scenario 2: Unauthorized Identity (DENY)", variant="secondary", elem_classes=["preset-btn"])
+        btn_preset_3 = gr.Button("Scenario 3: Unicode RTLO Evasion (DENY)", variant="secondary", elem_classes=["preset-btn"])
+    with gr.Row(elem_classes=["preset-row"]):
+        btn_preset_4 = gr.Button("Scenario 4: Prompt Injection (DENY)", variant="secondary", elem_classes=["preset-btn"])
+        btn_preset_5 = gr.Button("Scenario 5: Off-Hours Boundary (DENY)", variant="secondary", elem_classes=["preset-btn"])
+        btn_preset_6 = gr.Button("Scenario 6: Sensor Baseline (ALLOW)", variant="secondary", elem_classes=["preset-btn"])
 
     with gr.Row():
         # Left Column: Inputs
