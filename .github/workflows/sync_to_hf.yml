@@ -15,18 +15,22 @@ jobs:
       - name: Push to Hugging Face Spaces
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
-          HF_USERNAME: ${{ vars.HF_USERNAME || 'ahmed-fouad-lagha' }}
-          HF_SPACE_NAME: ${{ vars.HF_SPACE_NAME || 'IoT-Access-Sentinel' }}
         run: |
           if [ -z "$HF_TOKEN" ]; then
             echo "::error::HF_TOKEN secret is missing! Please configure HF_TOKEN under GitHub Settings -> Secrets and variables -> Actions."
             exit 1
           fi
 
+          HF_USER="${{ vars.HF_USERNAME }}"
+          HF_USERNAME="${HF_USER:-ahmed-fouad-lagha}"
+          HF_SPACE="${{ vars.HF_SPACE_NAME }}"
+          HF_SPACE_NAME="${HF_SPACE:-IoT-Access-Sentinel}"
+
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
 
           # Create a clean deployment snapshot excluding historical bloated git objects and binary files
+          git branch -D hf-deploy 2>/dev/null || true
           git checkout --orphan hf-deploy
           git rm -rf assets/ 2>/dev/null || true
 
@@ -50,4 +54,6 @@ EOF
           git commit -m "deploy: sync to Hugging Face Spaces $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
 
           # Force push the clean snapshot to Hugging Face Spaces main branch
-          git push --force "https://${HF_USERNAME}:${HF_TOKEN}@huggingface.co/spaces/${HF_USERNAME}/${HF_SPACE_NAME}" hf-deploy:main
+          echo "Syncing snapshot to Hugging Face Spaces: ${HF_USERNAME}/${HF_SPACE_NAME}..."
+          git push -v --force "https://${HF_USERNAME}:${HF_TOKEN}@huggingface.co/spaces/${HF_USERNAME}/${HF_SPACE_NAME}" hf-deploy:main
+          echo "Deployment sync completed successfully!"
