@@ -1,0 +1,28 @@
+name: Sync to Hugging Face Hub
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  sync-to-hub:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          lfs: true
+
+      - name: Push to Hugging Face Spaces
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_USERNAME: ${{ vars.HF_USERNAME || 'ahmed-fouad-lagha' }}
+          HF_SPACE_NAME: ${{ vars.HF_SPACE_NAME || 'IoT-Access-Sentinel' }}
+        run: |
+          if [ -z "$HF_TOKEN" ]; then
+            echo "::error::HF_TOKEN secret is missing! Please configure HF_TOKEN under GitHub Settings -> Secrets and variables -> Actions."
+            exit 1
+          fi
+          git push --force "https://${HF_USERNAME}:${HF_TOKEN}@huggingface.co/spaces/${HF_USERNAME}/${HF_SPACE_NAME}" master:main

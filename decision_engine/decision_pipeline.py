@@ -47,7 +47,7 @@ class DecisionPipeline:
             settings: Application settings
         """
         self.settings = settings
-        self.llm_client = get_llm_client(settings)
+        self.llm_client = get_llm_client(settings, required=False)
         self.model = settings.llm_model
         self.provider = settings.llm_provider.lower()
         
@@ -70,7 +70,16 @@ class DecisionPipeline:
         # Load prompts
         self.prompts = self._load_prompts()
         
-        logger.info("decision_pipeline_initialized", num_policies=len(self.policies.get("policies", [])), model=self.model, provider=self.provider, rate_limit_enabled=self.rate_limit_enabled)
+        logger.info("decision_pipeline_initialized", num_policies=len(self.policies.get("policies", [])), model=self.model, provider=self.provider, rate_limit_enabled=self.rate_limit_enabled, has_llm=bool(self.llm_client))
+    
+    def set_llm_client(self, client, model: Optional[str] = None, provider: Optional[str] = None):
+        """Dynamically update LLM client (e.g. from UI key input)."""
+        self.llm_client = client
+        if model:
+            self.model = model
+        if provider:
+            self.provider = provider.lower()
+        logger.info("decision_pipeline_llm_updated", model=self.model, provider=self.provider, has_llm=bool(self.llm_client))
     
     def _load_policies(self) -> Dict[str, Any]:
         """Load access policies from YAML file"""
@@ -375,6 +384,15 @@ class DecisionPipeline:
         Returns:
             Context analysis dictionary
         """
+        if not self.llm_client:
+            rule_level = alert.rule.level or 5
+            risk_score = min(1.0, rule_level / 15.0)
+            return {
+                "risk_score": risk_score,
+                "anomalies_detected": [],
+                "context_summary": f"Context analysis (deterministic engine): device={alert.device_type}/{alert.device_id}, source={alert.source_ip}, user={alert.user_id}, rule_level={rule_level}."
+            }
+        
         context_prompt = self.prompts["context"].format(
             device_type=alert.device_type or 'Unknown',
             device_id=alert.device_id or 'Unknown',
@@ -420,6 +438,58 @@ class DecisionPipeline:
         Returns:
             Policy decision dictionary
         """
+        if not self.llm_client:
+            policy = self._get_policy(alert.device_type)
+            if not policy:
+                return {
+                    "action": "DENY",
+                    "confidence": 1.0,
+                    "reason": f"No policy defined for device type '{alert.device_type}' (Default Deny)",
+                    "policy_matched": "default_deny"
+                }
+            
+            # Check time policy
+            time_ok = True
+            time_msg = "Time check verified"
+            if policy.get('allowed_hours') and alert.timestamp:
+                time_ok, time_msg = self._check_time_policy(
+                    alert.timestamp, 
+                    policy.get('allowed_hours'), 
+                    policy.get('allowed_days')
+                )
+            
+            # Check network policy
+            net_ok = True
+            net_msg = "Network CIDR verified"
+            if policy.get('allowed_source_networks') and alert.source_ip:
+                net_ok, net_msg = self._check_network_policy(
+                    alert.source_ip, 
+                    policy.get('allowed_source_networks')
+                )
+            
+            if not time_ok:
+                return {
+                    "action": "DENY",
+                    "confidence": 0.95,
+                    "reason": f"Zero-Trust Policy Violation: {time_msg}",
+                    "policy_matched": f"{alert.device_type}_time_policy"
+                }
+            
+            if not net_ok:
+                return {
+                    "action": "DENY",
+                    "confidence": 0.95,
+                    "reason": f"Zero-Trust Policy Violation: {net_msg}",
+                    "policy_matched": f"{alert.device_type}_network_policy"
+                }
+                
+            return {
+                "action": "ALLOW",
+                "confidence": 0.95,
+                "reason": f"Zero-Trust Policy Verified: Authorized user '{alert.user_id}' permitted to access {alert.device_id} within business schedule and network subnet.",
+                "policy_matched": f"{alert.device_type}_policy"
+            }
+
         # Format policies for the agent
         policies_text = yaml.dump(self.policies, default_flow_style=False)
         

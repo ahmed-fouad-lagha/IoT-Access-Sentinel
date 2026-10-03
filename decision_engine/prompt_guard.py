@@ -173,15 +173,16 @@ async def scan_alert(
         all_violations.extend(violations)
 
     # --- Layer 2: ML scan (parallel async calls to guard model) ---
-    ml_tasks = [
-        _ml_scan_field(client, str(alert_fields.get(f, "")), f, threshold)
-        for f in _FIELDS_FOR_ML_SCAN
-        if alert_fields.get(f)
-    ]
-    ml_results = await asyncio.gather(*ml_tasks)
-    for result in ml_results:
-        if result is not None:
-            all_violations.append(result)
+    if client is not None:
+        ml_tasks = [
+            _ml_scan_field(client, str(alert_fields.get(f, "")), f, threshold)
+            for f in _FIELDS_FOR_ML_SCAN
+            if alert_fields.get(f)
+        ]
+        ml_results = await asyncio.gather(*ml_tasks)
+        for result in ml_results:
+            if result is not None:
+                all_violations.append(result)
 
     is_injection = len(all_violations) > 0
 

@@ -4,6 +4,7 @@ emoji: 🛡️
 colorFrom: blue
 colorTo: indigo
 sdk: gradio
+sdk_version: 6.29.1
 app_file: app.py
 pinned: false
 ---
@@ -78,57 +79,59 @@ graph TD
 ```
 
 ### 1. Layer 0: Deterministic Validation (Fast Path)
-* **Input Sanitization**: Normalizes inputs using `unicodedata.normalize('NFKC')` and strips directional overrides (`\u202A`–`\u202E`), Bidi isolates (`\u2066`–`\u2069`), and zero-width spaces to protect against Unicode homoglyph and right-to-left override evasion attacks. Implemented in [validation.py](file:///home/lagha/PhD/projects/IoT-Access-Sentinel/common/validation.py).
-* **Token Validation**: Cryptographically verifies JWT signatures, checks expiration, and validates that the token subject matches the identity requesting access. Implemented in [user_auth_validator.py](file:///home/lagha/PhD/projects/IoT-Access-Sentinel/decision_engine/validators/user_auth_validator.py).
+* **Input Sanitization**: Normalizes inputs using `unicodedata.normalize('NFKC')` and strips directional overrides (`\u202A`–`\u202E`), Bidi isolates (`\u2066`–`\u2069`), and zero-width spaces to protect against Unicode homoglyph and right-to-left override evasion attacks. Implemented in [validation.py](common/validation.py).
+* **Token Validation**: Cryptographically verifies JWT signatures, checks expiration, and validates that the token subject matches the identity requesting access. Implemented in [user_auth_validator.py](decision_engine/validators/user_auth_validator.py).
 * **Rule Engine**: Evaluates standard static constraints (IP network CIDR allowlists and day/time schedules) in Python. If credentials are missing, expired, or mismatch the ACL, the request is immediately blocked (Fast-Path DENY in **~1ms**).
 
 ### 2. Layer 1: Multi-Agent Generative Reasoning (Slow Path)
 If deterministic checks pass but semantic ambiguity remains (e.g., unusual but auth-valid camera requests), the request moves to Layer 1 (**~150ms**):
-* **Context Agent**: Aggregates metadata to build a structured context report and risk assessment. Implemented in [context_agent.py](file:///home/lagha/PhD/projects/IoT-Access-Sentinel/decision_engine/agents/context_agent.py).
-* **Policy Agent**: Benchmarks the Context Agent's summary against the natural-language style policy using Zero-Trust reasoning and generates a structured decision (ALLOW/DENY) along with a **Verbalized Semantic Confidence** score. Implemented in [policy_agent.py](file:///home/lagha/PhD/projects/IoT-Access-Sentinel/decision_engine/agents/policy_agent.py).
-* **Semantic Caching**: SHA-256 hashes of serialized context keys map requests to cached decisions (TTL: 1 hour), allowing repeated semantic queries to bypass the LLM and execute in sub-millisecond times. Managed in [decision_pipeline.py](file:///home/lagha/PhD/projects/IoT-Access-Sentinel/decision_engine/decision_pipeline.py).
+* **Context Agent**: Aggregates metadata to build a structured context report and risk assessment. Implemented in [context_agent.py](decision_engine/agents/context_agent.py).
+* **Policy Agent**: Benchmarks the Context Agent's summary against the natural-language style policy using Zero-Trust reasoning and generates a structured decision (ALLOW/DENY) along with a **Verbalized Semantic Confidence** score. Implemented in [policy_agent.py](decision_engine/agents/policy_agent.py).
+* **Semantic Caching**: SHA-256 hashes of serialized context keys map requests to cached decisions (TTL: 1 hour), allowing repeated semantic queries to bypass the LLM and execute in sub-millisecond times. Managed in [decision_pipeline.py](decision_engine/decision_pipeline.py).
 * **Fail-Secure Default**: If the LLM client encounters rate limits, API outages, or latency exceeding the timeout budget (150ms), the system defaults to a fail-secure **DENY** status to prioritize security over availability.
 
 ### 3. Enforcement Layer
-When a connection is denied, the system triggers the **Enforcer** (implemented in [actions.py](file:///home/lagha/PhD/projects/IoT-Access-Sentinel/enforcer/actions.py)). Sentinel submits a command via the Wazuh REST API to invoke a local firewall drop (`firewall-drop`) on the corresponding device's Wazuh agent, blocking the source IP dynamically (default duration: 1 hour).
+When a connection is denied, the system triggers the **Enforcer** (implemented in [actions.py](enforcer/actions.py)). Sentinel submits a command via the Wazuh REST API to invoke a local firewall drop (`firewall-drop`) on the corresponding device's Wazuh agent, blocking the source IP dynamically (default duration: 1 hour).
 
 ## Project Structure
 
-* [main.py](file:///home/lagha/PhD/projects/IoT-Access-Sentinel/main.py) — FastAPI server & Webhook handler
-* [Dockerfile](file:///home/lagha/PhD/projects/IoT-Access-Sentinel/Dockerfile) — Production container builder
-* [docker-compose.yml](file:///home/lagha/PhD/projects/IoT-Access-Sentinel/docker-compose.yml) — Wazuh + Sentinel local service orchestration
-* [requirements.txt](file:///home/lagha/PhD/projects/IoT-Access-Sentinel/requirements.txt) — Python environment dependencies
-* [common/](file:///home/lagha/PhD/projects/IoT-Access-Sentinel/common/) — Shared cross-cutting modules
-  * [validation.py](file:///home/lagha/PhD/projects/IoT-Access-Sentinel/common/validation.py) — Layer 0 Unicode normalization & regex sanitization
-  * [metrics.py](file:///home/lagha/PhD/projects/IoT-Access-Sentinel/common/metrics.py) — Prometheus metric registration & collection
-  * [rate_limit.py](file:///home/lagha/PhD/projects/IoT-Access-Sentinel/common/rate_limit.py) — Sliding window API rate limiter
-  * [tracer.py](file:///home/lagha/PhD/projects/IoT-Access-Sentinel/common/tracer.py) — Trace recording & activity history
-* [config/](file:///home/lagha/PhD/projects/IoT-Access-Sentinel/config/) — Configuration definitions
-  * [settings.py](file:///home/lagha/PhD/projects/IoT-Access-Sentinel/config/settings.py) — Pydantic Settings integration for environment variables
-  * [access_policies.yaml](file:///home/lagha/PhD/projects/IoT-Access-Sentinel/config/access_policies.yaml) — Natural-language-style security policy declarations
-* [decision_engine/](file:///home/lagha/PhD/projects/IoT-Access-Sentinel/decision_engine/) — Deciding core
-  * [decision_pipeline.py](file:///home/lagha/PhD/projects/IoT-Access-Sentinel/decision_engine/decision_pipeline.py) — Hybrid orchestrator (Fast Path vs LLM routing)
-  * [llm_client.py](file:///home/lagha/PhD/projects/IoT-Access-Sentinel/decision_engine/llm_client.py) — Thread-safe LLM client interface (Groq/Gemini/OpenAI)
-  * [agents/](file:///home/lagha/PhD/projects/IoT-Access-Sentinel/decision_engine/agents/) — Multi-agent LLM wrappers
-    * [context_agent.py](file:///home/lagha/PhD/projects/IoT-Access-Sentinel/decision_engine/agents/context_agent.py) — Situation reporter Agent
-    * [policy_agent.py](file:///home/lagha/PhD/projects/IoT-Access-Sentinel/decision_engine/agents/policy_agent.py) — Access Policy assessor Agent
-  * [validators/](file:///home/lagha/PhD/projects/IoT-Access-Sentinel/decision_engine/validators/)
-    * [user_auth_validator.py](file:///home/lagha/PhD/projects/IoT-Access-Sentinel/decision_engine/validators/user_auth_validator.py) — Deterministic User-Device ACL & JWT validator
-* [enforcer/](file:///home/lagha/PhD/projects/IoT-Access-Sentinel/enforcer/) — Action executors
-  * [actions.py](file:///home/lagha/PhD/projects/IoT-Access-Sentinel/enforcer/actions.py) — Wazuh Active Response API client
-  * [iptables_blocker.py](file:///home/lagha/PhD/projects/IoT-Access-Sentinel/enforcer/iptables_blocker.py) — Local host-level firewall drop wrapper
-* [observer/](file:///home/lagha/PhD/projects/IoT-Access-Sentinel/observer/) — SIEM monitoring and connectors
-  * [wazuh_connector.py](file:///home/lagha/PhD/projects/IoT-Access-Sentinel/observer/wazuh_connector.py) — REST client for Wazuh Manager configuration
-  * [models.py](file:///home/lagha/PhD/projects/IoT-Access-Sentinel/observer/models.py) — Pydantic models for incoming Wazuh alerts
-* [evaluation/](file:///home/lagha/PhD/projects/IoT-Access-Sentinel/evaluation/) — Test suites and benchmarks
-  * [run_tests.sh](file:///home/lagha/PhD/projects/IoT-Access-Sentinel/evaluation/run_tests.sh) — E2E test suite bash runner
+* [app.py](app.py) — Interactive Hugging Face Spaces Gradio Demo
+* [main.py](main.py) — FastAPI server & Webhook handler
+* [Dockerfile](Dockerfile) — Production container builder
+* [docker-compose.yml](docker-compose.yml) — Wazuh + Sentinel local service orchestration
+* [requirements.txt](requirements.txt) — Python environment dependencies
+* [common/](common/) — Shared cross-cutting modules
+  * [validation.py](common/validation.py) — Layer 0 Unicode normalization & regex sanitization
+  * [metrics.py](common/metrics.py) — Prometheus metric registration & collection
+  * [rate_limit.py](common/rate_limit.py) — Sliding window API rate limiter
+  * [tracer.py](common/tracer.py) — Trace recording & activity history
+* [config/](config/) — Configuration definitions
+  * [settings.py](config/settings.py) — Pydantic Settings integration for environment variables
+  * [access_policies.yaml](config/access_policies.yaml) — Natural-language-style security policy declarations
+* [decision_engine/](decision_engine/) — Deciding core
+  * [decision_pipeline.py](decision_engine/decision_pipeline.py) — Hybrid orchestrator (Fast Path vs LLM routing)
+  * [llm_client.py](decision_engine/llm_client.py) — Thread-safe LLM client interface (Groq/Gemini/OpenAI)
+  * [prompt_guard.py](decision_engine/prompt_guard.py) — Two-layer injection scanner (Deterministic regex + ML guard)
+  * [agents/](decision_engine/agents/) — Multi-agent LLM wrappers
+    * [context_agent.py](decision_engine/agents/context_agent.py) — Situation reporter Agent
+    * [policy_agent.py](decision_engine/agents/policy_agent.py) — Access Policy assessor Agent
+  * [validators/](decision_engine/validators/)
+    * [user_auth_validator.py](decision_engine/validators/user_auth_validator.py) — Deterministic User-Device ACL & JWT validator
+* [enforcer/](enforcer/) — Action executors
+  * [actions.py](enforcer/actions.py) — Wazuh Active Response API client
+  * [iptables_blocker.py](enforcer/iptables_blocker.py) — Local host-level firewall drop wrapper
+* [observer/](observer/) — SIEM monitoring and connectors
+  * [wazuh_connector.py](observer/wazuh_connector.py) — REST client for Wazuh Manager configuration
+  * [models.py](observer/models.py) — Pydantic models for incoming Wazuh alerts
+* [evaluation/](evaluation/) — Test suites and benchmarks
+  * [run_tests.sh](evaluation/run_tests.sh) — E2E test suite bash runner
 
 ## Quick Start & Deployment
 
 Deploy the entire stack (Wazuh Manager, Indexer, Dashboard, and the Sentinel API Engine) with a single command.
 
 ### 1. Environment Configuration
-Create a `.env` file in the root directory (based on [.env.example](file:///home/lagha/PhD/projects/IoT-Access-Sentinel/.env.example)):
+Create a `.env` file in the root directory (based on [.env.example](.env.example)):
 
 ```bash
 # Wazuh Credentials
@@ -298,5 +301,14 @@ sentinel_latency_seconds_bucket{le="0.1"} 140
 sentinel_latency_seconds_bucket{le="0.5"} 204
 ```
 
+## Hugging Face Spaces Interactive Demo
+The interactive demo can be hosted directly on **Hugging Face Spaces** using the Gradio SDK:
+* **Demo File**: [`app.py`](app.py)
+* **SDK**: Gradio (`sdk: gradio`)
+* **Hardware**: CPU Basic (2 vCPU, 16GB RAM) — free tier is fully sufficient.
+* **Secrets (Optional for live LLM)**:
+  * Add `GROQ_API_KEY` (recommended for fast free inference) or `OPENAI_API_KEY` in Space **Settings → Variables and secrets → New secret**.
+  * If no secret is configured, the Space automatically operates in **Zero-Trust Deterministic & Policy Engine Mode**, executing all Layer 0 fast-path validations and Prompt Guard checks in sub-millisecond times.
+
 ## License
-Licensed under the Apache License, Version 2.0. See [LICENSE](file:///home/lagha/PhD/projects/IoT-Access-Sentinel/LICENSE) for more information.
+Licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE) for more information.
